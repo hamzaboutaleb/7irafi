@@ -2,12 +2,14 @@ version: '3.8'
 
 services:
   frontend:
+    container_name: frontend-dev
+    image: frontend-dev:latest
     build:
       context: ../..
-      dockerfile: infra/docker/dockerfiles/angular.dev.Dockerfile
+      dockerfile: infra/docker/frontend/dockerfiles/angular.dev.Dockerfile
     ports:
       - "4200:4200"
     volumes:
       - ../../frontend:/app
       - /app/node_modules
-      - ./config/dev.config.json:/app/src/assets/config.json
+      - ./frontend/config/dev.config.json:/app/public/assets/config.json
