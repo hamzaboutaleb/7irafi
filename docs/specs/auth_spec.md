@@ -495,6 +495,41 @@ to coordinate with a central source to know the last ID and avoid duplicates.
 This creates a bottleneck and a single point of failure.
 With UUID, any replica generates a globally unique ID instantly without coordination.
 
+### Code-Based RBAC vs Database-Based RBAC
+
+**Decision: Code-based RBAC (Spring Security annotations)**
+
+**Code-based RBAC** hardcodes role rules directly in the service layer
+using Spring Security annotations:
+
+```java
+@PreAuthorize("hasRole('ADMIN')")
+public ResponseEntity<?> getUsers() { ... }
+```
+
+Role is read directly from the JWT payload — no DB lookup, no extra tables.
+Simple, fast, and Spring Security handles it natively.
+
+Drawback: role rules are scattered across the codebase and require
+a redeploy to change.
+
+---
+
+**Database-based RBAC** stores roles and permissions in dedicated tables
+(roles, permissions, role_permissions). Every request hits the DB to check
+if the user's role has the required permission. Highly flexible — permissions
+can be changed at runtime without redeploying.
+
+Drawback: adds DB lookups on every request, extra tables, and significant
+implementation complexity. Only justified when permissions are dynamic
+and managed at runtime by non-developers (e.g. admin panel).
+
+---
+
+With only two fixed roles (USER and ADMIN), database-based RBAC is
+overkill. Code-based is the right choice now — migration to DB-based
+is straightforward if roles grow in the future.
+
 ### Token Bucket vs Other Rate Limiting Algorithms
 
 **Rejected: Fixed Window**
