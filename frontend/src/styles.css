@@ -1,5 +1,16 @@
 @import 'tailwindcss';
 
 @theme {
-  --font-sans: 'Inter', sans-serif;
+  --font-sans: 'Plus Jakarta Sans', sans-serif;
+
+  --color-primary-50:  #e6f7f7;
+  --color-primary-100: #b3e8e7;
+  --color-primary-200: #80d9d8;
+  --color-primary-300: #4dcac8;
+  --color-primary-400: #26bbb9;
+  --color-primary-500: #00AEAA;
+  --color-primary-600: #009995;
+  --color-primary-700: #007f7b;
+  --color-primary-800: #006663;
+  --color-primary-900: #004c4a;
 }
