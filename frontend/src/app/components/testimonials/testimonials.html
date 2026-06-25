@@ -1,19 +1,26 @@
-<section class="py-16">
+<section class="py-16 bg-gray-50">
   <div class="max-w-7xl mx-auto px-8">
-    <h2 class="text-3xl font-bold text-gray-900 text-center mb-10">What people say</h2>
+    <div class="flex flex-col items-center mb-12">
+      <span class="bg-primary-50 text-primary-600 text-sm font-medium px-4 py-1 rounded-full mb-4">Testimonials</span>
+      <h2 class="text-4xl font-bold text-gray-900 text-center">What people say</h2>
+      <p class="mt-3 text-sm text-gray-500 text-center max-w-xl">Thousands of clients and professionals trust 7irafy every day.</p>
+    </div>
     <div class="grid grid-cols-3 gap-8">
       @for (testimonial of testimonials(); track testimonial.name) {
-        <div class="bg-white p-6 rounded-xl shadow-sm">
-          <div class="flex mb-3">
-            @for (star of getStars(testimonial.rating); track star) {
-              <svg [lucideIcon]="StarIcon" class="w-4 h-4 text-yellow-400 fill-yellow-400" />
-            }
+        <div class="bg-white p-6 rounded-2xl border border-gray-100 hover:border-primary-200 hover:shadow-md transition-all duration-200">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex">
+              @for (star of getStars(testimonial.rating); track star) {
+                <svg [lucideIcon]="StarIcon" class="w-4 h-4 text-yellow-400 fill-yellow-400" />
+              }
+            </div>
+            <span class="text-xs font-medium px-3 py-1 rounded-full"
+              [class]="testimonial.role === 'Client' ? 'bg-primary-50 text-primary-600' : 'bg-secondary-50 text-secondary-600'">
+              {{ testimonial.role }}
+            </span>
           </div>
-          <p class="text-gray-600 mb-4">"{{ testimonial.text }}"</p>
-          <div>
-            <p class="font-semibold text-gray-900">{{ testimonial.name }}</p>
-            <p class="text-sm text-gray-500">{{ testimonial.role }}</p>
-          </div>
+          <p class="text-gray-600 mb-6">"{{ testimonial.text }}"</p>
+          <p class="font-semibold text-gray-900">{{ testimonial.name }}</p>
         </div>
       }
     </div>
