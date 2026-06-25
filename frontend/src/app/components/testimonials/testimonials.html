@@ -1,0 +1,21 @@
+<section class="py-16">
+  <div class="max-w-7xl mx-auto px-8">
+    <h2 class="text-3xl font-bold text-gray-900 text-center mb-10">What people say</h2>
+    <div class="grid grid-cols-3 gap-8">
+      @for (testimonial of testimonials(); track testimonial.name) {
+        <div class="bg-white p-6 rounded-xl shadow-sm">
+          <div class="flex mb-3">
+            @for (star of getStars(testimonial.rating); track star) {
+              <svg [lucideIcon]="StarIcon" class="w-4 h-4 text-yellow-400 fill-yellow-400" />
+            }
+          </div>
+          <p class="text-gray-600 mb-4">"{{ testimonial.text }}"</p>
+          <div>
+            <p class="font-semibold text-gray-900">{{ testimonial.name }}</p>
+            <p class="text-sm text-gray-500">{{ testimonial.role }}</p>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>
