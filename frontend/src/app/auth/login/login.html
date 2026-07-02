@@ -1,0 +1,33 @@
+<div class="page">
+  <div class="card">
+    <h1>Welcome back</h1>
+
+    @if (error()) {
+      <div class="alert">{{ error() }}</div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" type="email" formControlName="email" placeholder="you@example.com" />
+        @if (form.get('email')?.touched && form.get('email')?.invalid) {
+          <span class="hint">Valid email required</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" type="password" formControlName="password" placeholder="Your password" />
+        @if (form.get('password')?.touched && form.get('password')?.invalid) {
+          <span class="hint">Required</span>
+        }
+      </div>
+
+      <button type="submit" [disabled]="loading()">
+        {{ loading() ? 'Logging in…' : 'Log in' }}
+      </button>
+    </form>
+
+    <p class="footer">No account? <a routerLink="/register">Register</a></p>
+  </div>
+</div>

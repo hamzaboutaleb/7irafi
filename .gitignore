@@ -1,0 +1,13 @@
+# Build artifacts
+target/
+!**/src/main/**/target/
+!**/src/test/**/target/
+node_modules/
+
+# IDEs and editors
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
