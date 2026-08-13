@@ -4,7 +4,7 @@
 
 Goal: prove the protected browser → API gateway → user-service flow end to end.
 
-- [ ] Move the API base URL out of `AuthService` and into Angular environment configuration.
+- [X] Move the API base URL out of `AuthService` and into Angular environment configuration.
 - [ ] Add an HTTP interceptor that sends `Authorization: Bearer <access-token>` to protected API routes.
 - [ ] Add an authentication guard and protect the `/dashboard` route.
 - [ ] Redirect unauthenticated users to `/login`.

@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { tap } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 interface RegisterRequest {
   email: string;
@@ -18,7 +19,7 @@ interface AuthResponse {
   accessToken: string;
 }
 
-const API = 'http://localhost:8080';
+const API = environment.apiBaseUrl;
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
