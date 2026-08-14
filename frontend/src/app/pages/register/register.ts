@@ -50,7 +50,7 @@ export class Register {
       .subscribe({
         next: (response) => {
           this.authService.saveToken(response.accessToken);
-          this.router.navigate(['/home']);
+          this.router.navigate(['/']);
         },
         error: (err: HttpErrorResponse) => {
           const body = err.error as ApiError | undefined;
