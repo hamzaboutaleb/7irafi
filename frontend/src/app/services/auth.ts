@@ -1,18 +1,24 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { ApiSuccess } from '../types/api.js';
-import { User } from '../types/user.js';
 
-export interface AuthData {
+export interface AuthUser {
+  id: string;
+  email: string;
+  role: string;
+}
+
+export interface AuthResponse {
   accessToken: string;
-  user: User;
+  tokenType: string;
+  expiresIn: number;
+  user: AuthUser;
 }
 
 export interface RegisterRequest {
   firstName: string;
   lastName: string;
-  password: string;
   email: string;
+  password: string;
 }
 
 @Injectable({
@@ -22,11 +28,11 @@ export class AuthService {
   private http = inject(HttpClient);
 
   login(email: string, password: string) {
-    return this.http.post<ApiSuccess<AuthData>>('auth/login', { email, password });
+    return this.http.post<AuthResponse>('auth/login', { email, password });
   }
 
   register(registerRequest: RegisterRequest) {
-    return this.http.post<ApiSuccess<AuthData>>('auth/register', registerRequest);
+    return this.http.post<AuthResponse>('auth/register', registerRequest);
   }
 
   saveToken(token: string) {

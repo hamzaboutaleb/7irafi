@@ -41,7 +41,7 @@ export class Login {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
-          this.authService.saveToken(response.data.accessToken);
+          this.authService.saveToken(response.accessToken);
           this.router.navigate(['/home']);
         },
         error: (err: HttpErrorResponse) => {
