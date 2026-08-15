@@ -20,10 +20,10 @@ export class Register {
 
   form = this.fb.group(
     {
-      firstName: ['', [Validators.required, Validators.maxLength(50)]],
-      lastName: ['', [Validators.required, Validators.maxLength(50)]],
-      email: ['', [Validators.required, Validators.maxLength(50), Validators.email]],
-      password: ['', [Validators.required, Validators.maxLength(50), Validators.minLength(3)]],
+      firstName: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]],
+      lastName: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]],
+      email: ['', [Validators.required, Validators.email, Validators.maxLength(255)]],
+      password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(128)]],
     },
     { updateOn: 'blur' },
   );
@@ -54,9 +54,7 @@ export class Register {
         },
         error: (err: HttpErrorResponse) => {
           const body = err.error as ApiError | undefined;
-          this.errorMessage.set(
-            body?.error?.message ?? 'Registration failed. Please try again.',
-          );
+          this.errorMessage.set(body?.error?.message ?? 'Registration failed. Please try again.');
         },
       });
   }
