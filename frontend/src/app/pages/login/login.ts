@@ -25,14 +25,15 @@ export class Login {
 
   form = this.fb.group(
     {
-      email: ['', [Validators.email, Validators.required, Validators.maxLength(50)]],
-      password: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]],
+      email: ['', [Validators.required, Validators.email, Validators.maxLength(255)]],
+      password: ['', [Validators.required, Validators.maxLength(128)]],
     },
     { updateOn: 'blur' },
   );
 
   login() {
     if (this.form.invalid) {
+      this.form.markAllAsTouched();
       return;
     }
     this.errorMessage.set(null);
@@ -45,8 +46,8 @@ export class Login {
           this.router.navigate(['/']);
         },
         error: (err: HttpErrorResponse) => {
-          const body = err.error as ApiError;
-          this.errorMessage.set(body.error.message);
+          const body = err.error as ApiError | undefined;
+          this.errorMessage.set(body?.error?.message ?? 'Login failed. Please try again.');
         },
       });
   }
