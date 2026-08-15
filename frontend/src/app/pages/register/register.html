@@ -39,7 +39,16 @@
                 <div class="text-red-500 text-xs mt-1">First name is required.</div>
               }
               @if (firstName.errors?.['maxlength']) {
-                <div class="text-red-500 text-xs mt-1">Too long.</div>
+                <div class="text-red-500 text-xs mt-1">
+                  First name must be at most
+                  {{ firstName.errors?.['maxlength'].requiredLength }} characters long.
+                </div>
+              }
+              @if (firstName.errors?.['minlength']) {
+                <div class="text-red-500 text-xs mt-1">
+                  First name must be at least
+                  {{ firstName.errors?.['minlength'].requiredLength }} characters long.
+                </div>
               }
             }
           </div>
@@ -56,8 +65,17 @@
               @if (lastName.errors?.['required']) {
                 <div class="text-red-500 text-xs mt-1">Last name is required.</div>
               }
+              @if (lastName.errors?.['minlength']) {
+                <div class="text-red-500 text-xs mt-1">
+                  Last name must be at least
+                  {{ lastName.errors?.['minlength'].requiredLength }} characters long.
+                </div>
+              }
               @if (lastName.errors?.['maxlength']) {
-                <div class="text-red-500 text-xs mt-1">Too long.</div>
+                <div class="text-red-500 text-xs mt-1">
+                  Last name must be at most
+                  {{ lastName.errors?.['maxlength'].requiredLength }} characters long.
+                </div>
               }
             }
           </div>
