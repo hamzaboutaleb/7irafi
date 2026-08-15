@@ -7,17 +7,17 @@ Goal: prove registration, login, and the protected browser → API gateway → u
 - [x] Merge the frontend UI foundation while preserving the teammate's Git history.
 - [x] Route development API requests through the gateway at `http://localhost:8080`.
 - [x] Start the complete Compose stack and verify all backend health endpoints return `UP`.
-- [ ] Align the frontend authentication response type with the backend's direct `AuthResponse` shape.
-- [ ] Update login to read and save `response.accessToken` and display API errors safely.
-- [ ] Implement the currently empty registration handler, save its token, and navigate to `/home`.
-- [ ] Match frontend validation to backend rules: passwords of 8–128 characters and names of 3–50 characters.
+- [x] Align the frontend authentication response type with the backend's direct `AuthResponse` shape.
+- [x] Update login to read and save `response.accessToken` and display API errors safely.
+- [x] Implement registration, save its token, navigate to `/home`, and verify registration and login in the browser.
+- [x] Make landing-page authentication controls state-aware: route guests to Login/Sign up and show Logout when authenticated.
+- [x] Match frontend registration and login validation to the backend's name, email, and password rules.
 - [ ] Add an HTTP interceptor that sends `Authorization: Bearer <access-token>` to protected API routes.
 - [x] Add authentication and guest guards, protect `/home`, and redirect unauthenticated users to `/login`.
 - [x] Add basic `401` handling that clears the local token and redirects to `/login`.
 - [ ] Add `GET /users/me` to the frontend API service.
 - [ ] Replace the `/home` placeholder with the authenticated user's profile.
 - [ ] Add profile editing through `PUT /users/me` with validation and error states.
-- [ ] Add a visible logout action that clears the local access token and redirects to `/login`.
 - [ ] Handle expired or rejected access tokens consistently.
 - [ ] Add Vitest coverage for the auth service, interceptor, guards, registration, login, and profile behavior.
 - [ ] Verify registration, login, profile loading, profile updating, and logout through Docker Compose.

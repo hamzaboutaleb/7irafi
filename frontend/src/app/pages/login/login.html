@@ -18,7 +18,7 @@
       <h1 class="text-3xl font-bold text-gray-900">Welcome back</h1>
       <p class="text-gray-500 mt-2">Sign in to your account to continue</p>
 
-      <form [formGroup]="form" (submit)="login()">
+      <form [formGroup]="form" (ngSubmit)="login()">
         @if (errorMessage()) {
           <div class="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl mt-6">
             {{ errorMessage() }}
@@ -62,12 +62,6 @@
           @if (password.invalid && (password.dirty || password.touched)) {
             @if (password.errors?.['required']) {
               <div class="text-red-500 text-xs mt-1">Passwords required.</div>
-            }
-            @if (password.errors?.['minlength']) {
-              <div class="text-red-500 text-xs mt-1">
-                Password must be at least
-                {{ password.errors?.['minlength'].requiredLength }} characters long.
-              </div>
             }
             @if (password.errors?.['maxlength']) {
               <div class="text-red-500 text-xs mt-1">
