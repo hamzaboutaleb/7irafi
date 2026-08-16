@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { Landing } from './pages/landing/landing';
 import { Login } from './pages/login/login.js';
-import { Home } from './pages/home/home.js';
+import { Dashboard } from './pages/dashboard/dashboard.js';
 import { authGuard } from './guards/auth-guard.js';
 import { guestGuard } from './guards/guest-guard.js';
 import { Register } from './pages/register/register.js';
@@ -14,8 +14,8 @@ export const routes: Routes = [
     canActivate: [guestGuard],
   },
   {
-    path: 'home',
-    component: Home,
+    path: 'dashboard',
+    component: Dashboard,
     canActivate: [authGuard],
   },
   {
