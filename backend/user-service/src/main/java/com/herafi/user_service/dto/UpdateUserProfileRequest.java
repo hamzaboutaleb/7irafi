@@ -5,11 +5,11 @@ import jakarta.validation.constraints.Size;
 
 public record UpdateUserProfileRequest(
         @NotBlank
-        @Size(max = 50)
+        @Size(min = 3, max = 50)
         String firstName,
 
         @NotBlank
-        @Size(max = 50)
+        @Size(min = 3, max = 50)
         String lastName
 ) {
 }
