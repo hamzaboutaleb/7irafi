@@ -36,4 +36,15 @@ public class GatewayRoutesConfig {
                 .before(uri(userServiceUrl))
                 .build();
     }
+
+    @Bean
+    RouterFunction<ServerResponse> jobServicRoute(
+            @Value("${services.job-service.url}") String jobServiceUrl,
+            @Value("${gateway.shared-secret}") String gatewaySharedSecret) {
+        return route("job-service")
+                .route(path("/jobs/**"), http())
+                .before(addAuthenticatedIdentity(gatewaySharedSecret))
+                .before(uri(jobServiceUrl))
+                .build();
+    }
 }
