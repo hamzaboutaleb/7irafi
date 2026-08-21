@@ -69,6 +69,32 @@ services:
       timeout: 5s
       retries: 20
 
+  job-service:
+    container_name: job-service-dev
+    build:
+      context: ../../backend/job-service
+      dockerfile: Dockerfile
+    environment:
+      SERVER_PORT: 8083
+      DB_URL: jdbc:postgresql://postgres:5432/job_db
+      DB_USERNAME: herafi
+      DB_PASSWORD: herafi
+      SHOW_SQL: "true"
+      GATEWAY_SHARED_SECRET: 7irafi-development-gateway-key
+      # INTERNAL_API_KEY: 7irafi-development-internal-key
+    ports:
+      - "8083:8083"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      # auth-service:
+      #   condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8083/actuator/health | grep -q UP"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
   api-gateway:
     container_name: api-gateway-dev
     build:
@@ -78,6 +104,7 @@ services:
       SERVER_PORT: 8080
       AUTH_SERVICE_URL: http://auth-service:8081
       USER_SERVICE_URL: http://user-service:8082
+      JOB_SERVICE_URL: http://job-service:8083
       JWT_SECRET: 7irafi-development-jwt-secret-change-me-2026
       JWT_ISSUER: 7irafi-auth-service
       GATEWAY_SHARED_SECRET: 7irafi-development-gateway-key
