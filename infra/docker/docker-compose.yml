@@ -29,6 +29,7 @@ services:
       DB_PASSWORD: herafi
       SHOW_SQL: "true"
       USER_SERVICE_URL: http://user-service:8082
+      DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka/
       INTERNAL_API_KEY: 7irafi-development-internal-key
       JWT_SECRET: 7irafi-development-jwt-secret-change-me-2026
       JWT_ISSUER: 7irafi-auth-service
@@ -36,6 +37,8 @@ services:
       - "8081:8081"
     depends_on:
       postgres:
+        condition: service_healthy
+      discovery-service:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health | grep -q UP"]
@@ -101,6 +104,21 @@ services:
     volumes:
       - ../../frontend:/app
       - /app/node_modules
+
+  discovery-service:
+    container_name: discovery-service-dev
+    build:
+      context: ../../backend/discovery-service
+      dockerfile: Dockerfile
+    environment:
+      SERVER_PORT: 8761
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8761/actuator/health | grep -q UP"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    ports:
+      - "8761:8761"
 
 volumes:
   postgres-data:
