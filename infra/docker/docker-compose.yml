@@ -18,7 +18,6 @@ services:
       retries: 10
 
   auth-service:
-    container_name: auth-service-dev
     build:
       context: ../../backend/auth-service
       dockerfile: Dockerfile
@@ -32,8 +31,6 @@ services:
       INTERNAL_API_KEY: 7irafi-development-internal-key
       JWT_SECRET: 7irafi-development-jwt-secret-change-me-2026
       JWT_ISSUER: 7irafi-auth-service
-    ports:
-      - "8081:8081"
     depends_on:
       postgres:
         condition: service_healthy
@@ -46,7 +43,6 @@ services:
       retries: 20
 
   user-service:
-    container_name: user-service-dev
     build:
       context: ../../backend/user-service
       dockerfile: Dockerfile
@@ -59,8 +55,6 @@ services:
       SHOW_SQL: "true"
       GATEWAY_SHARED_SECRET: 7irafi-development-gateway-key
       INTERNAL_API_KEY: 7irafi-development-internal-key
-    ports:
-      - "8082:8082"
     depends_on:
       postgres:
         condition: service_healthy
