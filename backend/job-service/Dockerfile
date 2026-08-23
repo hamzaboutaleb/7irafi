@@ -8,4 +8,4 @@ COPY src src
 RUN mvn -q -DskipTests package
 
 EXPOSE 8083
-ENTRYPOINT ["java", "-jar", "target/job-service-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["java", "-jar", "target/job-service-1.0.0.jar"]
