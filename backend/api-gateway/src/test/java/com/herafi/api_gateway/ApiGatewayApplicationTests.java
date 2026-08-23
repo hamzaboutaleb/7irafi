@@ -8,8 +8,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 		"security.jwt.issuer=7irafi-auth-service-test",
 		"gateway.shared-secret=test-gateway-key",
 		"gateway.cors.allowed-origin=http://localhost:4200",
-		"services.auth-service.url=http://localhost:8081",
-		"services.user-service.url=http://localhost:8082"
 })
 class ApiGatewayApplicationTests {
 
