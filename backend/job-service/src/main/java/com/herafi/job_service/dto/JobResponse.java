@@ -43,4 +43,6 @@ public record JobResponse(
                                 job.getCreatedAt(),
                                 job.getUpdatedAt());
         }
+
+        
 }
