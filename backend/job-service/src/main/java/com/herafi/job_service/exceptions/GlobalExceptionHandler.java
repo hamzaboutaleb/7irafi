@@ -17,96 +17,168 @@ import jakarta.servlet.http.HttpServletRequest;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiErrorResponse> handleValidation(
-	    MethodArgumentNotValidException exception,
-	    HttpServletRequest request) {
-	List<ApiErrorResponse.FieldError> fieldErrors = exception.getBindingResult()
-		.getFieldErrors()
-		.stream()
-		.map(error -> new ApiErrorResponse.FieldError(
-			error.getField(),
-			error.getDefaultMessage()))
-		.toList();
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	public ResponseEntity<ApiErrorResponse> handleValidation(
+			MethodArgumentNotValidException exception,
+			HttpServletRequest request) {
+		List<ApiErrorResponse.FieldError> fieldErrors = exception.getBindingResult()
+				.getFieldErrors()
+				.stream()
+				.map(error -> new ApiErrorResponse.FieldError(
+						error.getField(),
+						error.getDefaultMessage()))
+				.toList();
 
-	ApiErrorResponse response = new ApiErrorResponse(
-		Instant.now(),
-		HttpStatus.BAD_REQUEST.value(),
-		"VALIDATION_ERROR",
-		"Request validation failed",
-		request.getRequestURI(),
-		fieldErrors);
+		ApiErrorResponse response = new ApiErrorResponse(
+				Instant.now(),
+				HttpStatus.BAD_REQUEST.value(),
+				"VALIDATION_ERROR",
+				"Request validation failed",
+				request.getRequestURI(),
+				fieldErrors);
 
-	return ResponseEntity
-		.status(HttpStatus.BAD_REQUEST)
-		.body(response);
-    }
+		return ResponseEntity
+				.status(HttpStatus.BAD_REQUEST)
+				.body(response);
+	}
 
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ApiErrorResponse> handleUnreadableMessage(
-	    HttpMessageNotReadableException exception,
-	    HttpServletRequest request) {
-	ApiErrorResponse response = new ApiErrorResponse(
-		Instant.now(),
-		HttpStatus.BAD_REQUEST.value(),
-		"INVALID_REQUEST",
-		"Request body is malformed",
-		request.getRequestURI(),
-		null);
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+	public ResponseEntity<ApiErrorResponse> handleUnreadableMessage(
+			HttpMessageNotReadableException exception,
+			HttpServletRequest request) {
+		ApiErrorResponse response = new ApiErrorResponse(
+				Instant.now(),
+				HttpStatus.BAD_REQUEST.value(),
+				"INVALID_REQUEST",
+				"Request body is malformed",
+				request.getRequestURI(),
+				null);
 
-	return ResponseEntity
-		.status(HttpStatus.BAD_REQUEST)
-		.body(response);
-    }
+		return ResponseEntity
+				.status(HttpStatus.BAD_REQUEST)
+				.body(response);
+	}
 
-    @ExceptionHandler(MissingRequestHeaderException.class)
-    public ResponseEntity<ApiErrorResponse> handleMissingHeader(
-	    MissingRequestHeaderException exception,
-	    HttpServletRequest request) {
-	ApiErrorResponse response = new ApiErrorResponse(
-		Instant.now(),
-		HttpStatus.UNAUTHORIZED.value(),
-		"UNAUTHORIZED",
-		"Required request header is missing",
-		request.getRequestURI(),
-		null);
+	@ExceptionHandler(MissingRequestHeaderException.class)
+	public ResponseEntity<ApiErrorResponse> handleMissingHeader(
+			MissingRequestHeaderException exception,
+			HttpServletRequest request) {
+		ApiErrorResponse response = new ApiErrorResponse(
+				Instant.now(),
+				HttpStatus.UNAUTHORIZED.value(),
+				"UNAUTHORIZED",
+				"Required request header is missing",
+				request.getRequestURI(),
+				null);
 
-	return ResponseEntity
-		.status(HttpStatus.UNAUTHORIZED)
-		.body(response);
-    }
+		return ResponseEntity
+				.status(HttpStatus.UNAUTHORIZED)
+				.body(response);
+	}
 
-    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ApiErrorResponse> handleTypeMismatch(
-	    MethodArgumentTypeMismatchException exception,
-	    HttpServletRequest request) {
-	ApiErrorResponse response = new ApiErrorResponse(
-		Instant.now(),
-		HttpStatus.BAD_REQUEST.value(),
-		"INVALID_REQUEST",
-		"Request parameter has an invalid format",
-		request.getRequestURI(),
-		null);
+	@ExceptionHandler(MethodArgumentTypeMismatchException.class)
+	public ResponseEntity<ApiErrorResponse> handleTypeMismatch(
+			MethodArgumentTypeMismatchException exception,
+			HttpServletRequest request) {
+		ApiErrorResponse response = new ApiErrorResponse(
+				Instant.now(),
+				HttpStatus.BAD_REQUEST.value(),
+				"INVALID_REQUEST",
+				"Request parameter has an invalid format",
+				request.getRequestURI(),
+				null);
 
-	return ResponseEntity
-		.status(HttpStatus.BAD_REQUEST)
-		.body(response);
-    }
+		return ResponseEntity
+				.status(HttpStatus.BAD_REQUEST)
+				.body(response);
+	}
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiErrorResponse> handleUnexpected(
-	    Exception exception,
-	    HttpServletRequest request) {
-	ApiErrorResponse response = new ApiErrorResponse(
-		Instant.now(),
-		HttpStatus.INTERNAL_SERVER_ERROR.value(),
-		"INTERNAL_ERROR",
-		"An unexpected error occurred",
-		request.getRequestURI(),
-		null);
+	@ExceptionHandler(Exception.class)
+	public ResponseEntity<ApiErrorResponse> handleUnexpected(
+			Exception exception,
+			HttpServletRequest request) {
+		ApiErrorResponse response = new ApiErrorResponse(
+				Instant.now(),
+				HttpStatus.INTERNAL_SERVER_ERROR.value(),
+				"INTERNAL_ERROR",
+				"An unexpected error occurred",
+				request.getRequestURI(),
+				null);
 
-	return ResponseEntity
-		.status(HttpStatus.INTERNAL_SERVER_ERROR)
-		.body(response);
-    }
+		return ResponseEntity
+				.status(HttpStatus.INTERNAL_SERVER_ERROR)
+				.body(response);
+	}
+
+	@ExceptionHandler(JobNotFoundException.class)
+	public ResponseEntity<ApiErrorResponse> handleJobNotFound(
+			JobNotFoundException exception,
+			HttpServletRequest request) {
+
+		ApiErrorResponse response = new ApiErrorResponse(
+				Instant.now(),
+				HttpStatus.NOT_FOUND.value(),
+				"JOB_NOT_FOUND",
+				exception.getMessage(),
+				request.getRequestURI(),
+				null);
+
+		return ResponseEntity
+				.status(HttpStatus.NOT_FOUND)
+				.body(response);
+	}
+
+	@ExceptionHandler(JobAccessDeniedException.class)
+	public ResponseEntity<ApiErrorResponse> handleJobAccessDenied(
+			JobAccessDeniedException exception,
+			HttpServletRequest request) {
+
+		ApiErrorResponse response = new ApiErrorResponse(
+				Instant.now(),
+				HttpStatus.FORBIDDEN.value(),
+				"JOB_ACCESS_DENIED",
+				exception.getMessage(),
+				request.getRequestURI(),
+				null);
+
+		return ResponseEntity
+				.status(HttpStatus.FORBIDDEN)
+				.body(response);
+	}
+
+	@ExceptionHandler(JobStateConflictException.class)
+	public ResponseEntity<ApiErrorResponse> handleJobStateConflict(
+			JobStateConflictException exception,
+			HttpServletRequest request) {
+
+		ApiErrorResponse response = new ApiErrorResponse(
+				Instant.now(),
+				HttpStatus.CONFLICT.value(),
+				"JOB_STATE_CONFLICT",
+				exception.getMessage(),
+				request.getRequestURI(),
+				null);
+
+		return ResponseEntity
+				.status(HttpStatus.CONFLICT)
+				.body(response);
+	}
+
+	@ExceptionHandler(InvalidJobStateException.class)
+	public ResponseEntity<ApiErrorResponse> handleJobStateConflict(
+			InvalidJobStateException exception,
+			HttpServletRequest request) {
+
+		ApiErrorResponse response = new ApiErrorResponse(
+				Instant.now(),
+				HttpStatus.CONFLICT.value(),
+				"JOB_STATE_CONFLICT",
+				exception.getMessage(),
+				request.getRequestURI(),
+				null);
+
+		return ResponseEntity
+				.status(HttpStatus.CONFLICT)
+				.body(response);
+	}
 }
