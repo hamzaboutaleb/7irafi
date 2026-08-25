@@ -10,6 +10,7 @@ import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -179,6 +180,42 @@ public class GlobalExceptionHandler {
 
 		return ResponseEntity
 				.status(HttpStatus.CONFLICT)
+				.body(response);
+	}
+
+	@ExceptionHandler(HandlerMethodValidationException.class)
+	public ResponseEntity<ApiErrorResponse> handleValidation(
+			HandlerMethodValidationException exception,
+			HttpServletRequest request) {
+
+		ApiErrorResponse response = new ApiErrorResponse(
+				Instant.now(),
+				HttpStatus.BAD_REQUEST.value(),
+				"INVALID_PAGINATION",
+				"Invalid pagination parameters",
+				request.getRequestURI(),
+				null);
+
+		return ResponseEntity
+				.status(HttpStatus.BAD_REQUEST)
+				.body(response);
+	}
+
+	@ExceptionHandler(InvalidSortException.class)
+	public ResponseEntity<ApiErrorResponse> handleInvalidSort(
+			InvalidSortException exception,
+			HttpServletRequest request) {
+
+		ApiErrorResponse response = new ApiErrorResponse(
+				Instant.now(),
+				HttpStatus.BAD_REQUEST.value(),
+				"INVALID_SORT",
+				exception.getMessage(),
+				request.getRequestURI(),
+				null);
+
+		return ResponseEntity
+				.status(HttpStatus.BAD_REQUEST)
 				.body(response);
 	}
 }

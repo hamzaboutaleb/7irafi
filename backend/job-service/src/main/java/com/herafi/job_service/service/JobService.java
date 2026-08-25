@@ -8,6 +8,9 @@ import java.util.UUID;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import com.herafi.job_service.dto.CreateJobRequest;
@@ -16,6 +19,7 @@ import com.herafi.job_service.dto.UpdateJobRequest;
 import com.herafi.job_service.entity.Job;
 import com.herafi.job_service.entity.JobStatus;
 import com.herafi.job_service.exceptions.InvalidJobStateException;
+import com.herafi.job_service.exceptions.InvalidSortException;
 import com.herafi.job_service.exceptions.JobAccessDeniedException;
 import com.herafi.job_service.exceptions.JobNotFoundException;
 import com.herafi.job_service.exceptions.JobStateConflictException;
@@ -51,29 +55,41 @@ public class JobService {
 		return jobRepository.save(job);
 	}
 
-	public List<Job> getJobs(JobFilter filter, String sort) {
+	public Page<Job> getJobs(
+			JobFilter filter,
+			String sort,
+			int page,
+			int size) {
 
 		Specification<Job> specification = JobSpecification.filter(filter);
 
 		String[] parts = sort.split(",");
 
-		String field = parts[0];
-		
+		String field = parts[0].trim();
+
 		if (!ALLOWED_SORT_FIELDS.contains(field)) {
-			throw new IllegalArgumentException("Invalid sort field: " + field);
+			throw new InvalidSortException(
+					"Invalid sort field: " + field);
 		}
 
 		Sort.Direction direction;
-		
+
 		if (parts.length > 1) {
-			direction = Sort.Direction.fromString(parts[1]);
+			try {
+				direction = Sort.Direction.fromString(parts[1].trim());
+			} catch (IllegalArgumentException exception) {
+				throw new InvalidSortException(
+						"Invalid sort direction: " + parts[1]);
+			}
 		} else {
 			direction = Sort.Direction.ASC;
 		}
 
 		Sort sorting = Sort.by(direction, field);
 
-		return jobRepository.findAll(specification, sorting);
+		Pageable pageable = PageRequest.of(page, size, sorting);
+
+		return jobRepository.findAll(specification, pageable);
 	}
 
 	public Job getJob(UUID id) {
