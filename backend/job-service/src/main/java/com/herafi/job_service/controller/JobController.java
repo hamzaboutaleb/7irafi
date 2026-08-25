@@ -3,8 +3,10 @@ package com.herafi.job_service.controller;
 import java.util.UUID;
 import java.util.List;
 
+import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -81,6 +83,7 @@ public class JobController {
 
         return ResponseEntity.ok(JobResponse.from(job));
     }
+    
 
     @PatchMapping("/{id}/complete")
     public ResponseEntity<JobResponse> completeJob(
@@ -99,5 +102,18 @@ public class JobController {
     @GetMapping("/cities")
     public List<String> getAllCities() {
         return jobService.getAllCities();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteJob(
+            @PathVariable UUID id,
+            @RequestHeader("X-User-Id") UUID userId,
+            @RequestHeader("X-User-Role") String role) {
+
+        boolean isAdmin = "ADMIN".equals(role);
+
+        jobService.deleteJob(id, userId, isAdmin);
+
+        return ResponseEntity.noContent().build();
     }
 }
