@@ -4,10 +4,12 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.herafi.job_service.dto.CreateJobRequest;
+import com.herafi.job_service.dto.JobFilter;
 import com.herafi.job_service.dto.UpdateJobRequest;
 import com.herafi.job_service.entity.Job;
 import com.herafi.job_service.entity.JobStatus;
@@ -16,6 +18,7 @@ import com.herafi.job_service.exceptions.JobAccessDeniedException;
 import com.herafi.job_service.exceptions.JobNotFoundException;
 import com.herafi.job_service.exceptions.JobStateConflictException;
 import com.herafi.job_service.repository.JobRepository;
+import com.herafi.job_service.specification.JobSpecification;
 
 @Service
 public class JobService {
@@ -45,10 +48,14 @@ public class JobService {
 		return jobRepository.save(job);
 	}
 
-	public List<Job> getJobs() {
-		return jobRepository.findAllByDeletedFalse();
-	}
+	public List<Job> getJobs(JobFilter filter) {
 
+		Specification<Job> specification =
+				JobSpecification.filter(filter);
+
+		return jobRepository.findAll(specification);
+	}
+	
 	public Job getJob(UUID id) {
 		return jobRepository.findByIdAndDeletedFalse(id)
 				.orElseThrow(() -> new JobNotFoundException("Job not found: ", id));
