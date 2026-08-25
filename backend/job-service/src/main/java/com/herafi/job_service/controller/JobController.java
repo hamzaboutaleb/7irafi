@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.herafi.job_service.dto.CreateJobRequest;
 import com.herafi.job_service.dto.JobFilter;
 import com.herafi.job_service.dto.JobResponse;
+import com.herafi.job_service.dto.PageResponse;
 import com.herafi.job_service.dto.UpdateJobRequest;
 import com.herafi.job_service.entity.Job;
 import com.herafi.job_service.service.JobService;
@@ -52,7 +53,7 @@ public class JobController {
     }
 
     @GetMapping
-    public Page<Job> getJobs(
+    public PageResponse<JobResponse> getJobs(
             JobFilter filter,
             @RequestParam(defaultValue = "createdAt,desc") String sort,
             @RequestParam(defaultValue = "0") @Min(0) int page,

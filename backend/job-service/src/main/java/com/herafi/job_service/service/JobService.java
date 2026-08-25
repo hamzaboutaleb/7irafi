@@ -15,6 +15,8 @@ import org.springframework.data.domain.Sort;
 
 import com.herafi.job_service.dto.CreateJobRequest;
 import com.herafi.job_service.dto.JobFilter;
+import com.herafi.job_service.dto.JobResponse;
+import com.herafi.job_service.dto.PageResponse;
 import com.herafi.job_service.dto.UpdateJobRequest;
 import com.herafi.job_service.entity.Job;
 import com.herafi.job_service.entity.JobStatus;
@@ -23,6 +25,7 @@ import com.herafi.job_service.exceptions.InvalidSortException;
 import com.herafi.job_service.exceptions.JobAccessDeniedException;
 import com.herafi.job_service.exceptions.JobNotFoundException;
 import com.herafi.job_service.exceptions.JobStateConflictException;
+import com.herafi.job_service.mapper.JobMapper;
 import com.herafi.job_service.repository.JobRepository;
 import com.herafi.job_service.specification.JobSpecification;
 
@@ -30,10 +33,16 @@ import com.herafi.job_service.specification.JobSpecification;
 public class JobService {
 
 	private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("createdAt", "budget", "title");
-	private final JobRepository jobRepository;
 
-	public JobService(JobRepository jobRepository) {
+	private final JobRepository jobRepository;
+	private final JobMapper jobMapper;
+
+	public JobService(
+			JobRepository jobRepository,
+			JobMapper jobMapper) {
+
 		this.jobRepository = jobRepository;
+		this.jobMapper = jobMapper;
 	}
 
 	public Job create(UUID clientId, CreateJobRequest request) {
@@ -55,7 +64,7 @@ public class JobService {
 		return jobRepository.save(job);
 	}
 
-	public Page<Job> getJobs(
+	public PageResponse<JobResponse> getJobs(
 			JobFilter filter,
 			String sort,
 			int page,
@@ -88,8 +97,11 @@ public class JobService {
 		Sort sorting = Sort.by(direction, field);
 
 		Pageable pageable = PageRequest.of(page, size, sorting);
+		Page<Job> jobs = jobRepository.findAll(specification, pageable);
 
-		return jobRepository.findAll(specification, pageable);
+		return PageResponse.from(
+				jobs,
+				jobMapper::toResponse);
 	}
 
 	public Job getJob(UUID id) {
