@@ -54,8 +54,10 @@ public class JobController {
     }
 
     @GetMapping
-    public List<Job> getJobs(JobFilter filter) {
-        return jobService.getJobs(filter);
+    public List<Job> getJobs(
+            JobFilter filter,
+            @RequestParam(defaultValue = "createdAt,desc") String sort) {
+        return jobService.getJobs(filter, sort);
     }
 
     @GetMapping("/{id}")
