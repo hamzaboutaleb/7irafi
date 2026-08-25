@@ -1,10 +1,9 @@
 package com.herafi.job_service.controller;
 
 import java.util.UUID;
-import java.math.BigDecimal;
 import java.util.List;
 
-import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,13 +22,12 @@ import com.herafi.job_service.dto.CreateJobRequest;
 import com.herafi.job_service.dto.JobFilter;
 import com.herafi.job_service.dto.JobResponse;
 import com.herafi.job_service.dto.UpdateJobRequest;
-import com.herafi.job_service.entity.EstimatedDuration;
 import com.herafi.job_service.entity.Job;
-import com.herafi.job_service.entity.JobStatus;
-import com.herafi.job_service.entity.PreferredTime;
 import com.herafi.job_service.service.JobService;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 
 @RestController
 @RequestMapping("/jobs")
@@ -54,10 +52,13 @@ public class JobController {
     }
 
     @GetMapping
-    public List<Job> getJobs(
+    public Page<Job> getJobs(
             JobFilter filter,
-            @RequestParam(defaultValue = "createdAt,desc") String sort) {
-        return jobService.getJobs(filter, sort);
+            @RequestParam(defaultValue = "createdAt,desc") String sort,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(20) int size) {
+
+        return jobService.getJobs(filter, sort, page, size);
     }
 
     @GetMapping("/{id}")
