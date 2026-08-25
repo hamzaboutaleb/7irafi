@@ -54,24 +54,7 @@ public class JobController {
     }
 
     @GetMapping
-    public List<Job> getJobs(
-            @RequestParam(required = false) String skill,
-            @RequestParam(required = false) String city,
-            @RequestParam(required = false) JobStatus status,
-            @RequestParam(required = false) BigDecimal minBudget,
-            @RequestParam(required = false) BigDecimal maxBudget,
-            @RequestParam(required = false) EstimatedDuration duration,
-            @RequestParam(required = false) PreferredTime preferredTime) {
-
-        JobFilter filter = new JobFilter(
-                skill,
-                city,
-                status,
-                minBudget,
-                maxBudget,
-                duration,
-                preferredTime);
-
+    public List<Job> getJobs(JobFilter filter) {
         return jobService.getJobs(filter);
     }
 
