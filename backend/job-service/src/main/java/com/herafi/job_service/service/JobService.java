@@ -2,11 +2,13 @@ package com.herafi.job_service.service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Sort;
 
 import com.herafi.job_service.dto.CreateJobRequest;
 import com.herafi.job_service.dto.JobFilter;
@@ -23,6 +25,7 @@ import com.herafi.job_service.specification.JobSpecification;
 @Service
 public class JobService {
 
+	private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("createdAt", "budget", "title");
 	private final JobRepository jobRepository;
 
 	public JobService(JobRepository jobRepository) {
@@ -48,14 +51,31 @@ public class JobService {
 		return jobRepository.save(job);
 	}
 
-	public List<Job> getJobs(JobFilter filter) {
+	public List<Job> getJobs(JobFilter filter, String sort) {
 
-		Specification<Job> specification =
-				JobSpecification.filter(filter);
+		Specification<Job> specification = JobSpecification.filter(filter);
 
-		return jobRepository.findAll(specification);
+		String[] parts = sort.split(",");
+
+		String field = parts[0];
+		
+		if (!ALLOWED_SORT_FIELDS.contains(field)) {
+			throw new IllegalArgumentException("Invalid sort field: " + field);
+		}
+
+		Sort.Direction direction;
+		
+		if (parts.length > 1) {
+			direction = Sort.Direction.fromString(parts[1]);
+		} else {
+			direction = Sort.Direction.ASC;
+		}
+
+		Sort sorting = Sort.by(direction, field);
+
+		return jobRepository.findAll(specification, sorting);
 	}
-	
+
 	public Job getJob(UUID id) {
 		return jobRepository.findByIdAndDeletedFalse(id)
 				.orElseThrow(() -> new JobNotFoundException("Job not found: ", id));
@@ -78,8 +98,7 @@ public class JobService {
 
 		if (job.getStatus() != JobStatus.OPEN) {
 			throw new JobStateConflictException(
-				"Jobs that not Open cannot be updated"
-			);
+					"Jobs that not Open cannot be updated");
 		}
 
 		job.setTitle(request.title());
