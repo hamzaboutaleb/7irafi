@@ -1,6 +1,7 @@
 package com.herafi.job_service.controller;
 
 import java.util.UUID;
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
@@ -15,12 +16,17 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.herafi.job_service.dto.CreateJobRequest;
+import com.herafi.job_service.dto.JobFilter;
 import com.herafi.job_service.dto.JobResponse;
 import com.herafi.job_service.dto.UpdateJobRequest;
+import com.herafi.job_service.entity.EstimatedDuration;
 import com.herafi.job_service.entity.Job;
+import com.herafi.job_service.entity.JobStatus;
+import com.herafi.job_service.entity.PreferredTime;
 import com.herafi.job_service.service.JobService;
 
 import jakarta.validation.Valid;
@@ -48,11 +54,25 @@ public class JobController {
     }
 
     @GetMapping
-    public List<JobResponse> getJobs() {
-        return jobService.getJobs()
-                .stream()
-                .map(JobResponse::from)
-                .toList();
+    public List<Job> getJobs(
+            @RequestParam(required = false) String skill,
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) JobStatus status,
+            @RequestParam(required = false) BigDecimal minBudget,
+            @RequestParam(required = false) BigDecimal maxBudget,
+            @RequestParam(required = false) EstimatedDuration duration,
+            @RequestParam(required = false) PreferredTime preferredTime) {
+
+        JobFilter filter = new JobFilter(
+                skill,
+                city,
+                status,
+                minBudget,
+                maxBudget,
+                duration,
+                preferredTime);
+
+        return jobService.getJobs(filter);
     }
 
     @GetMapping("/{id}")
@@ -83,7 +103,6 @@ public class JobController {
 
         return ResponseEntity.ok(JobResponse.from(job));
     }
-    
 
     @PatchMapping("/{id}/complete")
     public ResponseEntity<JobResponse> completeJob(
