@@ -68,6 +68,12 @@ public class Job {
     @Column(nullable = false)
     private Instant updatedAt;
 
+    private boolean deleted = false;
+
+    private Instant deletedAt;
+
+    private UUID deletedBy;
+
     @PrePersist
     void onCreate() {
         if (id == null) {
