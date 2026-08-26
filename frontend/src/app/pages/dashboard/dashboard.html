@@ -1,0 +1,23 @@
+<main class="min-h-screen bg-gray-50 px-6 py-12">
+  <section class="mx-auto max-w-4xl">
+    <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
+
+    @if (isLoading()) {
+      <p class="mt-6 text-gray-600">Loading your profile...</p>
+    } @else if (errorMessage()) {
+      <p class="mt-6 rounded-lg bg-red-100 p-4 text-red-700">
+        {{ errorMessage() }}
+      </p>
+    } @else if (profile(); as currentUser) {
+      <article class="mt-6 rounded-xl bg-white p-6 shadow-sm">
+        <p class="text-sm text-gray-500">Welcome back</p>
+
+        <h2 class="mt-1 text-2xl font-semibold text-gray-900">
+          {{ currentUser.firstName }} {{ currentUser.lastName }}
+        </h2>
+
+        <p class="mt-2 text-gray-600">{{ currentUser.email }}</p>
+      </article>
+    }
+  </section>
+</main>
