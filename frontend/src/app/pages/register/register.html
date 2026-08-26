@@ -1,0 +1,150 @@
+<div class="min-h-screen grid grid-cols-2">
+  <!-- Left: brand side -->
+  <div
+    class="bg-gradient-to-br from-primary-600 to-primary-900 flex flex-col items-center justify-center gap-4"
+  >
+    <img src="logo.svg" alt="7irafy" class="h-14 brightness-0 invert mb-8" />
+    <h2 class="text-white text-4xl font-bold text-center max-w-xs leading-snug">
+      Whatever the problem, find someone to fix it
+    </h2>
+    <p class="text-primary-100 text-base text-center max-w-xs">
+      Browse thousands of verified professionals or post your request.
+    </p>
+  </div>
+
+  <!-- Right: form side -->
+  <div class="flex items-center justify-center p-12">
+    <div class="w-full max-w-sm">
+      <h1 class="text-3xl font-bold text-gray-900">Create an account</h1>
+      <p class="text-gray-500 mt-2">Join thousands of professionals today</p>
+
+      <form [formGroup]="form" class="mt-8" (ngSubmit)="register()">
+        @if (errorMessage()) {
+          <div class="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl mt-6">
+            {{ errorMessage() }}
+          </div>
+        }
+
+        <div class="mt-8 grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">First name</label>
+            <input
+              type="text"
+              formControlName="firstName"
+              placeholder="John"
+              class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+            />
+            @if (firstName.invalid && (firstName.dirty || firstName.touched)) {
+              @if (firstName.errors?.['required']) {
+                <div class="text-red-500 text-xs mt-1">First name is required.</div>
+              }
+              @if (firstName.errors?.['maxlength']) {
+                <div class="text-red-500 text-xs mt-1">
+                  First name must be at most
+                  {{ firstName.errors?.['maxlength'].requiredLength }} characters long.
+                </div>
+              }
+              @if (firstName.errors?.['minlength']) {
+                <div class="text-red-500 text-xs mt-1">
+                  First name must be at least
+                  {{ firstName.errors?.['minlength'].requiredLength }} characters long.
+                </div>
+              }
+            }
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Last name</label>
+            <input
+              type="text"
+              formControlName="lastName"
+              placeholder="Doe"
+              class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+            />
+            @if (lastName.invalid && (lastName.dirty || lastName.touched)) {
+              @if (lastName.errors?.['required']) {
+                <div class="text-red-500 text-xs mt-1">Last name is required.</div>
+              }
+              @if (lastName.errors?.['minlength']) {
+                <div class="text-red-500 text-xs mt-1">
+                  Last name must be at least
+                  {{ lastName.errors?.['minlength'].requiredLength }} characters long.
+                </div>
+              }
+              @if (lastName.errors?.['maxlength']) {
+                <div class="text-red-500 text-xs mt-1">
+                  Last name must be at most
+                  {{ lastName.errors?.['maxlength'].requiredLength }} characters long.
+                </div>
+              }
+            }
+          </div>
+        </div>
+
+        <div class="mt-5">
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Email address</label>
+          <input
+            type="email"
+            formControlName="email"
+            placeholder="you@example.com"
+            class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+          />
+          @if (email.invalid && (email.dirty || email.touched)) {
+            @if (email.errors?.['required']) {
+              <div class="text-red-500 text-xs mt-1">Email is required.</div>
+            }
+            @if (email.errors?.['email']) {
+              <div class="text-red-500 text-xs mt-1">Please enter a valid email address.</div>
+            }
+            @if (email.errors?.['maxlength']) {
+              <div class="text-red-500 text-xs mt-1">
+                Email must be at most {{ email.errors?.['maxlength'].requiredLength }} characters
+                long.
+              </div>
+            }
+          }
+        </div>
+
+        <div class="mt-5">
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+          <input
+            type="password"
+            formControlName="password"
+            placeholder="••••••••"
+            class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+          />
+          @if (password.invalid && (password.dirty || password.touched)) {
+            @if (password.errors?.['required']) {
+              <div class="text-red-500 text-xs mt-1">Password is required.</div>
+            }
+            @if (password.errors?.['minlength']) {
+              <div class="text-red-500 text-xs mt-1">
+                Password must be at least
+                {{ password.errors?.['minlength'].requiredLength }} characters long.
+              </div>
+            }
+            @if (password.errors?.['maxlength']) {
+              <div class="text-red-500 text-xs mt-1">
+                Password must be at most
+                {{ password.errors?.['maxlength'].requiredLength }} characters long.
+              </div>
+            }
+          }
+        </div>
+
+        <button
+          class="w-full mt-8 bg-gradient-to-r from-primary-500 to-primary-700 hover:from-primary-600 hover:to-primary-800 text-white text-sm font-medium py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-sm shadow-primary-200 cursor-pointer"
+        >
+          Create account
+        </button>
+      </form>
+
+      <p class="text-center text-sm text-gray-500 mt-6">
+        Already have an account?
+        <a routerLink="/login" class="text-primary-600 font-medium hover:text-primary-700"
+          >Sign in</a
+        >
+      </p>
+    </div>
+  </div>
+</div>

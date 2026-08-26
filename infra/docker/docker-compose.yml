@@ -1,6 +1,95 @@
-version: '3.8'
-
 services:
+  postgres:
+    container_name: postgres-dev
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: herafi
+      POSTGRES_PASSWORD: herafi
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U herafi -d auth_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  auth-service:
+    build:
+      context: ../../backend/auth-service
+      dockerfile: Dockerfile
+    environment:
+      SERVER_PORT: 8081
+      DB_URL: jdbc:postgresql://postgres:5432/auth_db
+      DB_USERNAME: herafi
+      DB_PASSWORD: herafi
+      SHOW_SQL: "true"
+      DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka/
+      INTERNAL_API_KEY: 7irafi-development-internal-key
+      JWT_SECRET: 7irafi-development-jwt-secret-change-me-2026
+      JWT_ISSUER: 7irafi-auth-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health | grep -q UP"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  user-service:
+    build:
+      context: ../../backend/user-service
+      dockerfile: Dockerfile
+    environment:
+      DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka/
+      SERVER_PORT: 8082
+      DB_URL: jdbc:postgresql://postgres:5432/user_db
+      DB_USERNAME: herafi
+      DB_PASSWORD: herafi
+      SHOW_SQL: "true"
+      GATEWAY_SHARED_SECRET: 7irafi-development-gateway-key
+      INTERNAL_API_KEY: 7irafi-development-internal-key
+    depends_on:
+      postgres:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health | grep -q UP"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api-gateway:
+    container_name: api-gateway-dev
+    build:
+      context: ../../backend/api-gateway
+      dockerfile: Dockerfile
+    environment:
+      SERVER_PORT: 8080
+      DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka/
+      JWT_SECRET: 7irafi-development-jwt-secret-change-me-2026
+      JWT_ISSUER: 7irafi-auth-service
+      GATEWAY_SHARED_SECRET: 7irafi-development-gateway-key
+      FRONTEND_ORIGIN: http://localhost:4200
+    ports:
+      - "8080:8080"
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+
   frontend:
     container_name: frontend-dev
     image: frontend-dev:latest
@@ -12,3 +101,21 @@ services:
     volumes:
       - ../../frontend:/app
       - /app/node_modules
+
+  discovery-service:
+    container_name: discovery-service-dev
+    build:
+      context: ../../backend/discovery-service
+      dockerfile: Dockerfile
+    environment:
+      SERVER_PORT: 8761
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8761/actuator/health | grep -q UP"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    ports:
+      - "8761:8761"
+
+volumes:
+  postgres-data:
