@@ -68,4 +68,18 @@ public class GlobalExceptionHandler {
                         "Authenticated user identity is missing"
                 ));
     }
+
+    @ExceptionHandler(ProfessionalProfileNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleNotFound(ProfessionalProfileNotFoundException exception) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ApiErrorResponse.of("PROFESSIONAL_PROFILE_NOT_FOUND", exception.getMessage()));
+    }
+
+    @ExceptionHandler(ProfessionalProfileAlreadyExistsException.class)
+    public ResponseEntity<ApiErrorResponse> handleAlreadyExists(ProfessionalProfileAlreadyExistsException exception) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(ApiErrorResponse.of("PROFESSIONAL_PROFILE_ALREADY_EXISTS", exception.getMessage()));
+    }
 }
