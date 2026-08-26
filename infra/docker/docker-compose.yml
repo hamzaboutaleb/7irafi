@@ -68,6 +68,44 @@ services:
       timeout: 5s
       retries: 20
 
+  job-service:
+    container_name: job-service-dev
+    build:
+      context: ../../backend/job-service
+      dockerfile: Dockerfile
+    environment:
+      SERVER_PORT: 8083
+      DB_URL: jdbc:postgresql://postgres:5432/job_db
+      DB_USERNAME: herafi
+      DB_PASSWORD: herafi
+      SHOW_SQL: "true"
+      DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka/
+      GATEWAY_SHARED_SECRET: 7irafi-development-gateway-key
+      # INTERNAL_API_KEY: 7irafi-development-internal-key
+    ports:
+      - "8083:8083"
+    volumes:
+      - ../../backend/job-service/src:/app/src
+      - job-maven-cache:/root/.m2
+    entrypoint: ["mvn"]
+    command: ["spring-boot:run"]
+    develop:
+      watch:
+        - action: rebuild
+          path: ../../backend/job-service/src
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+      # auth-service:
+      #   condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8083/actuator/health | grep -q UP"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
   api-gateway:
     container_name: api-gateway-dev
     build:
@@ -86,6 +124,8 @@ services:
       auth-service:
         condition: service_healthy
       user-service:
+        condition: service_healthy
+      job-service:
         condition: service_healthy
       discovery-service:
         condition: service_healthy
@@ -119,3 +159,4 @@ services:
 
 volumes:
   postgres-data:
+  job-maven-cache:
