@@ -34,4 +34,14 @@ public class GatewayRoutesConfig {
                 .filter(lb("USER-SERVICE"))
                 .build();
     }
+
+    @Bean
+    RouterFunction<ServerResponse> jobServiceRoute(
+            @Value("${gateway.shared-secret}") String gatewaySharedSecret) {
+        return route("job-service")
+                .route(path("/jobs/**"), http())
+                .before(addAuthenticatedIdentity(gatewaySharedSecret))
+                .filter(lb("JOB-SERVICE"))
+                .build();
+    }
 }
