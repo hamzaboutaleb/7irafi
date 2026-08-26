@@ -2,6 +2,7 @@ package com.herafi.user_service.controller;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -62,6 +63,30 @@ public class ProfessionalProfileControllerTests {
                 .andExpect(jsonPath("$.data.biography").value(biography))
                 .andExpect(jsonPath("$.data.onboardingStatus").value(ProfessionalOnboardingStatus.INCOMPLETE.name()));
         verify(professionalProfileService).create(userId, request);
+    }
+
+    @Test
+    void getsCurrentProfessionalProfile() throws Exception {
+        UUID userId = UUID.randomUUID();
+        String biography = "I'm a great painter";
+
+        ProfessionalProfile profile = new ProfessionalProfile();
+        profile.setUserId(userId);
+        profile.setBiography(biography);
+        profile.setOnboardingStatus(ProfessionalOnboardingStatus.INCOMPLETE);
+
+        when(professionalProfileService.get(userId))
+                .thenReturn(profile);
+
+        mockMvc.perform(get("/users/me/professional-profile")
+                .header("X-Gateway-Key", TEST_GATEWAY_KEY)
+                .header("X-User-Id", userId.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.userId").value(userId.toString()))
+                .andExpect(jsonPath("$.data.biography").value(biography))
+                .andExpect(jsonPath("$.data.onboardingStatus").value(ProfessionalOnboardingStatus.INCOMPLETE.name()));
+        verify(professionalProfileService).get(userId);
     }
 
 }
