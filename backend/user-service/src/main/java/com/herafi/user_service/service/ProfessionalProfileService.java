@@ -9,6 +9,7 @@ import com.herafi.user_service.dto.CreateProfessionalProfileRequest;
 import com.herafi.user_service.entity.ProfessionalProfile;
 import com.herafi.user_service.entity.UserProfile;
 import com.herafi.user_service.exception.ProfessionalProfileAlreadyExistsException;
+import com.herafi.user_service.exception.ProfessionalProfileNotFoundException;
 import com.herafi.user_service.exception.UserProfileNotFoundException;
 import com.herafi.user_service.repository.ProfessionalProfileRepository;
 import com.herafi.user_service.repository.UserProfileRepository;
@@ -38,4 +39,11 @@ public class ProfessionalProfileService {
         pp.setUserProfile(userProfile);
         return professionalProfileRepository.save(pp);
     }
+
+    @Transactional(readOnly = true)
+    public ProfessionalProfile get(UUID userId) {
+        return professionalProfileRepository.findById(userId)
+                .orElseThrow(() -> new ProfessionalProfileNotFoundException(userId));
+    }
+
 }
