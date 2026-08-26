@@ -1,82 +1,58 @@
 package com.herafi.job_service.specification;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.math.BigDecimal;
 
 import org.springframework.data.jpa.domain.Specification;
 
+import com.herafi.job_service.entity.EstimatedDuration;
 import com.herafi.job_service.entity.Job;
+import com.herafi.job_service.entity.JobStatus;
+import com.herafi.job_service.entity.PreferredTime;
 import com.herafi.job_service.dto.JobFilter;
-
-import jakarta.persistence.criteria.Predicate;
 
 public class JobSpecification {
 
+    public static Specification<Job> isNotDeleted() {
+        return (root, query, cb) -> cb.isFalse(root.get("deleted"));
+    }
+
+    public static Specification<Job> hasSkill(String skill) {
+        return (root, query, cb) -> skill == null ? null : cb.equal(root.get("skill"), skill);
+    }
+
+    public static Specification<Job> hasCity(String city) {
+        return (root, query, cb) -> city == null ? null : cb.equal(root.get("city"), city);
+    }
+
+    public static Specification<Job> hasStatus(JobStatus status) {
+        return (root, query, cb) -> status == null ? null : cb.equal(root.get("status"), status);
+    }
+
+    public static Specification<Job> minBudget(BigDecimal min) {
+        return (root, query, cb) -> min == null ? null : cb.greaterThanOrEqualTo(root.get("budget"), min);
+    }
+
+    public static Specification<Job> maxBudget(BigDecimal max) {
+        return (root, query, cb) -> max == null ? null : cb.lessThanOrEqualTo(root.get("budget"), max);
+    }
+
+    public static Specification<Job> hasDuration(EstimatedDuration duration) {
+        return (root, query, cb) -> duration == null ? null : cb.equal(root.get("estimatedDuration"), duration);
+    }
+
+    public static Specification<Job> hasPreferredTime(PreferredTime preferredTime) {
+        return (root, query, cb) -> preferredTime == null ? null : cb.equal(root.get("preferredTime"), preferredTime);
+    }
+
     public static Specification<Job> filter(JobFilter filter) {
-
-        return (root, query, cb) -> {
-
-            List<Predicate> predicates = new ArrayList<>();
-
-            predicates.add(
-                cb.isFalse(root.get("deleted"))
-            );
-
-            if (filter.skill() != null) {
-                predicates.add(
-                    cb.equal(root.get("skill"), filter.skill())
-                );
-            }
-
-            if (filter.city() != null) {
-                predicates.add(
-                    cb.equal(root.get("city"), filter.city())
-                );
-            }
-
-            if (filter.status() != null) {
-                predicates.add(
-                    cb.equal(root.get("status"), filter.status())
-                );
-            }
-
-            if (filter.minBudget() != null) {
-                predicates.add(
-                    cb.greaterThanOrEqualTo(
-                        root.get("budget"),
-                        filter.minBudget()
-                    )
-                );
-            }
-
-            if (filter.maxBudget() != null) {
-                predicates.add(
-                    cb.lessThanOrEqualTo(
-                        root.get("budget"),
-                        filter.maxBudget()
-                    )
-                );
-            }
-
-            if (filter.duration() != null) {
-                predicates.add(
-                    cb.equal(
-                        root.get("estimatedDuration"),
-                        filter.duration()
-                    )
-                );
-            }
-
-            if (filter.preferredTime() != null) {
-                predicates.add(
-                    cb.equal(
-                        root.get("preferredTime"),
-                        filter.preferredTime()
-                    )
-                );
-            }
-
-            return cb.and(predicates.toArray(new Predicate[0]));
-        };
+        return Specification
+                .where(isNotDeleted())
+                .and(hasSkill(filter.skill()))
+                .and(hasCity(filter.city()))
+                .and(hasStatus(filter.status()))
+                .and(minBudget(filter.minBudget()))
+                .and(maxBudget(filter.maxBudget()))
+                .and(hasDuration(filter.duration()))
+                .and(hasPreferredTime(filter.preferredTime()));
     }
 }
