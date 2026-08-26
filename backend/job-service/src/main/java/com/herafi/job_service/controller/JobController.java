@@ -3,7 +3,6 @@ package com.herafi.job_service.controller;
 import java.util.UUID;
 import java.util.List;
 
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -29,16 +28,14 @@ import com.herafi.job_service.service.JobService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/jobs")
+@RequiredArgsConstructor
 public class JobController {
 
     private final JobService jobService;
-
-    public JobController(JobService jobService) {
-        this.jobService = jobService;
-    }
 
     @PostMapping
     public ResponseEntity<JobResponse> create(
@@ -121,5 +118,14 @@ public class JobController {
         jobService.deleteJob(id, userId, isAdmin);
 
         return ResponseEntity.noContent().build();
+    }
+
+    //  Internal endpoints:
+    @GetMapping("/internal/jobs/{id}/summary")
+    public String jobSummary(
+        @PathVariable UUID jobId
+    )
+    {
+        return "hei";
     }
 }

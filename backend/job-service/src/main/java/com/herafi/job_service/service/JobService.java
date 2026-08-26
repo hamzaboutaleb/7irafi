@@ -13,9 +13,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
+import com.herafi.job_service.dto.ChatEligibilityResponse;
 import com.herafi.job_service.dto.CreateJobRequest;
 import com.herafi.job_service.dto.JobFilter;
 import com.herafi.job_service.dto.JobResponse;
+import com.herafi.job_service.dto.JobSummaryResponse;
 import com.herafi.job_service.dto.PageResponse;
 import com.herafi.job_service.dto.UpdateJobRequest;
 import com.herafi.job_service.entity.Job;
@@ -96,7 +98,11 @@ public class JobService {
 
 		Sort sorting = Sort.by(direction, field);
 
-		Pageable pageable = PageRequest.of(page, size, sorting);
+		Pageable pageable = PageRequest.of(
+				page,
+				size,
+				sorting);
+
 		Page<Job> jobs = jobRepository.findAll(specification, pageable);
 
 		return PageResponse.from(
@@ -180,5 +186,47 @@ public class JobService {
 		job.setDeleted(true);
 		job.setDeletedAt(Instant.now());
 		job.setDeletedBy(userId);
+	}
+
+	public JobSummaryResponse getSummary(UUID id) {
+		Job job = jobRepository.findById(id)
+				.orElseThrow(() -> new JobNotFoundException("Job not found: ", id));
+
+		return new JobSummaryResponse(
+				job.getId(),
+				job.getClientId(),
+				job.getStatus());
+	}
+
+	public JobSummaryResponse assignWorker(UUID id, UUID workerId) {
+		Job job = jobRepository.findById(id)
+				.orElseThrow(() -> new JobNotFoundException("Job not found: ", id));
+
+		if (job.getStatus() != JobStatus.OPEN) {
+			throw new JobStateConflictException(
+					"Job must be OPEN to be assigned.");
+		}
+
+		job.setStatus(JobStatus.ASSIGNED);
+		job.setAssignedWorkerId(workerId);
+
+		jobRepository.save(job);
+
+		return new JobSummaryResponse(
+				job.getId(),
+				job.getClientId(),
+				job.getStatus());
+	}
+
+	public ChatEligibilityResponse getChatEligibility(UUID id) {
+		Job job = jobRepository.findById(id)
+				.orElseThrow(() -> new JobNotFoundException("Job not found: ", id));
+
+		boolean allowed = job.getStatus() == JobStatus.ASSIGNED ||
+				job.getStatus() == JobStatus.COMPLETED;
+
+		return new ChatEligibilityResponse(
+				allowed,
+				job.getClientId());
 	}
 }
