@@ -8,6 +8,6 @@ import jakarta.validation.constraints.Size;
 
 public record CreateProfessionalProfileRequest(
                 @NotBlank @Size(min = 10, max = 2000) String biography,
-                @NotEmpty Set<String> categoryCodes,
-                @NotEmpty Set<String> cityCodes) {
+                @NotEmpty Set<@NotBlank String> categoryCodes,
+                @NotEmpty Set<@NotBlank String> cityCodes) {
 }
