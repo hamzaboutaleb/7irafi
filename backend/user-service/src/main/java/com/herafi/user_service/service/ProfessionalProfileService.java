@@ -125,7 +125,7 @@ public class ProfessionalProfileService {
 
     @Transactional(readOnly = true)
     public ProfessionalProfile get(UUID userId) {
-        return professionalProfileRepository.findById(userId)
+        return professionalProfileRepository.findByUserId(userId)
                 .orElseThrow(() -> new ProfessionalProfileNotFoundException(userId));
     }
 
