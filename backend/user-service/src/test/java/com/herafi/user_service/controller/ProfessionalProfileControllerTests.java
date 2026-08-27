@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.Set;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,10 @@ public class ProfessionalProfileControllerTests {
     void createsProfessionalProfileAndReturnsCreated() throws Exception {
         UUID userId = UUID.randomUUID();
         String biography = "I'm a great painter";
-        CreateProfessionalProfileRequest request = new CreateProfessionalProfileRequest(biography);
+        CreateProfessionalProfileRequest request = new CreateProfessionalProfileRequest(
+                biography,
+                Set.of("PAINTING"),
+                Set.of("CASABLANCA"));
 
         ProfessionalProfile profile = new ProfessionalProfile();
         profile.setUserId(userId);
@@ -53,7 +57,9 @@ public class ProfessionalProfileControllerTests {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                         {
-                            "biography" : "I'm a great painter"
+                            "biography" : "I'm a great painter",
+                            "categoryCodes": ["PAINTING"],
+                            "cityCodes": ["CASABLANCA"]
                         }
                         """))
 
