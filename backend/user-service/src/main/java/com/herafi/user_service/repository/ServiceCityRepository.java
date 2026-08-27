@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.herafi.user_service.entity.ServiceCity;
 
-public interface ServiceCityRepository extends JpaRepository<String, String> {
+public interface ServiceCityRepository extends JpaRepository<ServiceCity, String> {
     List<ServiceCity> findAllByActiveTrueOrderByDisplayNameAsc();
 
     List<ServiceCity> findAllByCodeInAndActiveTrue(Collection<String> codes);

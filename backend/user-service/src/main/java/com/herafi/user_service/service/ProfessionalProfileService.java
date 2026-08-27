@@ -5,12 +5,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.Locale;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.herafi.user_service.dto.CreateProfessionalProfileRequest;
 import com.herafi.user_service.dto.UpdateProfessionalProfileRequest;
+import com.herafi.user_service.entity.ProfessionalOnboardingStatus;
 import com.herafi.user_service.entity.ProfessionalProfile;
 import com.herafi.user_service.entity.ServiceCategory;
 import com.herafi.user_service.entity.ServiceCity;
@@ -49,7 +51,7 @@ public class ProfessionalProfileService {
 
         Set<String> normalizedCodes = codes.stream()
                 .map(String::trim)
-                .map(String::toUpperCase)
+                .map(code -> code.toUpperCase(Locale.ROOT))
                 .collect(Collectors.toUnmodifiableSet());
 
         List<ServiceCategory> found = serviceCategoryRepository.findAllByCodeInAndActiveTrue(normalizedCodes);
@@ -70,28 +72,37 @@ public class ProfessionalProfileService {
 
     private Set<ServiceCity> resolveCities(Set<String> codes) {
         if (codes == null || codes.isEmpty()) {
-            throw new InvalidCityException("At least one service category code is required");
+            throw new InvalidCityException("At least one service city code is required");
         }
 
-        Set<String> nomalizedCodes = codes.stream()
+        Set<String> normalizedCodes = codes.stream()
                 .map(String::trim)
-                .map(String::toUpperCase)
+                .map(code -> code.toUpperCase(Locale.ROOT))
                 .collect(Collectors.toUnmodifiableSet());
 
-        List<ServiceCity> found = serviceCityRepository.findAllByCodeInAndActiveTrue(nomalizedCodes);
+        List<ServiceCity> found = serviceCityRepository.findAllByCodeInAndActiveTrue(normalizedCodes);
 
-        if (found.size() != nomalizedCodes.size()) {
+        if (found.size() != normalizedCodes.size()) {
             Set<String> foundCodes = found.stream()
                     .map(ServiceCity::getCode)
                     .collect(Collectors.toSet());
 
-            Set<String> missingCodes = new HashSet<>(nomalizedCodes);
+            Set<String> missingCodes = new HashSet<>(normalizedCodes);
             missingCodes.removeAll(foundCodes);
             throw new InvalidCityException("Unknown or inactive City codes: " + missingCodes);
 
         }
 
         return new HashSet<>(found);
+    }
+
+    private void applyOnboardingStatus(ProfessionalProfile pp) {
+        if (pp.getOnboardingStatus() != ProfessionalOnboardingStatus.SUSPENDED &&
+                pp.getCategories() != null && !pp.getCategories().isEmpty() &&
+                pp.getCities() != null && !pp.getCities().isEmpty() &&
+                pp.getBiography() != null && !pp.getBiography().isBlank() && !pp.getBiography().isEmpty()) {
+            pp.setOnboardingStatus(ProfessionalOnboardingStatus.ACTIVE);
+        }
     }
 
     @Transactional
@@ -106,6 +117,9 @@ public class ProfessionalProfileService {
 
         pp.setBiography(request.biography().trim());
         pp.setUserProfile(userProfile);
+        pp.setCategories(resolveCategories(request.categoryCodes()));
+        pp.setCities(resolveCities(request.cityCodes()));
+        applyOnboardingStatus(pp);
         return professionalProfileRepository.save(pp);
     }
 
@@ -120,6 +134,9 @@ public class ProfessionalProfileService {
         ProfessionalProfile professionalProfile = professionalProfileRepository.findById(userId)
                 .orElseThrow(() -> new ProfessionalProfileNotFoundException(userId));
         professionalProfile.setBiography(request.biography().trim());
+        professionalProfile.setCategories(resolveCategories(request.categoryCodes()));
+        professionalProfile.setCities(resolveCities(request.cityCodes()));
+        applyOnboardingStatus(professionalProfile);
         return professionalProfileRepository.save(professionalProfile);
     }
 
