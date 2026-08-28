@@ -2,13 +2,19 @@ package com.herafi.job_service.entity;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.UUID;
+import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -73,6 +79,14 @@ public class Job {
     private Instant deletedAt;
 
     private UUID deletedBy;
+
+    @OneToMany(
+        mappedBy = "job",
+        cascade = CascadeType.ALL,
+        orphanRemoval = true,
+        fetch = FetchType.LAZY)
+    @OrderBy("position ASC")
+    private List<JobImage> images = new ArrayList<>();
 
     @PrePersist
     void onCreate() {
