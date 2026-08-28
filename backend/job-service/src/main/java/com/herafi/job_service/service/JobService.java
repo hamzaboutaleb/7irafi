@@ -1,5 +1,6 @@
 package com.herafi.job_service.service;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
@@ -8,6 +9,7 @@ import java.util.UUID;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,36 +18,42 @@ import org.springframework.data.domain.Sort;
 import com.herafi.job_service.dto.ChatEligibilityResponse;
 import com.herafi.job_service.dto.CreateJobRequest;
 import com.herafi.job_service.dto.JobFilter;
+import com.herafi.job_service.dto.JobImageResponse;
 import com.herafi.job_service.dto.JobResponse;
 import com.herafi.job_service.dto.JobSummaryResponse;
 import com.herafi.job_service.dto.PageResponse;
 import com.herafi.job_service.dto.UpdateJobRequest;
 import com.herafi.job_service.entity.Job;
+import com.herafi.job_service.entity.JobImage;
 import com.herafi.job_service.entity.JobStatus;
+import com.herafi.job_service.exceptions.InvalidImageException;
 import com.herafi.job_service.exceptions.InvalidJobStateException;
 import com.herafi.job_service.exceptions.InvalidSortException;
 import com.herafi.job_service.exceptions.JobAccessDeniedException;
 import com.herafi.job_service.exceptions.JobNotFoundException;
 import com.herafi.job_service.exceptions.JobStateConflictException;
 import com.herafi.job_service.mapper.JobMapper;
+import com.herafi.job_service.repository.JobImageRepository;
 import com.herafi.job_service.repository.JobRepository;
 import com.herafi.job_service.specification.JobSpecification;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class JobService {
 
 	private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("createdAt", "budget", "title");
 
+	private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of(
+			"image/jpeg", "image/png", "image/webp", "image/gif",
+			"image/bmp", "image/tiff", "image/svg+xml", "image/x-icon", "image/heic", "image/heif");
+
+	private static final long MAX_IMAGE_SIZE = 10 * 1024 * 1024;
 	private final JobRepository jobRepository;
 	private final JobMapper jobMapper;
-
-	public JobService(
-			JobRepository jobRepository,
-			JobMapper jobMapper) {
-
-		this.jobRepository = jobRepository;
-		this.jobMapper = jobMapper;
-	}
+	private final JobImageRepository jobImageRepository;
+	private final ImageStorageService imageStorageService;
 
 	public Job create(UUID clientId, CreateJobRequest request) {
 		Job job = new Job();
@@ -228,5 +236,60 @@ public class JobService {
 		return new ChatEligibilityResponse(
 				allowed,
 				job.getClientId());
+	}
+
+	public JobImageResponse uploadImage(
+			UUID jobId,
+			UUID userId,
+			MultipartFile file) throws IOException {
+
+		if (file.isEmpty()) {
+			throw new InvalidImageException("Image cannot be empty");
+		}
+
+		if (file.getSize() > MAX_IMAGE_SIZE) {
+		throw new InvalidImageException("Image size must not exceed 5 MB");
+		}
+
+		Job job = jobRepository.findById(jobId)
+				.orElseThrow(() -> new JobNotFoundException("Job not found: ", jobId));
+
+		if (!job.getClientId().equals(userId)) {
+			throw new JobAccessDeniedException(
+					"You are not allowed to update this job");
+		}
+
+		String contentType = file.getContentType();
+		if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType)) {
+			throw new InvalidImageException("Unsupported image type");
+		}
+
+		UUID imageId = UUID.randomUUID();
+		String objectKey = "jobs/" + jobId + "/" + imageId;
+		try {
+			imageStorageService.upload(
+					objectKey,
+					file.getInputStream(),
+					file.getSize(),
+					file.getContentType());
+		} catch (IOException e) {
+			throw new InvalidImageException("Failed to read image");
+		}
+
+		JobImage image = new JobImage();
+		image.setId(imageId);
+		image.setJob(job);
+		image.setObjectKey(objectKey);
+		image.setPosition(job.getImages().size());
+		image.setCreatedAt(Instant.now());
+
+		jobImageRepository.save(image);
+
+		String url = imageStorageService.generateDownloadUrl(objectKey);
+
+		return new JobImageResponse(
+				imageId,
+				url,
+				image.getPosition());
 	}
 }
