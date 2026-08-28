@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -217,5 +218,29 @@ public class GlobalExceptionHandler {
 		return ResponseEntity
 				.status(HttpStatus.BAD_REQUEST)
 				.body(response);
+	}
+
+	@ExceptionHandler(InvalidImageException.class)
+	public ResponseEntity<ApiErrorResponse> handleInvalidImage(
+			InvalidImageException exception,
+			HttpServletRequest request) {
+
+		ApiErrorResponse response = new ApiErrorResponse(
+				Instant.now(),
+				HttpStatus.BAD_REQUEST.value(),
+				"INVALID_IMAGE",
+				exception.getMessage(),
+				request.getRequestURI(),
+				null);
+
+		return ResponseEntity
+				.status(HttpStatus.BAD_REQUEST)
+				.body(response);
+	}
+
+	@ExceptionHandler(MaxUploadSizeExceededException.class)
+	public ResponseEntity<String> handleMaxSizeException(MaxUploadSizeExceededException e) {
+		return ResponseEntity.status(HttpStatus.CONTENT_TOO_LARGE)
+				.body("File too large. Maximum upload size is 20MB.");
 	}
 }
