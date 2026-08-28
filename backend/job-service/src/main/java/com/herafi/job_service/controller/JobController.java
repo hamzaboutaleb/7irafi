@@ -1,9 +1,11 @@
 package com.herafi.job_service.controller;
 
 import java.util.UUID;
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,13 +18,16 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.herafi.job_service.dto.CreateJobRequest;
 import com.herafi.job_service.dto.JobFilter;
+import com.herafi.job_service.dto.JobImageResponse;
 import com.herafi.job_service.dto.JobResponse;
 import com.herafi.job_service.dto.PageResponse;
 import com.herafi.job_service.dto.UpdateJobRequest;
 import com.herafi.job_service.entity.Job;
+import com.herafi.job_service.exceptions.InvalidImageException;
 import com.herafi.job_service.service.JobService;
 
 import jakarta.validation.Valid;
@@ -120,12 +125,21 @@ public class JobController {
         return ResponseEntity.noContent().build();
     }
 
-    //  Internal endpoints:
-    @GetMapping("/internal/jobs/{id}/summary")
-    public String jobSummary(
-        @PathVariable UUID jobId
-    )
-    {
-        return "hei";
+    @PostMapping(value = "/{jobId}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<JobImageResponse> uploadImage(
+            @PathVariable UUID jobId,
+            @RequestParam("file") MultipartFile file,
+            @RequestHeader("X-User-Id") UUID userId) {
+        try {
+
+            JobImageResponse response = jobService.uploadImage(jobId, userId, file);
+
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .body(response);
+
+        } catch (IOException e) {
+            throw new InvalidImageException("Failed to upload image");
+        }
     }
 }
