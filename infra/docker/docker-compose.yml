@@ -81,6 +81,10 @@ services:
       DB_PASSWORD: herafi
       SHOW_SQL: "true"
       GATEWAY_SHARED_SECRET: 7irafi-development-gateway-key
+      
+      S3_BUCKET: jobs
+      S3_ACCESS_KEY: minio
+      S3_SECRET_KEY: minio123
       # INTERNAL_API_KEY: 7irafi-development-internal-key
     ports:
       - "8083:8083"
@@ -103,6 +107,19 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
+    
+  minio:
+    image: minio/minio
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
 
   api-gateway:
     container_name: api-gateway-dev
@@ -141,3 +158,5 @@ services:
 volumes:
   postgres-data:
   job-maven-cache:
+  minio_data:
+
