@@ -5,6 +5,7 @@ import { Dashboard } from './pages/dashboard/dashboard.js';
 import { authGuard } from './guards/auth-guard.js';
 import { guestGuard } from './guards/guest-guard.js';
 import { Register } from './pages/register/register.js';
+import { Profile } from './pages/profile/profile.js';
 
 export const routes: Routes = [
   { path: '', component: Landing },
@@ -22,5 +23,10 @@ export const routes: Routes = [
     path: 'register',
     component: Register,
     canActivate: [guestGuard],
+  },
+  {
+    path: 'profile',
+    component: Profile,
+    canActivate: [authGuard],
   },
 ];
