@@ -225,6 +225,20 @@
                   {{ currentProfile.email }}
                 </dd>
               </div>
+
+              <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                <dt class="text-sm font-medium text-gray-500">Member since</dt>
+                <dd class="mt-1 text-base font-semibold text-gray-900">
+                  {{ currentProfile.createdAt | date: 'mediumDate' }}
+                </dd>
+              </div>
+
+              <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                <dt class="text-sm font-medium text-gray-500">Last updated</dt>
+                <dd class="mt-1 text-base font-semibold text-gray-900">
+                  {{ currentProfile.updatedAt | date: 'medium' }}
+                </dd>
+              </div>
             </dl>
           }
         </section>

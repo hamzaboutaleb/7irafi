@@ -8,10 +8,11 @@ import { ApiError } from '../../types/api.js';
 
 import { Navbar } from '../../components/navbar/navbar';
 import { Footer } from '../../components/footer/footer';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-profile',
-  imports: [ReactiveFormsModule, Navbar, Footer],
+  imports: [ReactiveFormsModule, Navbar, Footer, DatePipe],
   templateUrl: './profile.html',
   styleUrl: './profile.css',
 })
