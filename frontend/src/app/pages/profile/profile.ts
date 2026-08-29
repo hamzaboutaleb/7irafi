@@ -6,9 +6,12 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ApiError } from '../../types/api.js';
 
+import { Navbar } from '../../components/navbar/navbar';
+import { Footer } from '../../components/footer/footer';
+
 @Component({
   selector: 'app-profile',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, Navbar, Footer],
   templateUrl: './profile.html',
   styleUrl: './profile.css',
 })
@@ -22,6 +25,7 @@ export class Profile implements OnInit {
   readonly isSaving = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
+  readonly isEditingPersonal = signal(false);
 
   readonly form = this.formBuilder.nonNullable.group({
     firstName: ['', [Validators.required, Validators.maxLength(50), Validators.minLength(3)]],
@@ -50,6 +54,26 @@ export class Profile implements OnInit {
       });
   }
 
+  startEditingPersonal(): void {
+    this.errorMessage.set(null);
+    this.successMessage.set(null);
+    this.isEditingPersonal.set(true);
+  }
+
+  cancelEditingPersonal(): void {
+    const currentProfile = this.profile();
+
+    if (currentProfile) {
+      this.form.patchValue({
+        firstName: currentProfile.firstName,
+        lastName: currentProfile.lastName,
+      });
+    }
+
+    this.errorMessage.set(null);
+    this.isEditingPersonal.set(false);
+  }
+
   save(): void {
     if (this.isSaving()) {
       return;
@@ -76,13 +100,12 @@ export class Profile implements OnInit {
           });
           this.successMessage.set('Profile updated successfully.');
           this.isSaving.set(false);
+          this.isEditingPersonal.set(false);
         },
         error: (err: HttpErrorResponse) => {
           const body = err.error as ApiError | undefined;
 
-          this.errorMessage.set(
-            body?.error?.message ?? 'Unable to update your profile.',
-          );
+          this.errorMessage.set(body?.error?.message ?? 'Unable to update your profile.');
           this.isSaving.set(false);
         },
       });
