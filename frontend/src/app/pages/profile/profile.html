@@ -1,0 +1,152 @@
+<main class="min-h-screen bg-gray-50 px-4 py-10 sm:px-6">
+  <div class="mx-auto max-w-2xl">
+    <header class="mb-8">
+      <p class="text-sm font-semibold text-primary-600">Account settings</p>
+
+      <h1 class="mt-2 text-3xl font-bold text-gray-900">Account profile</h1>
+
+      <p class="mt-2 text-gray-600">Keep your personal information accurate across 7irafi.</p>
+    </header>
+
+    @if (isLoading()) {
+      <section
+        class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
+        role="status"
+        aria-live="polite"
+      >
+        <p class="text-sm text-gray-600">Loading your profile…</p>
+      </section>
+    } @else {
+      @if (errorMessage()) {
+        <div
+          class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+          role="alert"
+        >
+          {{ errorMessage() }}
+        </div>
+      }
+
+      @if (successMessage()) {
+        <div
+          class="mb-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700"
+          role="status"
+          aria-live="polite"
+        >
+          {{ successMessage() }}
+        </div>
+      }
+
+      @if (profile(); as currentProfile) {
+        <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+          <h2 class="text-xl font-semibold text-gray-900">Personal information</h2>
+
+          <p class="mt-1 text-sm text-gray-500">Update the name shown across your account.</p>
+
+          <div class="mt-6">
+            <label for="email" class="mb-1.5 block text-sm font-medium text-gray-700">
+              Email address
+            </label>
+
+            <input
+              id="email"
+              type="email"
+              [value]="currentProfile.email"
+              readonly
+              aria-describedby="email-help"
+              class="w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 text-sm text-gray-700"
+            />
+
+            <p id="email-help" class="mt-1.5 text-xs text-gray-500">
+              Your email identifies your account and cannot be changed here.
+            </p>
+          </div>
+
+          <form class="mt-6 space-y-6" [formGroup]="form" (ngSubmit)="save()" novalidate>
+            <div class="grid gap-6 sm:grid-cols-2">
+              <div>
+                <label for="firstName" class="mb-1.5 block text-sm font-medium text-gray-700">
+                  First name
+                </label>
+
+                <input
+                  id="firstName"
+                  type="text"
+                  formControlName="firstName"
+                  autocomplete="given-name"
+                  minlength="3"
+                  maxlength="50"
+                  [attr.aria-invalid]="firstName.invalid && firstName.touched"
+                  [attr.aria-describedby]="
+                    firstName.invalid && firstName.touched ? 'first-name-error' : null
+                  "
+                  [class.border-red-500]="firstName.invalid && firstName.touched"
+                  class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none transition-colors duration-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
+                />
+
+                @if (firstName.invalid && firstName.touched) {
+                  <p id="first-name-error" class="mt-1.5 text-sm text-red-600" role="alert">
+                    @if (firstName.hasError('required')) {
+                      First name is required.
+                    } @else if (firstName.hasError('minlength')) {
+                      First name must contain at least 3 characters.
+                    } @else if (firstName.hasError('maxlength')) {
+                      First name cannot exceed 50 characters.
+                    }
+                  </p>
+                }
+              </div>
+
+              <div>
+                <label for="lastName" class="mb-1.5 block text-sm font-medium text-gray-700">
+                  Last name
+                </label>
+
+                <input
+                  id="lastName"
+                  type="text"
+                  formControlName="lastName"
+                  autocomplete="family-name"
+                  minlength="3"
+                  maxlength="50"
+                  [attr.aria-invalid]="lastName.invalid && lastName.touched"
+                  [attr.aria-describedby]="
+                    lastName.invalid && lastName.touched ? 'last-name-error' : null
+                  "
+                  [class.border-red-500]="lastName.invalid && lastName.touched"
+                  class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none transition-colors duration-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
+                />
+
+                @if (lastName.invalid && lastName.touched) {
+                  <p id="last-name-error" class="mt-1.5 text-sm text-red-600" role="alert">
+                    @if (lastName.hasError('required')) {
+                      Last name is required.
+                    } @else if (lastName.hasError('minlength')) {
+                      Last name must contain at least 3 characters.
+                    } @else if (lastName.hasError('maxlength')) {
+                      Last name cannot exceed 50 characters.
+                    }
+                  </p>
+                }
+              </div>
+            </div>
+
+            <div class="flex justify-end border-t border-gray-200 pt-6">
+              <button
+                type="submit"
+                [disabled]="isSaving()"
+                [attr.aria-busy]="isSaving()"
+                class="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl bg-primary-600 px-6 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                @if (isSaving()) {
+                  Saving…
+                } @else {
+                  Save changes
+                }
+              </button>
+            </div>
+          </form>
+        </section>
+      }
+    }
+  </div>
+</main>
