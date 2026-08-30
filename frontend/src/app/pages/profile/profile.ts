@@ -9,6 +9,9 @@ import { ApiError } from '../../types/api.js';
 import { Navbar } from '../../components/navbar/navbar';
 import { Footer } from '../../components/footer/footer';
 import { DatePipe } from '@angular/common';
+import { ProfessionalProfile as ProfessionalProfileModel } from '../../types/professional-profile.js';
+
+type ProfessionalSectionState = 'loading' | 'none' | 'loaded' | 'error';
 
 @Component({
   selector: 'app-profile',
@@ -27,6 +30,8 @@ export class Profile implements OnInit {
   readonly errorMessage = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
   readonly isEditingPersonal = signal(false);
+  readonly professionalSection = signal<ProfessionalSectionState>('loading');
+  readonly professionalProfile = signal<ProfessionalProfileModel | null>(null);
 
   readonly form = this.formBuilder.nonNullable.group({
     firstName: ['', [Validators.required, Validators.maxLength(50), Validators.minLength(3)]],
@@ -51,6 +56,26 @@ export class Profile implements OnInit {
 
           this.errorMessage.set(body?.error?.message ?? 'Unable to load your profile.');
           this.isLoading.set(false);
+        },
+      });
+    this.userService
+      .getCurrentProfessionalProfile()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          this.professionalProfile.set(response.data);
+          this.professionalSection.set('loaded');
+        },
+        error: (err: HttpErrorResponse) => {
+          const body = err.error as ApiError | undefined;
+
+          if (err.status === 404 && body?.error?.code === 'PROFESSIONAL_PROFILE_NOT_FOUND') {
+            this.professionalProfile.set(null);
+            this.professionalSection.set('none');
+            return;
+          }
+
+          this.professionalSection.set('error');
         },
       });
   }
