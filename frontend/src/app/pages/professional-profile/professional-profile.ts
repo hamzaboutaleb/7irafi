@@ -4,6 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { catchError, forkJoin, of, throwError } from 'rxjs';
+import { Router } from '@angular/router';
 
 import { Footer } from '../../components/footer/footer';
 import { Navbar } from '../../components/navbar/navbar';
@@ -27,6 +28,7 @@ export class ProfessionalProfile implements OnInit {
   private readonly userService = inject(UserService);
   private readonly formBuilder = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
 
   readonly mode = signal<ProfessionalProfileMode>('loading');
   readonly professionalProfile = signal<ProfessionalProfileModel | null>(null);
@@ -58,10 +60,7 @@ export class ProfessionalProfile implements OnInit {
         catchError((err: HttpErrorResponse) => {
           const body = err.error as ApiError | undefined;
 
-          if (
-            err.status === 404 &&
-            body?.error?.code === 'PROFESSIONAL_PROFILE_NOT_FOUND'
-          ) {
+          if (err.status === 404 && body?.error?.code === 'PROFESSIONAL_PROFILE_NOT_FOUND') {
             return of(null);
           }
 
@@ -129,12 +128,7 @@ export class ProfessionalProfile implements OnInit {
     operation.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
         this.applyProfile(response.data);
-        this.mode.set('edit');
-        this.successMessage.set(
-          currentMode === 'create'
-            ? 'Your professional profile was created successfully.'
-            : 'Your professional profile was updated successfully.',
-        );
+        this.router.navigate(['/profile']);
         this.isSaving.set(false);
       },
       error: (err: HttpErrorResponse) => {
