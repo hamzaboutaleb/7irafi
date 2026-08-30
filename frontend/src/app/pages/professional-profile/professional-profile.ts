@@ -2,9 +2,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { catchError, forkJoin, of, throwError } from 'rxjs';
-import { Router } from '@angular/router';
 
 import { Footer } from '../../components/footer/footer';
 import { Navbar } from '../../components/navbar/navbar';
@@ -36,7 +35,6 @@ export class ProfessionalProfile implements OnInit {
   readonly cities = signal<ServiceCity[]>([]);
   readonly isSaving = signal(false);
   readonly errorMessage = signal<string | null>(null);
-  readonly successMessage = signal<string | null>(null);
 
   readonly form = this.formBuilder.nonNullable.group({
     biography: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(2000)]],
@@ -51,7 +49,6 @@ export class ProfessionalProfile implements OnInit {
   loadPage(): void {
     this.mode.set('loading');
     this.errorMessage.set(null);
-    this.successMessage.set(null);
 
     forkJoin({
       categories: this.userService.getServiceCategories(),
@@ -116,7 +113,6 @@ export class ProfessionalProfile implements OnInit {
     }
 
     this.errorMessage.set(null);
-    this.successMessage.set(null);
     this.isSaving.set(true);
 
     const request = this.form.getRawValue();
@@ -127,7 +123,6 @@ export class ProfessionalProfile implements OnInit {
 
     operation.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
-        this.applyProfile(response.data);
         this.router.navigate(['/profile']);
         this.isSaving.set(false);
       },
