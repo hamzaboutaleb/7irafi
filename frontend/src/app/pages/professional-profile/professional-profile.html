@@ -1,0 +1,244 @@
+<app-navbar />
+
+<main class="min-h-screen bg-gray-50 px-4 py-10 sm:px-6">
+  <div class="mx-auto max-w-3xl">
+    <header class="mb-8">
+      <p class="text-sm font-semibold text-primary-600">My professional profile</p>
+      <h1 class="mt-2 text-3xl font-bold text-gray-900">Professional profile</h1>
+      <p class="mt-2 max-w-2xl text-gray-600">
+        Choose the services you provide and the cities where you are available.
+      </p>
+    </header>
+
+    @if (mode() === 'loading') {
+      <section
+        class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8"
+        role="status"
+        aria-live="polite"
+      >
+        <p class="font-medium text-gray-900">Loading your professional profile…</p>
+        <p class="mt-1 text-sm text-gray-600">
+          We are retrieving your profile, service categories, and cities.
+        </p>
+      </section>
+    } @else if (mode() === 'error') {
+      <section class="rounded-2xl border border-red-200 bg-red-50 p-6 sm:p-8" role="alert">
+        <h2 class="text-lg font-semibold text-red-900">We could not load this page</h2>
+        <p class="mt-2 text-sm text-red-700">{{ errorMessage() }}</p>
+        <button
+          type="button"
+          (click)="loadPage()"
+          class="mt-5 inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl bg-red-700 px-5 py-2.5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-red-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+        >
+          Try again
+        </button>
+      </section>
+    } @else {
+      @if (errorMessage()) {
+        <div
+          class="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+          role="alert"
+        >
+          {{ errorMessage() }}
+        </div>
+      }
+
+      @if (successMessage()) {
+        <div
+          class="mb-5 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700"
+          role="status"
+          aria-live="polite"
+        >
+          {{ successMessage() }}
+        </div>
+      }
+
+      <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h2 class="text-xl font-semibold text-gray-900">
+              {{ mode() === 'create' ? 'Become a professional' : 'Professional information' }}
+            </h2>
+            <p class="mt-1 text-sm text-gray-600">
+              {{
+                mode() === 'create'
+                  ? 'Complete these details to publish your professional profile.'
+                  : 'Keep your biography, services, and service areas accurate.'
+              }}
+            </p>
+          </div>
+
+          @if (professionalProfile(); as currentProfile) {
+            <div class="shrink-0">
+              <p class="text-xs font-medium uppercase tracking-wide text-gray-500">Status</p>
+              <span
+                class="mt-1 inline-flex min-h-11 items-center rounded-full bg-primary-50 px-4 py-2 text-sm font-semibold text-primary-700"
+              >
+                {{ currentProfile.onboardingStatus }}
+              </span>
+            </div>
+          }
+        </div>
+
+        @if (professionalProfile()?.onboardingStatus === 'SUSPENDED') {
+          <div class="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            Your profile is suspended. You may update its information, but ordinary edits cannot
+            reactivate it.
+          </div>
+        }
+
+        <form class="mt-8 space-y-8" [formGroup]="form" (ngSubmit)="save()" novalidate>
+          <div>
+            <div class="flex items-end justify-between gap-4">
+              <label for="biography" class="block text-sm font-semibold text-gray-800">
+                Professional biography
+              </label>
+              <span class="text-xs text-gray-500">{{ biography.value.length }}/2000</span>
+            </div>
+
+            <textarea
+              id="biography"
+              formControlName="biography"
+              rows="6"
+              maxlength="2000"
+              placeholder="Describe your experience, the work you do, and what clients can expect."
+              [attr.aria-invalid]="biography.invalid && biography.touched"
+              [attr.aria-describedby]="
+                biography.invalid && biography.touched
+                  ? 'biography-help biography-error'
+                  : 'biography-help'
+              "
+              [class.border-red-500]="biography.invalid && biography.touched"
+              class="mt-2 w-full resize-y rounded-xl border border-gray-300 px-4 py-3 text-base text-gray-900 outline-none transition-colors duration-200 placeholder:text-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
+            ></textarea>
+
+            <p id="biography-help" class="mt-1.5 text-sm text-gray-500">
+              Use between 10 and 2000 characters. Do not include private contact information.
+            </p>
+
+            @if (biography.invalid && biography.touched) {
+              <p id="biography-error" class="mt-1.5 text-sm font-medium text-red-600" role="alert">
+                @if (biography.hasError('required')) {
+                  A professional biography is required.
+                } @else if (biography.hasError('minlength')) {
+                  Biography must contain at least 10 characters.
+                } @else if (biography.hasError('maxlength')) {
+                  Biography cannot exceed 2000 characters.
+                }
+              </p>
+            }
+          </div>
+
+          <fieldset>
+            <legend class="text-sm font-semibold text-gray-800">Services you provide</legend>
+            <p id="categories-help" class="mt-1 text-sm text-gray-500">
+              Select at least one service category.
+            </p>
+
+            <div
+              class="mt-4 grid gap-3 sm:grid-cols-2"
+              aria-describedby="categories-help categories-error"
+            >
+              @for (category of categories(); track category.code) {
+                <label
+                  [for]="'category-' + category.code"
+                  class="flex min-h-11 cursor-pointer items-start gap-3 rounded-xl border border-gray-200 p-4 transition-colors duration-200 hover:border-primary-300 hover:bg-primary-50 focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-200"
+                >
+                  <input
+                    [id]="'category-' + category.code"
+                    type="checkbox"
+                    [checked]="categoryCodes.value.includes(category.code)"
+                    [disabled]="isSaving()"
+                    (change)="toggleCategory(category.code, $any($event.target).checked)"
+                    class="mt-0.5 h-5 w-5 shrink-0 cursor-pointer accent-primary-600 disabled:cursor-not-allowed"
+                  />
+                  <span>
+                    <span class="block text-sm font-semibold text-gray-900">
+                      {{ category.displayName }}
+                    </span>
+                    <span class="mt-1 block text-xs leading-5 text-gray-600">
+                      {{ category.description }}
+                    </span>
+                  </span>
+                </label>
+              } @empty {
+                <p class="text-sm text-gray-600">No service categories are currently available.</p>
+              }
+            </div>
+
+            @if (categoryCodes.invalid && categoryCodes.touched) {
+              <p id="categories-error" class="mt-2 text-sm font-medium text-red-600" role="alert">
+                Select at least one service category.
+              </p>
+            }
+          </fieldset>
+
+          <fieldset>
+            <legend class="text-sm font-semibold text-gray-800">Cities where you work</legend>
+            <p id="cities-help" class="mt-1 text-sm text-gray-500">
+              Select every city where you are available for work.
+            </p>
+
+            <div
+              class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
+              aria-describedby="cities-help cities-error"
+            >
+              @for (city of cities(); track city.code) {
+                <label
+                  [for]="'city-' + city.code"
+                  class="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-gray-200 px-4 py-3 transition-colors duration-200 hover:border-primary-300 hover:bg-primary-50 focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-200"
+                >
+                  <input
+                    [id]="'city-' + city.code"
+                    type="checkbox"
+                    [checked]="cityCodes.value.includes(city.code)"
+                    [disabled]="isSaving()"
+                    (change)="toggleCity(city.code, $any($event.target).checked)"
+                    class="h-5 w-5 shrink-0 cursor-pointer accent-primary-600 disabled:cursor-not-allowed"
+                  />
+                  <span class="text-sm font-semibold text-gray-900">{{ city.displayName }}</span>
+                </label>
+              } @empty {
+                <p class="text-sm text-gray-600">No service cities are currently available.</p>
+              }
+            </div>
+
+            @if (cityCodes.invalid && cityCodes.touched) {
+              <p id="cities-error" class="mt-2 text-sm font-medium text-red-600" role="alert">
+                Select at least one service city.
+              </p>
+            }
+          </fieldset>
+
+          <div
+            class="flex flex-col-reverse gap-3 border-t border-gray-200 pt-6 sm:flex-row sm:justify-end"
+          >
+            <a
+              routerLink="/profile"
+              class="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-700 transition-colors duration-200 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2"
+            >
+              Back to profile
+            </a>
+
+            <button
+              type="submit"
+              [disabled]="isSaving()"
+              [attr.aria-busy]="isSaving()"
+              class="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl bg-primary-600 px-6 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              @if (isSaving()) {
+                Saving…
+              } @else if (mode() === 'create') {
+                Create professional profile
+              } @else {
+                Save changes
+              }
+            </button>
+          </div>
+        </form>
+      </section>
+    }
+  </div>
+</main>
+
+<app-footer />
