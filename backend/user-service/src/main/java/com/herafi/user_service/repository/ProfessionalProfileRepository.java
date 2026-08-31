@@ -16,6 +16,7 @@ public interface ProfessionalProfileRepository extends JpaRepository<Professiona
     @EntityGraph(attributePaths = { "categories", "cities" })
     Optional<ProfessionalProfile> findByUserId(UUID userId);
 
-    @EntityGraph(attributePaths =  { "categories", "cities", "userProfile" })
-    Page<ProfessionalProfile> findByOnboardingStatus(ProfessionalOnboardingStatus professionalOnboardingStatus, Pageable page);
+    @EntityGraph(attributePaths = { "categories", "cities", "userProfile" })
+    Page<ProfessionalProfile> findByOnboardingStatus(ProfessionalOnboardingStatus professionalOnboardingStatus,
+            Pageable page);
 }

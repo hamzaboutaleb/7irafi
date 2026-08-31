@@ -7,6 +7,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.Locale;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -140,4 +142,9 @@ public class ProfessionalProfileService {
         return professionalProfileRepository.save(professionalProfile);
     }
 
+    @Transactional(readOnly = true)
+    public Page<ProfessionalProfile> getActiveProfessionals(Pageable pageable) {
+        return professionalProfileRepository
+                .findByOnboardingStatus(ProfessionalOnboardingStatus.ACTIVE, pageable);
+    }
 }
