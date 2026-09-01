@@ -1,13 +1,16 @@
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, OnInit, signal } from '@angular/core';
 import { ApiError, Page } from '../../types/api.js';
 import { ProfessionalCard } from '../../types/professional-profile.js';
 import { UserService } from '../../services/user.js';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
+import { Navbar } from '../../components/navbar/navbar.js';
+import { Footer } from '../../components/footer/footer.js';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-professionals',
-  imports: [],
+  imports: [Navbar, Footer, RouterLink],
   templateUrl: './professionals.html',
   styleUrl: './professionals.css',
 })
@@ -21,7 +24,29 @@ export class Professionals implements OnInit {
   readonly isLoading = signal(true);
   readonly errorMessage = signal<string | null>(null);
 
+  readonly canGoForward = computed(() => {
+    const current = this.page();
+    if (current === null) {
+      return false;
+    }
+    return current.page < current.totalPages - 1;
+  });
+
+  readonly canGoBack = computed(() => {
+    const current = this.page();
+    if (current === null) {
+      return false;
+    }
+    return current.page > 0;
+  });
+
   ngOnInit(): void {
+    this.load();
+  }
+
+  private load(): void {
+    this.isLoading.set(true);
+    this.errorMessage.set(null);
     this.userService
       .getProfessionals(this.pageNumber(), this.size())
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -37,5 +62,21 @@ export class Professionals implements OnInit {
           this.isLoading.set(false);
         },
       });
+  }
+
+  nextPage(): void {
+    if (!this.canGoForward()) {
+      return;
+    }
+    this.pageNumber.update((value) => value + 1);
+    this.load();
+  }
+
+  prevPage(): void {
+    if (!this.canGoBack()) {
+      return;
+    }
+    this.pageNumber.update((value) => value - 1);
+    this.load();
   }
 }
