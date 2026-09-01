@@ -11,3 +11,10 @@ export interface ApiError {
     errors?: { field: string; message: string }[];
   };
 }
+export interface Page<T> {
+  content: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}

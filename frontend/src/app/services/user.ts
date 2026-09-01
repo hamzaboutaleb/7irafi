@@ -1,6 +1,6 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { ApiSuccess } from '../types/api.js';
+import { ApiSuccess, Page } from '../types/api.js';
 import { UserProfile, UpdateUserProfileRequest } from '../types/user.js';
 import {
   ServiceCategory,
@@ -8,7 +8,9 @@ import {
   ProfessionalProfile,
   CreateProfessionalProfileRequest,
   UpdateProfessionalProfileRequest,
+  ProfessionalCard,
 } from '../types/professional-profile.js';
+
 
 @Injectable({
   providedIn: 'root',
@@ -45,5 +47,12 @@ export class UserService {
 
   updateProfessionalProfile(request: UpdateProfessionalProfileRequest) {
     return this.http.put<ApiSuccess<ProfessionalProfile>>('users/me/professional-profile', request);
+  }
+
+  getProfessionals(page: number, size: number) {
+    const baseParams = new HttpParams();
+    return this.http.get<ApiSuccess<Page<ProfessionalCard>>>('users/professionals', {
+      params: baseParams.set('page', page).set('size', size),
+    });
   }
 }
