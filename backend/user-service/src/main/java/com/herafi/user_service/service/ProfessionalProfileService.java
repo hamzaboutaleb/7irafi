@@ -143,8 +143,8 @@ public class ProfessionalProfileService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ProfessionalProfile> getActiveProfessionals(Pageable pageable) {
+    public Page<ProfessionalProfile> getActiveProfessionals(Pageable pageable, String categoryCode, String cityCode) {
         return professionalProfileRepository
-                .findByOnboardingStatus(ProfessionalOnboardingStatus.ACTIVE, pageable);
+                .findDirectoryPage(ProfessionalOnboardingStatus.ACTIVE, categoryCode, cityCode, pageable);
     }
 }
