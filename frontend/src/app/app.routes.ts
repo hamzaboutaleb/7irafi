@@ -8,6 +8,7 @@ import { guestGuard } from './guards/guest-guard.js';
 import { Register } from './pages/register/register.js';
 import { Profile } from './pages/profile/profile.js';
 import { ProfessionalProfile } from './pages/professional-profile/professional-profile.js';
+import { Professionals } from './pages/professionals/professionals.js';
 
 export const routes: Routes = [
   { path: '', component: Landing },
@@ -35,6 +36,11 @@ export const routes: Routes = [
   {
     path: 'professional-profile',
     component: ProfessionalProfile,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'professionals',
+    component: Professionals,
     canActivate: [authGuard],
   },
 ];

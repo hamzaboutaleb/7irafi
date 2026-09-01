@@ -30,3 +30,10 @@ export interface UpdateProfessionalProfileRequest {
   cityCodes: string[];
   categoryCodes: string[];
 }
+
+export interface ProfessionalCard {
+  userId: string;
+  firstName: string;
+  categories: ServiceCategory[];
+  cities: ServiceCity[];
+}
