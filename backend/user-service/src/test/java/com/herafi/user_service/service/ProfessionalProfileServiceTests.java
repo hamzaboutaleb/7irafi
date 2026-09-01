@@ -18,6 +18,10 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import com.herafi.user_service.dto.CreateProfessionalProfileRequest;
 import com.herafi.user_service.dto.UpdateProfessionalProfileRequest;
@@ -270,6 +274,29 @@ class ProfessionalProfileServiceTests {
 
         assertSame(profile, result);
         verify(professionalProfileRepository).findByUserId(userId);
+    }
+
+    @Test
+    void retrievesOnlyActiveProfessionalsUsingRequestedPage() {
+        Pageable pageable = PageRequest.of(1, 12);
+        ProfessionalProfile profile = professionalProfile(
+                UUID.randomUUID(),
+                ProfessionalOnboardingStatus.ACTIVE,
+                Set.of(category("PAINTING")),
+                Set.of(city("CASABLANCA")));
+        Page<ProfessionalProfile> expected = new PageImpl<>(List.of(profile), pageable, 13);
+
+        when(professionalProfileRepository.findByOnboardingStatus(
+                ProfessionalOnboardingStatus.ACTIVE,
+                pageable))
+                .thenReturn(expected);
+
+        Page<ProfessionalProfile> result = service.getActiveProfessionals(pageable);
+
+        assertSame(expected, result);
+        verify(professionalProfileRepository).findByOnboardingStatus(
+                ProfessionalOnboardingStatus.ACTIVE,
+                pageable);
     }
 
     private CreateProfessionalProfileRequest validCreateRequest() {
