@@ -51,7 +51,7 @@ class ProfessionalDirectoryControllerTests {
                 2,
                 Sort.by(Sort.Direction.DESC, "userId"));
 
-        when(professionalProfileService.getActiveProfessionals(any(Pageable.class)))
+        when(professionalProfileService.getActiveProfessionals(any(Pageable.class), any(), any()))
                 .thenReturn(new PageImpl<>(List.of(profile), returnedPageable, 5));
 
         mockMvc.perform(get("/users/professionals")
@@ -72,7 +72,7 @@ class ProfessionalDirectoryControllerTests {
                 .andExpect(jsonPath("$.data.totalPages").value(3));
 
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
-        verify(professionalProfileService).getActiveProfessionals(pageableCaptor.capture());
+        verify(professionalProfileService).getActiveProfessionals(pageableCaptor.capture(), any(), any());
 
         Pageable requestedPageable = pageableCaptor.getValue();
         assertEquals(1, requestedPageable.getPageNumber());
@@ -84,7 +84,7 @@ class ProfessionalDirectoryControllerTests {
 
     @Test
     void usesDirectoryPaginationDefaults() throws Exception {
-        when(professionalProfileService.getActiveProfessionals(any(Pageable.class)))
+        when(professionalProfileService.getActiveProfessionals(any(Pageable.class), any(), any()))
                 .thenAnswer(invocation -> new PageImpl<>(
                         List.of(),
                         invocation.getArgument(0),
@@ -98,7 +98,7 @@ class ProfessionalDirectoryControllerTests {
                 .andExpect(jsonPath("$.data.size").value(12));
 
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
-        verify(professionalProfileService).getActiveProfessionals(pageableCaptor.capture());
+        verify(professionalProfileService).getActiveProfessionals(pageableCaptor.capture(), any(), any());
 
         Pageable pageable = pageableCaptor.getValue();
         assertEquals(0, pageable.getPageNumber());
@@ -110,7 +110,7 @@ class ProfessionalDirectoryControllerTests {
 
     @Test
     void capsRequestedPageSizeAtConfiguredMaximum() throws Exception {
-        when(professionalProfileService.getActiveProfessionals(any(Pageable.class)))
+        when(professionalProfileService.getActiveProfessionals(any(Pageable.class), any(), any()))
                 .thenAnswer(invocation -> new PageImpl<>(
                         List.of(),
                         invocation.getArgument(0),
@@ -123,7 +123,7 @@ class ProfessionalDirectoryControllerTests {
                 .andExpect(jsonPath("$.data.size").value(20));
 
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
-        verify(professionalProfileService).getActiveProfessionals(pageableCaptor.capture());
+        verify(professionalProfileService).getActiveProfessionals(pageableCaptor.capture(), any(), any());
 
         assertEquals(20, pageableCaptor.getValue().getPageSize());
     }

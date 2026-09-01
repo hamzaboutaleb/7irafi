@@ -18,6 +18,7 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -279,24 +280,80 @@ class ProfessionalProfileServiceTests {
     @Test
     void retrievesOnlyActiveProfessionalsUsingRequestedPage() {
         Pageable pageable = PageRequest.of(1, 12);
+        Page<ProfessionalProfile> expected = directoryPage(pageable);
+
+        when(professionalProfileRepository.findDirectoryPage(
+                ProfessionalOnboardingStatus.ACTIVE,
+                null,
+                null,
+                pageable))
+                .thenReturn(expected);
+
+        Page<ProfessionalProfile> result = service.getActiveProfessionals(pageable, null, null);
+
+        assertSame(expected, result);
+        verify(professionalProfileRepository).findDirectoryPage(
+                ProfessionalOnboardingStatus.ACTIVE,
+                null,
+                null,
+                pageable);
+    }
+
+    @Test
+    void passesCategoryAndCityFiltersToTheRepository() {
+        Pageable pageable = PageRequest.of(0, 12);
+        Page<ProfessionalProfile> expected = directoryPage(pageable);
+
+        when(professionalProfileRepository.findDirectoryPage(
+                ProfessionalOnboardingStatus.ACTIVE,
+                "PAINTING",
+                "CASABLANCA",
+                pageable))
+                .thenReturn(expected);
+
+        Page<ProfessionalProfile> result =
+                service.getActiveProfessionals(pageable, "PAINTING", "CASABLANCA");
+
+        assertSame(expected, result);
+        verify(professionalProfileRepository).findDirectoryPage(
+                ProfessionalOnboardingStatus.ACTIVE,
+                "PAINTING",
+                "CASABLANCA",
+                pageable);
+    }
+
+    @Test
+    void neverLetsACallerRequestANonActiveStatus() {
+        Pageable pageable = PageRequest.of(0, 12);
+        ArgumentCaptor<ProfessionalOnboardingStatus> statusCaptor =
+                ArgumentCaptor.forClass(ProfessionalOnboardingStatus.class);
+
+        when(professionalProfileRepository.findDirectoryPage(
+                any(ProfessionalOnboardingStatus.class),
+                any(),
+                any(),
+                any(Pageable.class)))
+                .thenReturn(directoryPage(pageable));
+
+        service.getActiveProfessionals(pageable, "PAINTING", null);
+
+        verify(professionalProfileRepository).findDirectoryPage(
+                statusCaptor.capture(),
+                any(),
+                any(),
+                any(Pageable.class));
+
+        assertSame(ProfessionalOnboardingStatus.ACTIVE, statusCaptor.getValue());
+    }
+
+    private Page<ProfessionalProfile> directoryPage(Pageable pageable) {
         ProfessionalProfile profile = professionalProfile(
                 UUID.randomUUID(),
                 ProfessionalOnboardingStatus.ACTIVE,
                 Set.of(category("PAINTING")),
                 Set.of(city("CASABLANCA")));
-        Page<ProfessionalProfile> expected = new PageImpl<>(List.of(profile), pageable, 13);
 
-        when(professionalProfileRepository.findByOnboardingStatus(
-                ProfessionalOnboardingStatus.ACTIVE,
-                pageable))
-                .thenReturn(expected);
-
-        Page<ProfessionalProfile> result = service.getActiveProfessionals(pageable);
-
-        assertSame(expected, result);
-        verify(professionalProfileRepository).findByOnboardingStatus(
-                ProfessionalOnboardingStatus.ACTIVE,
-                pageable);
+        return new PageImpl<>(List.of(profile), pageable, 13);
     }
 
     private CreateProfessionalProfileRequest validCreateRequest() {
