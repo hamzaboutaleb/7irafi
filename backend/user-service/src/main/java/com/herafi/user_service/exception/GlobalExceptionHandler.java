@@ -16,70 +16,77 @@ import com.herafi.user_service.dto.ApiErrorResponse.FieldValidationError;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(UserProfileNotFoundException.class)
-    public ResponseEntity<ApiErrorResponse> handleNotFound(UserProfileNotFoundException exception) {
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(ApiErrorResponse.of("USER_PROFILE_NOT_FOUND", exception.getMessage()));
-    }
+        @ExceptionHandler(UserProfileNotFoundException.class)
+        public ResponseEntity<ApiErrorResponse> handleNotFound(UserProfileNotFoundException exception) {
+                return ResponseEntity
+                                .status(HttpStatus.NOT_FOUND)
+                                .body(ApiErrorResponse.of("USER_PROFILE_NOT_FOUND", exception.getMessage()));
+        }
 
-    @ExceptionHandler(UserProfileAlreadyExistsException.class)
-    public ResponseEntity<ApiErrorResponse> handleAlreadyExists(
-            UserProfileAlreadyExistsException exception) {
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(ApiErrorResponse.of("USER_PROFILE_ALREADY_EXISTS", exception.getMessage()));
-    }
+        @ExceptionHandler(UserProfileAlreadyExistsException.class)
+        public ResponseEntity<ApiErrorResponse> handleAlreadyExists(
+                        UserProfileAlreadyExistsException exception) {
+                return ResponseEntity
+                                .status(HttpStatus.CONFLICT)
+                                .body(ApiErrorResponse.of("USER_PROFILE_ALREADY_EXISTS", exception.getMessage()));
+        }
 
-    @ExceptionHandler({ProfileEmailAlreadyInUseException.class, DataIntegrityViolationException.class})
-    public ResponseEntity<ApiErrorResponse> handleEmailConflict(Exception exception) {
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(ApiErrorResponse.of(
-                        "PROFILE_EMAIL_ALREADY_IN_USE",
-                        "Email already belongs to another profile"
-                ));
-    }
+        @ExceptionHandler({ ProfileEmailAlreadyInUseException.class, DataIntegrityViolationException.class })
+        public ResponseEntity<ApiErrorResponse> handleEmailConflict(Exception exception) {
+                return ResponseEntity
+                                .status(HttpStatus.CONFLICT)
+                                .body(ApiErrorResponse.of(
+                                                "PROFILE_EMAIL_ALREADY_IN_USE",
+                                                "Email already belongs to another profile"));
+        }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiErrorResponse> handleValidation(
-            MethodArgumentNotValidException exception) {
-        List<FieldValidationError> errors = exception.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .map(error -> new FieldValidationError(
-                        error.getField(),
-                        error.getDefaultMessage()
-                ))
-                .toList();
+        @ExceptionHandler(MethodArgumentNotValidException.class)
+        public ResponseEntity<ApiErrorResponse> handleValidation(
+                        MethodArgumentNotValidException exception) {
+                List<FieldValidationError> errors = exception.getBindingResult()
+                                .getFieldErrors()
+                                .stream()
+                                .map(error -> new FieldValidationError(
+                                                error.getField(),
+                                                error.getDefaultMessage()))
+                                .toList();
 
-        return ResponseEntity
-                .badRequest()
-                .body(ApiErrorResponse.validation(errors));
-    }
+                return ResponseEntity
+                                .badRequest()
+                                .body(ApiErrorResponse.validation(errors));
+        }
 
-    @ExceptionHandler(MissingRequestHeaderException.class)
-    public ResponseEntity<ApiErrorResponse> handleMissingIdentity(
-            MissingRequestHeaderException exception) {
-        return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(ApiErrorResponse.of(
-                        "MISSING_USER_IDENTITY",
-                        "Authenticated user identity is missing"
-                ));
-    }
+        @ExceptionHandler(MissingRequestHeaderException.class)
+        public ResponseEntity<ApiErrorResponse> handleMissingIdentity(
+                        MissingRequestHeaderException exception) {
+                return ResponseEntity
+                                .status(HttpStatus.UNAUTHORIZED)
+                                .body(ApiErrorResponse.of(
+                                                "MISSING_USER_IDENTITY",
+                                                "Authenticated user identity is missing"));
+        }
 
-    @ExceptionHandler(ProfessionalProfileNotFoundException.class)
-    public ResponseEntity<ApiErrorResponse> handleNotFound(ProfessionalProfileNotFoundException exception) {
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(ApiErrorResponse.of("PROFESSIONAL_PROFILE_NOT_FOUND", exception.getMessage()));
-    }
+        @ExceptionHandler(ProfessionalProfileNotFoundException.class)
+        public ResponseEntity<ApiErrorResponse> handleNotFound(ProfessionalProfileNotFoundException exception) {
+                return ResponseEntity
+                                .status(HttpStatus.NOT_FOUND)
+                                .body(ApiErrorResponse.of("PROFESSIONAL_PROFILE_NOT_FOUND", exception.getMessage()));
+        }
 
-    @ExceptionHandler(ProfessionalProfileAlreadyExistsException.class)
-    public ResponseEntity<ApiErrorResponse> handleAlreadyExists(ProfessionalProfileAlreadyExistsException exception) {
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(ApiErrorResponse.of("PROFESSIONAL_PROFILE_ALREADY_EXISTS", exception.getMessage()));
-    }
+        @ExceptionHandler(ProfessionalProfileAlreadyExistsException.class)
+        public ResponseEntity<ApiErrorResponse> handleAlreadyExists(
+                        ProfessionalProfileAlreadyExistsException exception) {
+                return ResponseEntity
+                                .status(HttpStatus.CONFLICT)
+                                .body(ApiErrorResponse.of("PROFESSIONAL_PROFILE_ALREADY_EXISTS",
+                                                exception.getMessage()));
+        }
+
+        @ExceptionHandler({ InvalidCategoryException.class, InvalidCityException.class })
+        public ResponseEntity<ApiErrorResponse> handleInvalidCatalogCode(RuntimeException exception) {
+                return ResponseEntity
+                                .badRequest()
+                                .body(ApiErrorResponse.of("INVALID_CATALOG_CODE", exception.getMessage()));
+        }
+
 }
