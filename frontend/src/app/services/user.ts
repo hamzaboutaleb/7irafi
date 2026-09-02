@@ -11,7 +11,6 @@ import {
   ProfessionalCard,
 } from '../types/professional-profile.js';
 
-
 @Injectable({
   providedIn: 'root',
 })
@@ -49,10 +48,23 @@ export class UserService {
     return this.http.put<ApiSuccess<ProfessionalProfile>>('users/me/professional-profile', request);
   }
 
-  getProfessionals(page: number, size: number) {
-    const baseParams = new HttpParams();
+  getProfessionals(
+    page: number,
+    size: number,
+    cityCode: string | null,
+    categoryCode: string | null,
+  ) {
+    let baseParams = new HttpParams();
+    baseParams = baseParams.set('page', page).set('size', size);
+    if (cityCode != null) {
+      baseParams = baseParams.set('cityCode', cityCode);
+    }
+    if (categoryCode != null) {
+      baseParams = baseParams.set('categoryCode', categoryCode);
+    }
+
     return this.http.get<ApiSuccess<Page<ProfessionalCard>>>('users/professionals', {
-      params: baseParams.set('page', page).set('size', size),
+      params: baseParams,
     });
   }
 }
