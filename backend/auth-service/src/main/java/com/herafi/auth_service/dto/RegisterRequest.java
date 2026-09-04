@@ -8,7 +8,7 @@ public record RegisterRequest(
     @NotBlank
     @Email
     @Size(max = 255)
-    String email, 
+    String email,
 
     @NotBlank
     @Size(min = 8, max = 128)
@@ -22,4 +22,3 @@ public record RegisterRequest(
     @Size(min = 3, max = 50)
     String lastName
 ) { }
-

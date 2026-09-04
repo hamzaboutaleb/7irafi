@@ -1,5 +1,7 @@
 package com.herafi.user_service.controller;
 
+import jakarta.validation.Valid;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,8 +14,6 @@ import com.herafi.user_service.dto.CreateUserProfileRequest;
 import com.herafi.user_service.dto.UserProfileResponse;
 import com.herafi.user_service.entity.UserProfile;
 import com.herafi.user_service.service.UserProfileService;
-
-import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/internal/users")

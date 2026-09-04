@@ -2,8 +2,9 @@ package com.herafi.user_service.dto;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.jupiter.api.Test;
 import jakarta.validation.Validation;
+
+import org.junit.jupiter.api.Test;
 
 class UpdateUserProfileRequestValidationTests {
     @Test

@@ -1,15 +1,15 @@
 package com.herafi.user_service.controller;
 
+import java.util.List;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
-import com.herafi.user_service.service.ProfessionalCatalogService;
 import com.herafi.user_service.dto.ApiResponse;
 import com.herafi.user_service.dto.ServiceCategoryResponse;
 import com.herafi.user_service.dto.ServiceCityResponse;
+import com.herafi.user_service.service.ProfessionalCatalogService;
 
 @RestController
 @RequestMapping("/users")
