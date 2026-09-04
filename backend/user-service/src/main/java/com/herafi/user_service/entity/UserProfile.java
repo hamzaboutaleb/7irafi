@@ -38,6 +38,8 @@ public class UserProfile {
     @Column(nullable = false)
     private Instant updatedAt;
 
+    private Instant lastSeenAt;
+
     @PrePersist
     void onCreate() {
         Instant now = Instant.now();
