@@ -1,5 +1,7 @@
 package com.herafi.auth_service.exception;
 
+import java.util.List;
+
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,11 +11,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import com.herafi.auth_service.dto.ApiErrorResponse;
 import com.herafi.auth_service.dto.ApiErrorResponse.FieldValidationError;
-import java.util.List;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
-    
+
 
     @ExceptionHandler({EmailAlreadyInUseException.class, DataIntegrityViolationException.class})
     public ResponseEntity<ApiErrorResponse> handleEmailConflict(Exception exception) {

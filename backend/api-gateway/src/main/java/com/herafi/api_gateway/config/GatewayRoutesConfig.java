@@ -2,10 +2,10 @@ package com.herafi.api_gateway.config;
 
 import static com.herafi.api_gateway.filter.GatewayIdentityFilter.addAuthenticatedIdentity;
 import static com.herafi.api_gateway.filter.GatewayIdentityFilter.removeInternalHeaders;
+import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 import static org.springframework.web.servlet.function.RequestPredicates.path;
-import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

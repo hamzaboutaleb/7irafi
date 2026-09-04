@@ -2,6 +2,8 @@ package com.herafi.user_service.controller;
 
 import java.util.UUID;
 
+import jakarta.validation.Valid;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,8 +20,6 @@ import com.herafi.user_service.dto.ProfessionalProfileResponse;
 import com.herafi.user_service.dto.UpdateProfessionalProfileRequest;
 import com.herafi.user_service.entity.ProfessionalProfile;
 import com.herafi.user_service.service.ProfessionalProfileService;
-
-import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/users/me/professional-profile")

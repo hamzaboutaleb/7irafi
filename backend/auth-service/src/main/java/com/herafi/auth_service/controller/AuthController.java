@@ -1,5 +1,7 @@
 package com.herafi.auth_service.controller;
 
+import jakarta.validation.Valid;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,8 +16,6 @@ import com.herafi.auth_service.entity.UserCredential;
 import com.herafi.auth_service.service.AuthenticationService;
 import com.herafi.auth_service.service.JwtService;
 import com.herafi.auth_service.service.RegistrationService;
-
-import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/auth")

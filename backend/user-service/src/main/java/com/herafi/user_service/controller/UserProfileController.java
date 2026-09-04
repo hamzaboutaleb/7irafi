@@ -1,7 +1,8 @@
 package com.herafi.user_service.controller;
 
-import java.time.Instant;
 import java.util.UUID;
+
+import jakarta.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,8 +18,6 @@ import com.herafi.user_service.dto.UpdateUserProfileRequest;
 import com.herafi.user_service.dto.UserProfileResponse;
 import com.herafi.user_service.entity.UserProfile;
 import com.herafi.user_service.service.UserProfileService;
-
-import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/users")

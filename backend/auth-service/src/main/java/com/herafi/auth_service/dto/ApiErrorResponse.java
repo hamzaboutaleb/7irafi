@@ -13,7 +13,7 @@ public record ApiErrorResponse(
     public static ApiErrorResponse validation (List<FieldValidationError> errors)
     {
         return new ApiErrorResponse(
-            false, 
+            false,
             new ErrorDetails("VALIDATION_ERROR", "Validation failed", errors));
     }
 

@@ -8,5 +8,5 @@ public record CreateUserProfileRequest(
     String firstName,
     String lastName
 ) {
-    
+
 }

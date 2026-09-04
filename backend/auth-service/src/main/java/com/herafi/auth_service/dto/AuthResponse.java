@@ -3,7 +3,6 @@ package com.herafi.auth_service.dto;
 import java.util.UUID;
 
 import com.herafi.auth_service.entity.Role;
-
 import com.herafi.auth_service.entity.UserCredential;
 
 public record AuthResponse
@@ -19,8 +18,8 @@ public record AuthResponse
         long expiresIn ) {
             return new AuthResponse(
                 accessToken,
-                "Bearer", 
-                expiresIn, 
+                "Bearer",
+                expiresIn,
                 new UserSummary(
                     credential.getId(),
                     credential.getEmail(),
@@ -33,5 +32,5 @@ public record AuthResponse
         String email,
         Role role
     ) {}
-    
+
 }

@@ -14,5 +14,5 @@ public record LoginRequest(
     @Size(max = 128)
     String password
 ) {
-    
+
 }
