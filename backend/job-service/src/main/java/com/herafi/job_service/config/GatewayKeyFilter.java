@@ -3,15 +3,10 @@ package com.herafi.job_service.config;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.time.Instant;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.herafi.job_service.exceptions.ApiErrorResponse;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -24,13 +19,13 @@ public class GatewayKeyFilter extends OncePerRequestFilter {
     private static final String GATEWAY_KEY_HEADER = "X-Gateway-Key";
 
     private final String gatewaySharedSecret;
-    private final ObjectMapper objectMapper;
+    private final ApiErrorWriter apiErrorWriter;
 
     public GatewayKeyFilter(
             @Value("${gateway.shared-secret}") String gatewaySharedSecret,
-            ObjectMapper objectMapper) {
+            ApiErrorWriter apiErrorWriter) {
         this.gatewaySharedSecret = gatewaySharedSecret;
-        this.objectMapper = objectMapper;
+        this.apiErrorWriter = apiErrorWriter;
     }
 
     @Override
@@ -46,7 +41,10 @@ public class GatewayKeyFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
         if (!matches(request.getHeader(GATEWAY_KEY_HEADER), gatewaySharedSecret)) {
-            reject(request, response);
+            apiErrorWriter.writeUnauthorized(
+                    request,
+                    response,
+                    "Request did not come from the API gateway");
             return;
         }
 
@@ -64,19 +62,4 @@ public class GatewayKeyFilter extends OncePerRequestFilter {
         );
     }
 
-    private void reject(
-            HttpServletRequest request,
-            HttpServletResponse response) throws IOException {
-        ApiErrorResponse body = new ApiErrorResponse(
-                Instant.now(),
-                HttpServletResponse.SC_UNAUTHORIZED,
-                "UNAUTHORIZED",
-                "Request did not come from the API gateway",
-                request.getRequestURI(),
-                null);
-
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        objectMapper.writeValue(response.getWriter(), body);
-    }
 }
