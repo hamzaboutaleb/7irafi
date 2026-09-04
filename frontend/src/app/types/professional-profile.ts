@@ -36,4 +36,5 @@ export interface ProfessionalCard {
   firstName: string;
   categories: ServiceCategory[];
   cities: ServiceCity[];
+  online: boolean;
 }

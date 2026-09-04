@@ -3,13 +3,12 @@ package com.herafi.auth_service.service;
 import java.util.Locale;
 import java.util.UUID;
 
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.herafi.auth_service.dto.RegisterRequest;
 import com.herafi.auth_service.dto.CreateUserProfileRequest;
+import com.herafi.auth_service.dto.RegisterRequest;
 import com.herafi.auth_service.entity.Role;
 import com.herafi.auth_service.entity.UserCredential;
 import com.herafi.auth_service.exception.EmailAlreadyInUseException;
@@ -17,7 +16,7 @@ import com.herafi.auth_service.repository.UserCredentialRepository;
 
 @Service
 public class RegistrationService {
-    
+
     private final UserCredentialRepository repository;
     private final PasswordEncoder passwordEncoder;
     private final UserProfileClient userProfileClient;
@@ -32,12 +31,10 @@ public class RegistrationService {
     }
 
     @Transactional
-    public UserCredential register(RegisterRequest request)
-    {
+    public UserCredential register(RegisterRequest request) {
         String email = request.email().trim().toLowerCase(Locale.ROOT);
 
-        if (repository.existsByEmail(email))
-        {
+        if (repository.existsByEmail(email)) {
             throw new EmailAlreadyInUseException();
         }
 
@@ -53,8 +50,7 @@ public class RegistrationService {
                 savedCredential.getId(),
                 savedCredential.getEmail(),
                 request.firstName().trim(),
-                request.lastName().trim()
-        ));
+                request.lastName().trim()));
 
         return savedCredential;
     }

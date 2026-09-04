@@ -1,41 +1,34 @@
 <footer class="bg-gray-900 text-white">
-  <div class="max-w-7xl mx-auto px-8 py-16">
-
-    <div class="grid grid-cols-4 gap-12">
-
-      <!-- Logo + tagline -->
-      <div class="col-span-2">
-        <img src="logo.svg" alt="7irafy" class="h-10 mb-4" />
-        <p class="text-gray-400 text-sm max-w-xs">
-          Find the right professional for any job — or post your problem and let them come to you.
+  <div class="mx-auto max-w-7xl px-4 py-12 sm:px-8">
+    <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="lg:col-span-2">
+        <a routerLink="/" class="inline-block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900">
+          <img src="logo.svg" alt="7irafy — home" class="h-10" />
+        </a>
+        <p class="mt-4 max-w-sm text-sm leading-6 text-gray-400">
+          A marketplace prototype for finding skilled professionals and sharing local work opportunities.
         </p>
       </div>
 
-      <!-- Links -->
       <div>
-        <h4 class="font-semibold text-white mb-4">Company</h4>
-        <div class="flex flex-col gap-3">
-          <a href="#" class="text-gray-400 text-sm hover:text-white transition-colors">About us</a>
-          <a href="#" class="text-gray-400 text-sm hover:text-white transition-colors">Contact</a>
-          <a href="#" class="text-gray-400 text-sm hover:text-white transition-colors">Become a Professional</a>
-        </div>
+        <h2 class="text-sm font-semibold text-white">Explore</h2>
+        <nav class="mt-4 flex flex-col gap-3" aria-label="Footer navigation">
+          <a routerLink="/how-it-works" class="w-fit rounded text-sm text-gray-400 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300">How it works</a>
+          <a routerLink="/professionals" class="w-fit rounded text-sm text-gray-400 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300">Professionals</a>
+        </nav>
       </div>
 
-      <!-- Legal -->
       <div>
-        <h4 class="font-semibold text-white mb-4">Legal</h4>
-        <div class="flex flex-col gap-3">
-          <a href="#" class="text-gray-400 text-sm hover:text-white transition-colors">Privacy Policy</a>
-          <a href="#" class="text-gray-400 text-sm hover:text-white transition-colors">Terms of Service</a>
-        </div>
+        <h2 class="text-sm font-semibold text-white">Legal</h2>
+        <nav class="mt-4 flex flex-col gap-3" aria-label="Legal navigation">
+          <a routerLink="/privacy-policy" class="w-fit rounded text-sm text-gray-400 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300">Privacy policy</a>
+          <a routerLink="/terms-of-service" class="w-fit rounded text-sm text-gray-400 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300">Terms of service</a>
+        </nav>
       </div>
-
     </div>
 
-    <!-- Bottom bar -->
-    <div class="border-t border-gray-800 mt-12 pt-8 flex items-center justify-between">
-      <p class="text-gray-500 text-sm">© 2026 7irafy. All rights reserved.</p>
+    <div class="mt-10 border-t border-gray-800 pt-6">
+      <p class="text-sm text-gray-500">© 2026 7irafy. Course-project prototype.</p>
     </div>
-
   </div>
 </footer>
