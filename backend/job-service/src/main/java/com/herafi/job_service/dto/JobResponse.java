@@ -2,6 +2,7 @@ package com.herafi.job_service.dto;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 import com.herafi.job_service.entity.EstimatedDuration;
@@ -23,7 +24,8 @@ public record JobResponse(
         JobStatus status,
         UUID assignedWorkerId,
         Instant createdAt,
-        Instant updatedAt
+        Instant updatedAt,
+        List<JobImageResponse> images
 ) {
 
         public static JobResponse from(Job job) {
@@ -41,6 +43,8 @@ public record JobResponse(
                                 job.getStatus(),
                                 job.getAssignedWorkerId(),
                                 job.getCreatedAt(),
-                                job.getUpdatedAt());
+                                job.getUpdatedAt(),
+                                List.of());
         }
+        
 }

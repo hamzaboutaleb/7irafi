@@ -4,6 +4,6 @@ import java.util.UUID;
 
 public record JobImageResponse(
     UUID id,
-    String url,
-    Integer position
-){}  
+    String url
+) {
+}

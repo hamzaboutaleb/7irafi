@@ -23,11 +23,13 @@ import org.springframework.web.multipart.MultipartFile;
 import com.herafi.job_service.dto.CreateJobRequest;
 import com.herafi.job_service.dto.JobFilter;
 import com.herafi.job_service.dto.JobImageResponse;
+import com.herafi.job_service.dto.JobListResponse;
 import com.herafi.job_service.dto.JobResponse;
 import com.herafi.job_service.dto.PageResponse;
 import com.herafi.job_service.dto.UpdateJobRequest;
 import com.herafi.job_service.entity.Job;
 import com.herafi.job_service.exceptions.InvalidImageException;
+import com.herafi.job_service.mapper.JobMapper;
 import com.herafi.job_service.service.JobService;
 
 import jakarta.validation.Valid;
@@ -41,6 +43,7 @@ import lombok.RequiredArgsConstructor;
 public class JobController {
 
     private final JobService jobService;
+    private final JobMapper jobMapper;
 
     @PostMapping
     public ResponseEntity<JobResponse> create(
@@ -55,7 +58,7 @@ public class JobController {
     }
 
     @GetMapping
-    public PageResponse<JobResponse> getJobs(
+    public PageResponse<JobListResponse> getJobs(
             JobFilter filter,
             @RequestParam(defaultValue = "createdAt,desc") String sort,
             @RequestParam(defaultValue = "0") @Min(0) int page,
@@ -66,10 +69,11 @@ public class JobController {
 
     @GetMapping("/{id}")
     public ResponseEntity<JobResponse> getJob(
-            @PathVariable UUID id) {
+            @PathVariable UUID id,
+            @RequestHeader("X-User-Id") UUID userId) {
         Job job = jobService.getJob(id);
 
-        return ResponseEntity.ok(JobResponse.from(job));
+        return ResponseEntity.ok(jobMapper.toDetailResponse(job, userId));
     }
 
     @GetMapping("/my")
@@ -95,9 +99,10 @@ public class JobController {
 
     @PatchMapping("/{id}/complete")
     public ResponseEntity<JobResponse> completeJob(
-            @PathVariable UUID id) {
+            @PathVariable UUID id,
+            @RequestHeader("X-User-Id") UUID userId) {
 
-        Job job = jobService.complete(id);
+        Job job = jobService.complete(id, userId);
 
         return ResponseEntity.ok(JobResponse.from(job));
     }
@@ -125,6 +130,18 @@ public class JobController {
         return ResponseEntity.noContent().build();
     }
 
+    @PatchMapping("/{id}/cancel")
+    public ResponseEntity<JobResponse> cancelJob(
+            @PathVariable UUID id,
+            @RequestHeader("X-User-Id") UUID userId,
+            @RequestHeader("X-User-Role") String role) {
+
+        boolean isAdmin = "ADMIN".equals(role);
+        Job job = jobService.cancelJob(id, userId, isAdmin);
+
+        return ResponseEntity.ok(JobResponse.from(job));
+    }
+
     @PostMapping(value = "/{jobId}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<JobImageResponse> uploadImage(
             @PathVariable UUID jobId,
@@ -141,5 +158,16 @@ public class JobController {
         } catch (IOException e) {
             throw new InvalidImageException("Failed to upload image");
         }
+    }
+
+    @DeleteMapping("/{jobId}/images/{imageId}")
+    public ResponseEntity<Void> deleteImage(
+            @PathVariable UUID jobId,
+            @PathVariable UUID imageId,
+            @RequestHeader("X-User-Id") UUID userId) {
+
+        jobService.deleteImage(jobId, imageId, userId);
+
+        return ResponseEntity.noContent().build();
     }
 }

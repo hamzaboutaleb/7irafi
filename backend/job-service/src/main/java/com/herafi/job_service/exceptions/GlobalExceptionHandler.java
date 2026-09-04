@@ -13,11 +13,17 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.beans.factory.annotation.Value;
 
+import jakarta.persistence.OptimisticLockException;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+	@Value("${jobs.images.max-file-size:10MB}")
+	private String maxImageSize = "10MB";
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<ApiErrorResponse> handleValidation(
@@ -138,7 +144,7 @@ public class GlobalExceptionHandler {
 		ApiErrorResponse response = new ApiErrorResponse(
 				Instant.now(),
 				HttpStatus.FORBIDDEN.value(),
-				"JOB_ACCESS_DENIED",
+				"NOT_OWNER",
 				exception.getMessage(),
 				request.getRequestURI(),
 				null);
@@ -156,7 +162,7 @@ public class GlobalExceptionHandler {
 		ApiErrorResponse response = new ApiErrorResponse(
 				Instant.now(),
 				HttpStatus.CONFLICT.value(),
-				"JOB_STATE_CONFLICT",
+				"INVALID_STATE",
 				exception.getMessage(),
 				request.getRequestURI(),
 				null);
@@ -174,8 +180,47 @@ public class GlobalExceptionHandler {
 		ApiErrorResponse response = new ApiErrorResponse(
 				Instant.now(),
 				HttpStatus.CONFLICT.value(),
-				"JOB_STATE_CONFLICT",
+				"INVALID_STATE",
 				exception.getMessage(),
+				request.getRequestURI(),
+				null);
+
+		return ResponseEntity
+				.status(HttpStatus.CONFLICT)
+				.body(response);
+	}
+
+	@ExceptionHandler(JobNotOpenException.class)
+	public ResponseEntity<ApiErrorResponse> handleJobNotOpen(
+			JobNotOpenException exception,
+			HttpServletRequest request) {
+
+		ApiErrorResponse response = new ApiErrorResponse(
+				Instant.now(),
+				HttpStatus.CONFLICT.value(),
+				"JOB_NOT_OPEN",
+				exception.getMessage(),
+				request.getRequestURI(),
+				null);
+
+		return ResponseEntity
+				.status(HttpStatus.CONFLICT)
+				.body(response);
+	}
+
+	@ExceptionHandler({
+			ObjectOptimisticLockingFailureException.class,
+			OptimisticLockException.class
+	})
+	public ResponseEntity<ApiErrorResponse> handleOptimisticLock(
+			Exception exception,
+			HttpServletRequest request) {
+
+		ApiErrorResponse response = new ApiErrorResponse(
+				Instant.now(),
+				HttpStatus.CONFLICT.value(),
+				"JOB_NOT_OPEN",
+				"Job is no longer open",
 				request.getRequestURI(),
 				null);
 
@@ -220,6 +265,24 @@ public class GlobalExceptionHandler {
 				.body(response);
 	}
 
+	@ExceptionHandler(InvalidReferenceException.class)
+	public ResponseEntity<ApiErrorResponse> handleInvalidReference(
+			InvalidReferenceException exception,
+			HttpServletRequest request) {
+
+		ApiErrorResponse response = new ApiErrorResponse(
+				Instant.now(),
+				HttpStatus.BAD_REQUEST.value(),
+				"INVALID_REFERENCE",
+				exception.getMessage(),
+				request.getRequestURI(),
+				null);
+
+		return ResponseEntity
+				.status(HttpStatus.BAD_REQUEST)
+				.body(response);
+	}
+
 	@ExceptionHandler(InvalidImageException.class)
 	public ResponseEntity<ApiErrorResponse> handleInvalidImage(
 			InvalidImageException exception,
@@ -239,8 +302,20 @@ public class GlobalExceptionHandler {
 	}
 
 	@ExceptionHandler(MaxUploadSizeExceededException.class)
-	public ResponseEntity<String> handleMaxSizeException(MaxUploadSizeExceededException e) {
-		return ResponseEntity.status(HttpStatus.CONTENT_TOO_LARGE)
-				.body("File too large. Maximum upload size is 20MB.");
+	public ResponseEntity<ApiErrorResponse> handleMaxSizeException(
+			MaxUploadSizeExceededException exception,
+			HttpServletRequest request) {
+
+		ApiErrorResponse response = new ApiErrorResponse(
+				Instant.now(),
+				HttpStatus.CONTENT_TOO_LARGE.value(),
+				"INVALID_IMAGE",
+				"File too large. Maximum upload size is " + maxImageSize + ".",
+				request.getRequestURI(),
+				null);
+
+		return ResponseEntity
+				.status(HttpStatus.CONTENT_TOO_LARGE)
+				.body(response);
 	}
 }

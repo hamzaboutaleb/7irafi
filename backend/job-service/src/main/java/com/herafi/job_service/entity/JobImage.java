@@ -25,9 +25,6 @@ public class JobImage {
     @Column(name = "object_key", nullable = false, length = 500)
     private String objectKey;
 
-    @Column(nullable = false)
-    private Integer position;
-
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 }
