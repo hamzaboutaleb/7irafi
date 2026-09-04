@@ -1,5 +1,9 @@
 package com.herafi.user_service.controller;
 
+import java.time.Duration;
+import java.time.Instant;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -18,9 +22,13 @@ import com.herafi.user_service.service.ProfessionalProfileService;
 @RequestMapping("/users/professionals")
 public class ProfessionalDirectoryController {
     private final ProfessionalProfileService professionalProfileService;
+    private final Duration onlineThreshold;
 
-    public ProfessionalDirectoryController(ProfessionalProfileService professionalProfileService) {
+    public ProfessionalDirectoryController(
+            ProfessionalProfileService professionalProfileService,
+            @Value("${users.presence.online-threshold}") Duration onlineThreshold) {
         this.professionalProfileService = professionalProfileService;
+        this.onlineThreshold = onlineThreshold;
     }
 
     private static String normalise(String code) {
@@ -40,7 +48,14 @@ public class ProfessionalDirectoryController {
                 normalise(categoryCode),
                 normalise(cityCode));
 
-        PageResponse<ProfessionalCardResponse> response = PageResponse.from(profiles, ProfessionalCardResponse::from);
+        // Computed once, so every card on this page is judged against the same
+        // instant. Calling Instant.now() per card would let the first and last
+        // card disagree about "now".
+        Instant onlineCutoff = Instant.now().minus(onlineThreshold);
+
+        PageResponse<ProfessionalCardResponse> response = PageResponse.from(
+                profiles,
+                profile -> ProfessionalCardResponse.from(profile, onlineCutoff));
 
         return ApiResponse.success(response);
     }

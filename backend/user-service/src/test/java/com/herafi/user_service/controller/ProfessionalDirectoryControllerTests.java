@@ -8,6 +8,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -128,13 +130,58 @@ class ProfessionalDirectoryControllerTests {
         assertEquals(20, pageableCaptor.getValue().getPageSize());
     }
 
+    @Test
+    void marksAProfessionalSeenRecentlyAsOnline() throws Exception {
+        ProfessionalProfile profile = professionalProfile(Instant.now().minusSeconds(10));
+
+        when(professionalProfileService.getActiveProfessionals(any(Pageable.class), any(), any()))
+                .thenReturn(new PageImpl<>(List.of(profile), PageRequest.of(0, 12), 1));
+
+        mockMvc.perform(get("/users/professionals")
+                .header("X-Gateway-Key", TEST_GATEWAY_KEY))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[0].online").value(true));
+    }
+
+    @Test
+    void marksAProfessionalSeenLongAgoAsOffline() throws Exception {
+        ProfessionalProfile profile = professionalProfile(
+                Instant.now().minus(Duration.ofHours(1)));
+
+        when(professionalProfileService.getActiveProfessionals(any(Pageable.class), any(), any()))
+                .thenReturn(new PageImpl<>(List.of(profile), PageRequest.of(0, 12), 1));
+
+        mockMvc.perform(get("/users/professionals")
+                .header("X-Gateway-Key", TEST_GATEWAY_KEY))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[0].online").value(false));
+    }
+
+    @Test
+    void marksAProfessionalNeverSeenAsOffline() throws Exception {
+        ProfessionalProfile profile = professionalProfile(null);
+
+        when(professionalProfileService.getActiveProfessionals(any(Pageable.class), any(), any()))
+                .thenReturn(new PageImpl<>(List.of(profile), PageRequest.of(0, 12), 1));
+
+        mockMvc.perform(get("/users/professionals")
+                .header("X-Gateway-Key", TEST_GATEWAY_KEY))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[0].online").value(false));
+    }
+
     private ProfessionalProfile professionalProfile() {
+        return professionalProfile(null);
+    }
+
+    private ProfessionalProfile professionalProfile(Instant lastSeenAt) {
         UUID userId = UUID.randomUUID();
 
         UserProfile userProfile = new UserProfile();
         userProfile.setId(userId);
         userProfile.setFirstName("Youssef");
         userProfile.setEmail("youssef@example.com");
+        userProfile.setLastSeenAt(lastSeenAt);
 
         ServiceCategory category = new ServiceCategory();
         category.setCode("PAINTING");
