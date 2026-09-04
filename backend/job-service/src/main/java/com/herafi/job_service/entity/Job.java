@@ -18,6 +18,7 @@ import jakarta.persistence.OrderBy;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -68,6 +69,10 @@ public class Job {
     @Column
     private UUID assignedWorkerId;
 
+    @Version
+    @Column(nullable = false)
+    private Long version;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -85,7 +90,7 @@ public class Job {
         cascade = CascadeType.ALL,
         orphanRemoval = true,
         fetch = FetchType.LAZY)
-    @OrderBy("position ASC")
+    @OrderBy("createdAt ASC")
     private List<JobImage> images = new ArrayList<>();
 
     @PrePersist

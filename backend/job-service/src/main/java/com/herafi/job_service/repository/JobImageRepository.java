@@ -9,5 +9,7 @@ import com.herafi.job_service.entity.JobImage;
 
 public interface JobImageRepository extends JpaRepository<JobImage, UUID> {
 
-    List<JobImage> findByJobIdOrderByPositionAsc(UUID jobId);
+    List<JobImage> findByJob_IdOrderByCreatedAtAsc(UUID jobId);
+
+    long countByJob_Id(UUID jobId);
 }
