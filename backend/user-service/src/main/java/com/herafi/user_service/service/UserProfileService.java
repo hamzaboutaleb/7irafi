@@ -1,5 +1,6 @@
 package com.herafi.user_service.service;
 
+import java.time.Instant;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -56,5 +57,12 @@ public class UserProfileService {
         profile.setLastName(request.lastName().trim());
 
         return repository.save(profile);
+    }
+
+    @Transactional
+    public void recordHeartbeat(UUID userId) {
+        UserProfile userProfile = repository.findById(userId)
+                .orElseThrow(() -> new UserProfileNotFoundException(userId));
+        userProfile.setLastSeenAt(Instant.now());
     }
 }

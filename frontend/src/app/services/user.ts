@@ -67,4 +67,8 @@ export class UserService {
       params: baseParams,
     });
   }
+
+  updateOnlineStatus() {
+    return this.http.post<void>('users/me/heartbeat', {});
+  }
 }

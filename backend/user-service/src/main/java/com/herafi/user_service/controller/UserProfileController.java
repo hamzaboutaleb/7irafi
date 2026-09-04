@@ -1,8 +1,11 @@
 package com.herafi.user_service.controller;
 
+import java.time.Instant;
 import java.util.UUID;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -40,5 +43,12 @@ public class UserProfileController {
             @Valid @RequestBody UpdateUserProfileRequest request) {
         UserProfile profile = userProfileService.update(userId, request);
         return ApiResponse.success(UserProfileResponse.from(profile));
+    }
+
+    @PostMapping("/me/heartbeat")
+    public ResponseEntity<Void> recordHeartbeat(
+            @RequestHeader("X-User-Id") UUID userId) {
+        userProfileService.recordHeartbeat(userId);
+        return ResponseEntity.status(204).body(null);
     }
 }
