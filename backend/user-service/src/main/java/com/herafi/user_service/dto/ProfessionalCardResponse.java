@@ -1,5 +1,6 @@
 package com.herafi.user_service.dto;
 
+import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -10,9 +11,17 @@ public record ProfessionalCardResponse(
         UUID userId,
         String firstName,
         Set<ServiceCategoryResponse> categories,
-        Set<ServiceCityResponse> cities) {
+        Set<ServiceCityResponse> cities,
+        boolean online) {
 
-    public static ProfessionalCardResponse from(ProfessionalProfile professionalProfile) {
+    /**
+     * @param onlineCutoff the instant a heartbeat must be newer than to count as
+     *                     online. Passed in rather than computed here so every card
+     *                     in one response is judged against the same moment.
+     */
+    public static ProfessionalCardResponse from(
+            ProfessionalProfile professionalProfile,
+            Instant onlineCutoff) {
         Set<ServiceCategoryResponse> categoryResponses = professionalProfile.getCategories() == null
                 ? Set.of()
                 : professionalProfile.getCategories().stream()
@@ -25,10 +34,13 @@ public record ProfessionalCardResponse(
                         .map(ServiceCityResponse::from)
                         .collect(Collectors.toUnmodifiableSet());
 
+        Instant lastSeenAt = professionalProfile.getUserProfile().getLastSeenAt();
+
         return new ProfessionalCardResponse(
                 professionalProfile.getUserId(),
                 professionalProfile.getUserProfile().getFirstName(),
                 categoryResponses,
-                cityResponses);
+                cityResponses,
+                lastSeenAt != null && lastSeenAt.isAfter(onlineCutoff));
     }
 }
