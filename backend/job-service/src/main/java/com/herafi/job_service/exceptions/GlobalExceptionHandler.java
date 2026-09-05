@@ -13,17 +13,19 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
-import org.springframework.beans.factory.annotation.Value;
 
 import jakarta.persistence.OptimisticLockException;
 import jakarta.servlet.http.HttpServletRequest;
+import com.herafi.job_service.config.JobImageProperties;
+import lombok.RequiredArgsConstructor;
 
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
-	@Value("${jobs.images.max-file-size:10MB}")
-	private String maxImageSize = "10MB";
+	private final JobImageProperties imageProperties;
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<ApiErrorResponse> handleValidation(
@@ -144,7 +146,7 @@ public class GlobalExceptionHandler {
 		ApiErrorResponse response = new ApiErrorResponse(
 				Instant.now(),
 				HttpStatus.FORBIDDEN.value(),
-				"NOT_OWNER",
+				"JOB_ACCESS_DENIED",
 				exception.getMessage(),
 				request.getRequestURI(),
 				null);
@@ -162,7 +164,7 @@ public class GlobalExceptionHandler {
 		ApiErrorResponse response = new ApiErrorResponse(
 				Instant.now(),
 				HttpStatus.CONFLICT.value(),
-				"INVALID_STATE",
+				"JOB_STATE_CONFLICT",
 				exception.getMessage(),
 				request.getRequestURI(),
 				null);
@@ -180,7 +182,7 @@ public class GlobalExceptionHandler {
 		ApiErrorResponse response = new ApiErrorResponse(
 				Instant.now(),
 				HttpStatus.CONFLICT.value(),
-				"INVALID_STATE",
+				"JOB_STATE_CONFLICT",
 				exception.getMessage(),
 				request.getRequestURI(),
 				null);
@@ -219,8 +221,8 @@ public class GlobalExceptionHandler {
 		ApiErrorResponse response = new ApiErrorResponse(
 				Instant.now(),
 				HttpStatus.CONFLICT.value(),
-				"JOB_NOT_OPEN",
-				"Job is no longer open",
+				"CONCURRENT_MODIFICATION",
+				"Job changed concurrently. Reload and retry.",
 				request.getRequestURI(),
 				null);
 
@@ -301,6 +303,24 @@ public class GlobalExceptionHandler {
 				.body(response);
 	}
 
+	@ExceptionHandler(MissingServletRequestPartException.class)
+	public ResponseEntity<ApiErrorResponse> handleMissingMultipartPart(
+			MissingServletRequestPartException exception,
+			HttpServletRequest request) {
+
+		ApiErrorResponse response = new ApiErrorResponse(
+				Instant.now(),
+				HttpStatus.BAD_REQUEST.value(),
+				"INVALID_IMAGE",
+				"Required image file part is missing",
+				request.getRequestURI(),
+				null);
+
+		return ResponseEntity
+				.status(HttpStatus.BAD_REQUEST)
+				.body(response);
+	}
+
 	@ExceptionHandler(MaxUploadSizeExceededException.class)
 	public ResponseEntity<ApiErrorResponse> handleMaxSizeException(
 			MaxUploadSizeExceededException exception,
@@ -310,7 +330,7 @@ public class GlobalExceptionHandler {
 				Instant.now(),
 				HttpStatus.CONTENT_TOO_LARGE.value(),
 				"INVALID_IMAGE",
-				"File too large. Maximum upload size is " + maxImageSize + ".",
+				"File too large. Maximum upload size is " + imageProperties.maxFileSizeLabel() + ".",
 				request.getRequestURI(),
 				null);
 
