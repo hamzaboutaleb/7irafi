@@ -1,14 +1,16 @@
 package com.herafi.job_service.mapper;
 
-import java.util.UUID;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.stereotype.Component;
 
 import com.herafi.job_service.dto.JobListResponse;
+import com.herafi.job_service.dto.JobDetailResponse;
 import com.herafi.job_service.dto.JobImageResponse;
 import com.herafi.job_service.dto.JobResponse;
 import com.herafi.job_service.entity.Job;
+import com.herafi.job_service.entity.JobImage;
 import com.herafi.job_service.service.ImageStorageService;
 
 @Component
@@ -38,8 +40,11 @@ public class JobMapper {
         );
     }
 
-    public JobResponse toDetailResponse(Job job, UUID viewerId) {
-        return new JobResponse(
+    public JobDetailResponse toDetailResponse(
+            Job job,
+            UUID viewerId,
+            List<JobImage> images) {
+        return new JobDetailResponse(
                 job.getId(),
                 job.getClientId(),
                 job.getTitle(),
@@ -54,7 +59,7 @@ public class JobMapper {
                 job.getAssignedWorkerId(),
                 job.getCreatedAt(),
                 job.getUpdatedAt(),
-                job.getImages().stream()
+                images.stream()
                         .map(image -> new JobImageResponse(
                                 image.getId(),
                                 imageStorageService.generateDownloadUrl(image.getObjectKey())))
@@ -77,8 +82,7 @@ public class JobMapper {
                 job.getStatus(),
                 job.getAssignedWorkerId(),
                 job.getCreatedAt(),
-                job.getUpdatedAt(),
-                List.of()
+                job.getUpdatedAt()
         );
     }
 
