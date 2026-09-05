@@ -100,6 +100,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      discovery-service:
+        condition: service_healthy
       minio-init:
         condition: service_completed_successfully
       # auth-service:
