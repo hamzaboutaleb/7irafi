@@ -9,13 +9,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 import com.herafi.job_service.entity.Job;
 import com.herafi.job_service.entity.JobStatus;
+import com.herafi.job_service.config.JobImageProperties;
 
 class GlobalExceptionHandlerTests {
 
-    private final GlobalExceptionHandler handler = new GlobalExceptionHandler();
+    private final GlobalExceptionHandler handler = new GlobalExceptionHandler(new JobImageProperties());
 
     @Test
     void mapsOptimisticLockFailureToConflict() {
@@ -28,13 +30,13 @@ class GlobalExceptionHandlerTests {
                 request);
 
         assertEquals(409, response.getStatusCode().value());
-        assertEquals("JOB_NOT_OPEN", response.getBody().code());
-        assertEquals("Job is no longer open", response.getBody().message());
+        assertEquals("CONCURRENT_MODIFICATION", response.getBody().code());
+        assertEquals("Job changed concurrently. Reload and retry.", response.getBody().message());
         assertEquals(request.getRequestURI(), response.getBody().path());
     }
 
     @Test
-    void mapsAccessDeniedToNotOwner() {
+    void mapsAccessDeniedToJobAccessDenied() {
         MockHttpServletRequest request = new MockHttpServletRequest("PATCH", "/jobs/123/cancel");
 
         ResponseEntity<ApiErrorResponse> response = handler.handleJobAccessDenied(
@@ -42,13 +44,13 @@ class GlobalExceptionHandlerTests {
                 request);
 
         assertEquals(403, response.getStatusCode().value());
-        assertEquals("NOT_OWNER", response.getBody().code());
+        assertEquals("JOB_ACCESS_DENIED", response.getBody().code());
         assertEquals("Not owner", response.getBody().message());
         assertEquals(request.getRequestURI(), response.getBody().path());
     }
 
     @Test
-    void mapsInvalidJobStateToInvalidState() {
+    void mapsInvalidJobStateToJobStateConflict() {
         MockHttpServletRequest request = new MockHttpServletRequest("PATCH", "/jobs/123/complete");
 
         ResponseEntity<ApiErrorResponse> response = handler.handleJobStateConflict(
@@ -56,7 +58,7 @@ class GlobalExceptionHandlerTests {
                 request);
 
         assertEquals(409, response.getStatusCode().value());
-        assertEquals("INVALID_STATE", response.getBody().code());
+        assertEquals("JOB_STATE_CONFLICT", response.getBody().code());
         assertEquals(request.getRequestURI(), response.getBody().path());
     }
 
@@ -99,6 +101,20 @@ class GlobalExceptionHandlerTests {
         assertEquals(413, response.getStatusCode().value());
         assertEquals("INVALID_IMAGE", response.getBody().code());
         assertEquals("File too large. Maximum upload size is 10MB.", response.getBody().message());
+        assertEquals(request.getRequestURI(), response.getBody().path());
+    }
+
+    @Test
+    void mapsMissingMultipartPartToApiErrorResponse() {
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/jobs/123/images");
+
+        ResponseEntity<ApiErrorResponse> response = handler.handleMissingMultipartPart(
+                new MissingServletRequestPartException("file"),
+                request);
+
+        assertEquals(400, response.getStatusCode().value());
+        assertEquals("INVALID_IMAGE", response.getBody().code());
+        assertEquals("Required image file part is missing", response.getBody().message());
         assertEquals(request.getRequestURI(), response.getBody().path());
     }
 }
