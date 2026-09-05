@@ -1,7 +1,6 @@
 package com.herafi.job_service.controller;
 
 import java.util.UUID;
-import java.io.IOException;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -28,7 +27,6 @@ import com.herafi.job_service.dto.JobResponse;
 import com.herafi.job_service.dto.PageResponse;
 import com.herafi.job_service.dto.UpdateJobRequest;
 import com.herafi.job_service.entity.Job;
-import com.herafi.job_service.exceptions.InvalidImageException;
 import com.herafi.job_service.mapper.JobMapper;
 import com.herafi.job_service.service.JobService;
 
@@ -147,17 +145,11 @@ public class JobController {
             @PathVariable UUID jobId,
             @RequestParam("file") MultipartFile file,
             @RequestHeader("X-User-Id") UUID userId) {
-        try {
+        JobImageResponse response = jobService.uploadImage(jobId, userId, file);
 
-            JobImageResponse response = jobService.uploadImage(jobId, userId, file);
-
-            return ResponseEntity
-                    .status(HttpStatus.CREATED)
-                    .body(response);
-
-        } catch (IOException e) {
-            throw new InvalidImageException("Failed to upload image");
-        }
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
     }
 
     @DeleteMapping("/{jobId}/images/{imageId}")
