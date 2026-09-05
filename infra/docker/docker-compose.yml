@@ -17,6 +17,28 @@ services:
       timeout: 5s
       retries: 10
 
+  # Automated Postgres backups. Dumps every service database on an interval and
+  # prunes old dumps. Restore is manual, via infra/backup/restore.sh — see the
+  # disaster recovery section of the README.
+  db-backup:
+    image: postgres:17-alpine
+    container_name: db-backup
+    environment:
+      PGHOST: postgres
+      PGUSER: ${DB_USERNAME}
+      PGPASSWORD: ${DB_PASSWORD}
+      BACKUP_DIR: /backups
+      BACKUP_INTERVAL_SECONDS: ${BACKUP_INTERVAL_SECONDS:-3600}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-7}
+    volumes:
+      - ../backup:/scripts:ro
+      - postgres-backups:/backups
+    entrypoint: ["/bin/sh", "/scripts/entrypoint.sh"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
   auth-service:
     build:
       context: ../../backend/auth-service
@@ -192,5 +214,6 @@ services:
 
 volumes:
   postgres-data:
+  postgres-backups:
   job-maven-cache:
   minio_data:

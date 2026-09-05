@@ -94,3 +94,89 @@ Local development now includes a single-node KRaft Kafka broker with separate in
 and host listeners. No application service produces or consumes events yet; the first
 useful integration is Job lifecycle events consumed by the future Notification Service.
 See the [Kafka foundation and event contract](docs/architecture/kafka.md).
+
+## Service status
+
+A public status page is served at `http://localhost:4200/status`, backed by
+`GET /status` on the API Gateway.
+
+Services are discovered from Eureka rather than hardcoded: a service added later appears
+automatically, and one that has crashed and deregistered disappears. Each discovered
+service is probed on its `/actuator/health` with a 2-second timeout, so a hung service is
+reported as `DOWN` instead of hanging the page. Overall status is `UP` only when every
+service reports `UP`, otherwise `DEGRADED`.
+
+The page and the endpoint are both unauthenticated by design — a status page that cannot
+be reached during an outage is not a status page.
+
+## Backups
+
+`db-backup` runs alongside the stack and dumps every service database (`auth_db`,
+`user_db`, `job_db`) on an interval, into the `postgres-backups` volume. Databases are
+dumped separately because each service owns its own schema and must be restorable
+independently.
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `BACKUP_INTERVAL_SECONDS` | `3600` | How often a backup runs |
+| `BACKUP_RETENTION_DAYS` | `7` | Dumps older than this are pruned |
+
+A backup is taken immediately on start, so a fresh stack has one within seconds. Retention
+matters: without pruning, the volume grows until the disk fills, which turns a backup
+system into an outage.
+
+List the dumps:
+
+```bash
+docker compose -f infra/docker/docker-compose.yml exec db-backup ls -lh /backups
+```
+
+## Disaster recovery
+
+Restoring is deliberately manual — it overwrites live data, so it is always a human
+decision.
+
+**1. Identify the dump to restore from.**
+
+```bash
+docker compose -f infra/docker/docker-compose.yml exec db-backup ls -lh /backups
+```
+
+Dumps are named `<database>_<UTC timestamp>.sql.gz`.
+
+**2. Restore that database.**
+
+```bash
+docker compose -f infra/docker/docker-compose.yml exec db-backup \
+    /scripts/restore.sh user_db /backups/user_db_20260905T133550Z.sql.gz
+```
+
+Dumps are taken with `--clean --if-exists`, so the restore drops and recreates each object
+as it goes; no manual cleanup is needed. `psql` runs with `ON_ERROR_STOP=on` so it aborts
+on the first failure instead of leaving a half-restored database.
+
+**3. Restart the owning service** so it reconnects and re-validates its schema:
+
+```bash
+docker compose -f infra/docker/docker-compose.yml restart user-service
+```
+
+**Verified end to end on 2026-09-05:** 10 rows were deleted from `professional_profiles`
+(45 -> 35), the latest dump was restored, and the count returned to 45. An untested restore
+procedure is not a recovery procedure.
+
+### If the database volume is lost entirely
+
+`docker volume rm docker_postgres-data` (or a disk failure) destroys all three databases.
+Recovery:
+
+1. `docker compose -f infra/docker/docker-compose.yml up -d postgres` — the volume is
+   recreated and `infra/docker/postgres/init/01-create-databases.sql` recreates the three
+   empty databases.
+2. Restore each database from its most recent dump, as above.
+3. Start the remaining services. Flyway will find the schema already at the dumped version
+   and apply nothing.
+
+Note that `postgres-backups` is a separate volume from `postgres-data`, so losing the
+database volume does not lose the dumps. On a real deployment they would live off-host.
+
