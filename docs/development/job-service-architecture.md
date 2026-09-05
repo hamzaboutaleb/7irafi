@@ -140,6 +140,9 @@ database writes, and calls image storage.
 Methods that mutate jobs or image metadata use `@Transactional`. JPA dirty
 checking persists changes made to a managed `Job`; assignment explicitly calls
 `save` so the optimistic-lock conflict is surfaced at the assignment boundary.
+Image uploads lock the parent job with `PESSIMISTIC_WRITE`, check the count, and
+flush the metadata insert in the same transaction so concurrent uploads cannot
+exceed the configured cap.
 
 ### Repository layer
 

@@ -306,6 +306,7 @@ public class JobService {
 				job.getClientId());
 	}
 
+	@Transactional
 	public JobImageResponse uploadImage(
 			UUID jobId,
 			UUID userId,
@@ -319,7 +320,7 @@ public class JobService {
 			throw new InvalidImageException("Image size must not exceed " + maxImageSizeLabel);
 		}
 
-		Job job = jobRepository.findByIdAndDeletedFalse(jobId)
+		Job job = jobRepository.findByIdAndDeletedFalseForUpdate(jobId)
 				.orElseThrow(() -> new JobNotFoundException("Job not found: ", jobId));
 
 		if (!job.getClientId().equals(userId)) {
@@ -356,7 +357,7 @@ public class JobService {
 		image.setCreatedAt(Instant.now());
 
 		try {
-			jobImageRepository.save(image);
+			jobImageRepository.saveAndFlush(image);
 		} catch (RuntimeException exception) {
 			cleanupUploadedObject(objectKey, exception);
 			throw exception;
