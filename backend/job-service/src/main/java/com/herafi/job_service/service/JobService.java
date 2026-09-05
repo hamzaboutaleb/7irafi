@@ -219,12 +219,13 @@ public class JobService {
 					"You are not allowed to cancel this job");
 		}
 
-		if (job.getStatus() != JobStatus.OPEN) {
+		if (job.getStatus() != JobStatus.OPEN && job.getStatus() != JobStatus.ASSIGNED) {
 			throw new JobStateConflictException(
-					"Only open jobs can be cancelled");
+					"Only open or assigned jobs can be cancelled");
 		}
 
 		job.setStatus(JobStatus.CANCELLED);
+		job.setAssignedWorkerId(null);
 
 		return job;
 	}

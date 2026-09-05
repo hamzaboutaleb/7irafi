@@ -637,17 +637,19 @@ class JobServiceTests {
     }
 
     @Test
-    void rejectsCancelForAssignedJob() {
+    void ownerCancelsAssignedJobAndClearsWorker() {
         UUID jobId = UUID.randomUUID();
         UUID ownerId = UUID.randomUUID();
+        UUID workerId = UUID.randomUUID();
         Job job = job(jobId, ownerId, JobStatus.ASSIGNED);
+        job.setAssignedWorkerId(workerId);
         when(jobRepository.findByIdAndDeletedFalse(jobId)).thenReturn(Optional.of(job));
 
-        assertThrows(
-                JobStateConflictException.class,
-                () -> service.cancelJob(jobId, ownerId, false));
+        Job result = service.cancelJob(jobId, ownerId, false);
 
-        assertEquals(JobStatus.ASSIGNED, job.getStatus());
+        assertSame(job, result);
+        assertEquals(JobStatus.CANCELLED, job.getStatus());
+        assertEquals(null, job.getAssignedWorkerId());
     }
 
     @Test
