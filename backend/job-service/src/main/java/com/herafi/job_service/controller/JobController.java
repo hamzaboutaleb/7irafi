@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.herafi.job_service.dto.CreateJobRequest;
 import com.herafi.job_service.dto.JobFilter;
 import com.herafi.job_service.dto.JobImageResponse;
+import com.herafi.job_service.dto.JobDetailResponse;
 import com.herafi.job_service.dto.JobListResponse;
 import com.herafi.job_service.dto.JobResponse;
 import com.herafi.job_service.dto.PageResponse;
@@ -52,7 +53,7 @@ public class JobController {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(JobResponse.from(job));
+                .body(jobMapper.toResponse(job));
     }
 
     @GetMapping
@@ -66,12 +67,10 @@ public class JobController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<JobResponse> getJob(
+    public ResponseEntity<JobDetailResponse> getJob(
             @PathVariable UUID id,
             @RequestHeader("X-User-Id") UUID userId) {
-        Job job = jobService.getJob(id);
-
-        return ResponseEntity.ok(jobMapper.toDetailResponse(job, userId));
+        return ResponseEntity.ok(jobService.getJobDetail(id, userId));
     }
 
     @GetMapping("/my")
@@ -80,7 +79,7 @@ public class JobController {
 
         return jobService.getMyJobs(clientId)
                 .stream()
-                .map(JobResponse::from)
+                .map(jobMapper::toResponse)
                 .toList();
     }
 
@@ -92,7 +91,7 @@ public class JobController {
 
         Job job = jobService.update(id, clientId, request);
 
-        return ResponseEntity.ok(JobResponse.from(job));
+        return ResponseEntity.ok(jobMapper.toResponse(job));
     }
 
     @PatchMapping("/{id}/complete")
@@ -102,7 +101,7 @@ public class JobController {
 
         Job job = jobService.complete(id, userId);
 
-        return ResponseEntity.ok(JobResponse.from(job));
+        return ResponseEntity.ok(jobMapper.toResponse(job));
     }
 
     @GetMapping("/skills")
@@ -137,7 +136,7 @@ public class JobController {
         boolean isAdmin = "ADMIN".equals(role);
         Job job = jobService.cancelJob(id, userId, isAdmin);
 
-        return ResponseEntity.ok(JobResponse.from(job));
+        return ResponseEntity.ok(jobMapper.toResponse(job));
     }
 
     @PostMapping(value = "/{jobId}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

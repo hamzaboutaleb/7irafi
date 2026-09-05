@@ -24,7 +24,7 @@ import com.herafi.job_service.dto.CreateJobRequest;
 import com.herafi.job_service.dto.JobFilter;
 import com.herafi.job_service.dto.JobImageResponse;
 import com.herafi.job_service.dto.JobListResponse;
-import com.herafi.job_service.dto.JobResponse;
+import com.herafi.job_service.dto.JobDetailResponse;
 import com.herafi.job_service.dto.JobSummaryResponse;
 import com.herafi.job_service.dto.PageResponse;
 import com.herafi.job_service.dto.UpdateJobRequest;
@@ -142,9 +142,13 @@ public class JobService {
 				jobMapper::toListResponse);
 	}
 
-	public Job getJob(UUID id) {
-		return jobRepository.findByIdAndDeletedFalse(id)
+	@Transactional(readOnly = true)
+	public JobDetailResponse getJobDetail(UUID id, UUID viewerId) {
+		Job job = jobRepository.findByIdAndDeletedFalse(id)
 				.orElseThrow(() -> new JobNotFoundException("Job not found: ", id));
+		List<JobImage> images = jobImageRepository.findByJob_IdOrderByCreatedAtAscIdAsc(id);
+
+		return jobMapper.toDetailResponse(job, viewerId, images);
 	}
 
 	public List<Job> getMyJobs(UUID clientId) {

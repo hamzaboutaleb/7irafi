@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import com.herafi.job_service.dto.JobListResponse;
-import com.herafi.job_service.dto.JobResponse;
+import com.herafi.job_service.dto.JobDetailResponse;
 import com.herafi.job_service.entity.EstimatedDuration;
 import com.herafi.job_service.entity.Job;
 import com.herafi.job_service.entity.JobStatus;
@@ -40,7 +40,7 @@ class JobMapperTests {
     void ownerSeesAddressInDetailResponse() {
         Job job = job(JobStatus.OPEN, null);
 
-        JobResponse response = mapper.toDetailResponse(job, job.getClientId());
+        JobDetailResponse response = mapper.toDetailResponse(job, job.getClientId(), job.getImages());
 
         assertEquals("123 Main Street", response.addressLine());
     }
@@ -50,7 +50,7 @@ class JobMapperTests {
         UUID workerId = UUID.randomUUID();
         Job job = job(JobStatus.ASSIGNED, workerId);
 
-        JobResponse response = mapper.toDetailResponse(job, workerId);
+        JobDetailResponse response = mapper.toDetailResponse(job, workerId, job.getImages());
 
         assertEquals("123 Main Street", response.addressLine());
     }
@@ -59,7 +59,7 @@ class JobMapperTests {
     void unrelatedUserDoesNotSeeAddressInDetailResponse() {
         Job job = job(JobStatus.OPEN, null);
 
-        JobResponse response = mapper.toDetailResponse(job, UUID.randomUUID());
+        JobDetailResponse response = mapper.toDetailResponse(job, UUID.randomUUID(), job.getImages());
 
         assertNull(response.addressLine());
     }
@@ -75,7 +75,7 @@ class JobMapperTests {
         Mockito.when(imageStorageService.generateDownloadUrl(image.getObjectKey()))
                 .thenReturn("http://localhost:9000/presigned-image");
 
-        JobResponse response = mapper.toDetailResponse(job, job.getClientId());
+        JobDetailResponse response = mapper.toDetailResponse(job, job.getClientId(), job.getImages());
 
         assertEquals(1, response.images().size());
         assertEquals(image.getId(), response.images().get(0).id());
