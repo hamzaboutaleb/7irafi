@@ -303,7 +303,7 @@ public class JobService {
 	public JobImageResponse uploadImage(
 			UUID jobId,
 			UUID userId,
-			MultipartFile file) throws IOException {
+			MultipartFile file) {
 
 		if (file.isEmpty()) {
 			throw new InvalidImageException("Image cannot be empty");
