@@ -40,6 +40,7 @@ import com.herafi.job_service.exceptions.JobAccessDeniedException;
 import com.herafi.job_service.exceptions.JobNotFoundException;
 import com.herafi.job_service.exceptions.JobNotOpenException;
 import com.herafi.job_service.exceptions.JobStateConflictException;
+import com.herafi.job_service.config.JobImageProperties;
 import com.herafi.job_service.mapper.JobMapper;
 import com.herafi.job_service.repository.CityRepository;
 import com.herafi.job_service.repository.JobImageRepository;
@@ -57,21 +58,13 @@ public class JobService {
 
 	private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("createdAt", "budget", "title");
 
-	@Value("${jobs.images.max-file-size:10MB}")
-	private DataSize maxImageSize = DataSize.ofMegabytes(10);
-
-	@Value("${jobs.images.max-file-size:10MB}")
-	private String maxImageSizeLabel = "10MB";
-
-	@Value("${jobs.images.max-count:10}")
-	private int maxImageCount = 10;
-
 	private final JobRepository jobRepository;
 	private final JobMapper jobMapper;
 	private final JobImageRepository jobImageRepository;
 	private final ImageStorageService imageStorageService;
 	private final SkillRepository skillRepository;
 	private final CityRepository cityRepository;
+	private final JobImageProperties imageProperties;
 
 	public Job create(UUID clientId, CreateJobRequest request) {
 		validateReferences(request);
@@ -316,8 +309,9 @@ public class JobService {
 			throw new InvalidImageException("Image cannot be empty");
 		}
 
-		if (file.getSize() > maxImageSize.toBytes()) {
-			throw new InvalidImageException("Image size must not exceed " + maxImageSizeLabel);
+		if (file.getSize() > imageProperties.getMaxFileSize().toBytes()) {
+			throw new InvalidImageException(
+					"Image size must not exceed " + imageProperties.maxFileSizeLabel());
 		}
 
 		Job job = jobRepository.findByIdAndDeletedFalseForUpdate(jobId)
@@ -332,8 +326,9 @@ public class JobService {
 			throw new JobStateConflictException("Only open jobs can receive images");
 		}
 
-		if (jobImageRepository.countByJob_Id(jobId) >= maxImageCount) {
-			throw new InvalidImageException("Maximum image count is " + maxImageCount);
+		if (jobImageRepository.countByJob_Id(jobId) >= imageProperties.getMaxCount()) {
+			throw new InvalidImageException(
+					"Maximum image count is " + imageProperties.getMaxCount());
 		}
 
 		String contentType = detectImageContentType(file);

@@ -20,11 +20,13 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 
 import com.herafi.job_service.dto.CreateJobRequest;
 import com.herafi.job_service.dto.UpdateJobRequest;
+import com.herafi.job_service.config.JobImageProperties;
 import com.herafi.job_service.entity.City;
 import com.herafi.job_service.entity.EstimatedDuration;
 import com.herafi.job_service.entity.Job;
@@ -76,6 +78,9 @@ class JobServiceTests {
 
     @Mock
     private CityRepository cityRepository;
+
+    @Spy
+    private JobImageProperties imageProperties = new JobImageProperties();
 
     @InjectMocks
     private JobService service;
