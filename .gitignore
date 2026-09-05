@@ -14,3 +14,13 @@ Thumbs.db
 
 # Local planning
 /todo.md
+
+# Secrets — never commit real values; .env.example carries placeholders only
+.env
+.env.*
+!.env.example
+
+# Local-only working files (see CLAUDE.md: only code is pushed)
+/handoff.md
+/docs/
+/graphify-out/
