@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -248,6 +249,20 @@ public class JobService {
 		job.setDeleted(true);
 		job.setDeletedAt(Instant.now());
 		job.setDeletedBy(userId);
+	}
+
+	@Scheduled(fixedDelayString = "${jobs.images.cleanup-delay-ms:60000}")
+	@Transactional
+	public void cleanupDeletedJobImages() {
+		for (JobImage image : jobImageRepository.findImagesForDeletedJobs()) {
+			try {
+				imageStorageService.delete(image.getObjectKey());
+				jobImageRepository.delete(image);
+			} catch (RuntimeException cleanupException) {
+				log.warn("Failed to clean up deleted job image object: {}", image.getObjectKey(),
+						cleanupException);
+			}
+		}
 	}
 
 	public JobSummaryResponse getSummary(UUID id) {
