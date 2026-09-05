@@ -1,5 +1,7 @@
 package com.herafi.job_service.service;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
@@ -8,6 +10,10 @@ import java.util.UUID;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,38 +22,54 @@ import org.springframework.data.domain.Sort;
 import com.herafi.job_service.dto.ChatEligibilityResponse;
 import com.herafi.job_service.dto.CreateJobRequest;
 import com.herafi.job_service.dto.JobFilter;
-import com.herafi.job_service.dto.JobResponse;
+import com.herafi.job_service.dto.JobImageResponse;
+import com.herafi.job_service.dto.JobListResponse;
+import com.herafi.job_service.dto.JobDetailResponse;
 import com.herafi.job_service.dto.JobSummaryResponse;
 import com.herafi.job_service.dto.PageResponse;
 import com.herafi.job_service.dto.UpdateJobRequest;
+import com.herafi.job_service.entity.City;
 import com.herafi.job_service.entity.Job;
+import com.herafi.job_service.entity.JobImage;
 import com.herafi.job_service.entity.JobStatus;
+import com.herafi.job_service.entity.Skill;
+import com.herafi.job_service.exceptions.InvalidImageException;
 import com.herafi.job_service.exceptions.InvalidJobStateException;
+import com.herafi.job_service.exceptions.InvalidReferenceException;
 import com.herafi.job_service.exceptions.InvalidSortException;
 import com.herafi.job_service.exceptions.JobAccessDeniedException;
 import com.herafi.job_service.exceptions.JobNotFoundException;
+import com.herafi.job_service.exceptions.JobNotOpenException;
 import com.herafi.job_service.exceptions.JobStateConflictException;
+import com.herafi.job_service.config.JobImageProperties;
 import com.herafi.job_service.mapper.JobMapper;
+import com.herafi.job_service.repository.CityRepository;
+import com.herafi.job_service.repository.JobImageRepository;
 import com.herafi.job_service.repository.JobRepository;
+import com.herafi.job_service.repository.SkillRepository;
 import com.herafi.job_service.specification.JobSpecification;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class JobService {
 
 	private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("createdAt", "budget", "title");
 
 	private final JobRepository jobRepository;
 	private final JobMapper jobMapper;
-
-	public JobService(
-			JobRepository jobRepository,
-			JobMapper jobMapper) {
-
-		this.jobRepository = jobRepository;
-		this.jobMapper = jobMapper;
-	}
+	private final JobImageRepository jobImageRepository;
+	private final ImageStorageService imageStorageService;
+	private final SkillRepository skillRepository;
+	private final CityRepository cityRepository;
+	private final JobImageProperties imageProperties;
 
 	public Job create(UUID clientId, CreateJobRequest request) {
+		validateReferences(request);
+
 		Job job = new Job();
 
 		job.setClientId(clientId);
@@ -66,7 +88,17 @@ public class JobService {
 		return jobRepository.save(job);
 	}
 
-	public PageResponse<JobResponse> getJobs(
+	private void validateReferences(CreateJobRequest request) {
+		if (!skillRepository.existsByCodeAndActiveTrue(request.skill())) {
+			throw new InvalidReferenceException("Unknown or inactive skill: " + request.skill());
+		}
+
+		if (!cityRepository.existsByCodeAndActiveTrue(request.city())) {
+			throw new InvalidReferenceException("Unknown or inactive city: " + request.city());
+		}
+	}
+
+	public PageResponse<JobListResponse> getJobs(
 			JobFilter filter,
 			String sort,
 			int page,
@@ -107,12 +139,16 @@ public class JobService {
 
 		return PageResponse.from(
 				jobs,
-				jobMapper::toResponse);
+				jobMapper::toListResponse);
 	}
 
-	public Job getJob(UUID id) {
-		return jobRepository.findByIdAndDeletedFalse(id)
+	@Transactional(readOnly = true)
+	public JobDetailResponse getJobDetail(UUID id, UUID viewerId) {
+		Job job = jobRepository.findByIdAndDeletedFalse(id)
 				.orElseThrow(() -> new JobNotFoundException("Job not found: ", id));
+		List<JobImage> images = jobImageRepository.findByJob_IdOrderByCreatedAtAscIdAsc(id);
+
+		return jobMapper.toDetailResponse(job, viewerId, images);
 	}
 
 	public List<Job> getMyJobs(UUID clientId) {
@@ -137,16 +173,21 @@ public class JobService {
 
 		job.setTitle(request.title());
 		job.setDescription(request.description());
-		job.setAddressLine(request.location());
+		job.setAddressLine(request.addressLine());
 
 		return job;
 	}
 
 	@Transactional
-	public Job complete(UUID id) {
+	public Job complete(UUID id, UUID userId) {
 
 		Job job = jobRepository.findByIdAndDeletedFalse(id)
 				.orElseThrow(() -> new JobNotFoundException("Job not found: ", id));
+
+		if (!job.getClientId().equals(userId)) {
+			throw new JobAccessDeniedException(
+					"You are not allowed to complete this job");
+		}
 
 		if (job.getStatus() != JobStatus.ASSIGNED) {
 			throw new InvalidJobStateException(job.getStatus());
@@ -158,11 +199,39 @@ public class JobService {
 	}
 
 	public List<String> getAllSkills() {
-		return jobRepository.findAllSkills();
+		return skillRepository.findByActiveTrueOrderByCodeAsc()
+				.stream()
+				.map(Skill::getCode)
+				.toList();
 	}
 
 	public List<String> getAllCities() {
-		return jobRepository.findAllCities();
+		return cityRepository.findByActiveTrueOrderByCodeAsc()
+				.stream()
+				.map(City::getCode)
+				.toList();
+	}
+
+	@Transactional
+	public Job cancelJob(UUID jobId, UUID userId, boolean isAdmin) {
+
+		Job job = jobRepository.findByIdAndDeletedFalse(jobId)
+				.orElseThrow(() -> new JobNotFoundException("Job not found: ", jobId));
+
+		if (!isAdmin && !job.getClientId().equals(userId)) {
+			throw new JobAccessDeniedException(
+					"You are not allowed to cancel this job");
+		}
+
+		if (job.getStatus() != JobStatus.OPEN && job.getStatus() != JobStatus.ASSIGNED) {
+			throw new JobStateConflictException(
+					"Only open or assigned jobs can be cancelled");
+		}
+
+		job.setStatus(JobStatus.CANCELLED);
+		job.setAssignedWorkerId(null);
+
+		return job;
 	}
 
 	@Transactional
@@ -177,10 +246,9 @@ public class JobService {
 					"You are not allowed to delete this job");
 		}
 
-		// assigned jobs must be cancelled instead
 		if (job.getStatus() == JobStatus.ASSIGNED) {
 			throw new JobStateConflictException(
-					"Assigned jobs cannot be deleted. Cancel the job instead.");
+					"Assigned jobs cannot be deleted");
 		}
 
 		job.setDeleted(true);
@@ -188,8 +256,22 @@ public class JobService {
 		job.setDeletedBy(userId);
 	}
 
+	@Scheduled(fixedDelayString = "${jobs.images.cleanup-delay-ms:60000}")
+	@Transactional
+	public void cleanupDeletedJobImages() {
+		for (JobImage image : jobImageRepository.findImagesForDeletedJobs()) {
+			try {
+				imageStorageService.delete(image.getObjectKey());
+				jobImageRepository.delete(image);
+			} catch (RuntimeException cleanupException) {
+				log.warn("Failed to clean up deleted job image object: {}", image.getObjectKey(),
+						cleanupException);
+			}
+		}
+	}
+
 	public JobSummaryResponse getSummary(UUID id) {
-		Job job = jobRepository.findById(id)
+		Job job = jobRepository.findByIdAndDeletedFalse(id)
 				.orElseThrow(() -> new JobNotFoundException("Job not found: ", id));
 
 		return new JobSummaryResponse(
@@ -198,13 +280,20 @@ public class JobService {
 				job.getStatus());
 	}
 
+	@Transactional
 	public JobSummaryResponse assignWorker(UUID id, UUID workerId) {
-		Job job = jobRepository.findById(id)
+		Job job = jobRepository.findByIdAndDeletedFalse(id)
 				.orElseThrow(() -> new JobNotFoundException("Job not found: ", id));
 
+		if (job.getStatus() == JobStatus.ASSIGNED && workerId.equals(job.getAssignedWorkerId())) {
+			return new JobSummaryResponse(
+					job.getId(),
+					job.getClientId(),
+					job.getStatus());
+		}
+
 		if (job.getStatus() != JobStatus.OPEN) {
-			throw new JobStateConflictException(
-					"Job must be OPEN to be assigned.");
+			throw new JobNotOpenException();
 		}
 
 		job.setStatus(JobStatus.ASSIGNED);
@@ -219,7 +308,7 @@ public class JobService {
 	}
 
 	public ChatEligibilityResponse getChatEligibility(UUID id) {
-		Job job = jobRepository.findById(id)
+		Job job = jobRepository.findByIdAndDeletedFalse(id)
 				.orElseThrow(() -> new JobNotFoundException("Job not found: ", id));
 
 		boolean allowed = job.getStatus() == JobStatus.ASSIGNED ||
@@ -228,5 +317,180 @@ public class JobService {
 		return new ChatEligibilityResponse(
 				allowed,
 				job.getClientId());
+	}
+
+	@Transactional
+	public JobImageResponse uploadImage(
+			UUID jobId,
+			UUID userId,
+			MultipartFile file) {
+
+		if (file.isEmpty()) {
+			throw new InvalidImageException("Image cannot be empty");
+		}
+
+		if (file.getSize() > imageProperties.getMaxFileSize().toBytes()) {
+			throw new InvalidImageException(
+					"Image size must not exceed " + imageProperties.maxFileSizeLabel());
+		}
+
+		Job job = jobRepository.findByIdAndDeletedFalseForUpdate(jobId)
+				.orElseThrow(() -> new JobNotFoundException("Job not found: ", jobId));
+
+		if (!job.getClientId().equals(userId)) {
+			throw new JobAccessDeniedException(
+					"You are not allowed to update this job");
+		}
+
+		if (job.getStatus() != JobStatus.OPEN) {
+			throw new JobStateConflictException("Only open jobs can receive images");
+		}
+
+		if (jobImageRepository.countByJob_Id(jobId) >= imageProperties.getMaxCount()) {
+			throw new InvalidImageException(
+					"Maximum image count is " + imageProperties.getMaxCount());
+		}
+
+		String contentType = detectImageContentType(file);
+
+		UUID imageId = UUID.randomUUID();
+		String objectKey = "jobs/" + jobId + "/" + imageId;
+		try {
+			imageStorageService.upload(
+					objectKey,
+					file.getInputStream(),
+					file.getSize(),
+					contentType);
+		} catch (IOException e) {
+			throw new InvalidImageException("Failed to read image");
+		}
+
+		JobImage image = new JobImage();
+		image.setId(imageId);
+		image.setJob(job);
+		image.setObjectKey(objectKey);
+		image.setCreatedAt(Instant.now());
+
+		try {
+			jobImageRepository.saveAndFlush(image);
+		} catch (RuntimeException exception) {
+			cleanupUploadedObject(objectKey, exception);
+			throw exception;
+		}
+
+		String url = imageStorageService.generateDownloadUrl(objectKey);
+
+		return new JobImageResponse(
+				imageId,
+				url);
+	}
+
+	@Transactional
+	public void deleteImage(UUID jobId, UUID imageId, UUID userId) {
+		Job job = jobRepository.findByIdAndDeletedFalse(jobId)
+				.orElseThrow(() -> new JobNotFoundException("Job not found: ", jobId));
+
+		if (!job.getClientId().equals(userId)) {
+			throw new JobAccessDeniedException(
+					"You are not allowed to manage images for this job");
+		}
+
+		JobImage image = jobImageRepository.findById(imageId)
+				.filter(candidate -> candidate.getJob().getId().equals(jobId))
+				.orElseThrow(() -> new JobNotFoundException("Image not found: ", imageId));
+
+		jobImageRepository.delete(image);
+		deleteObjectAfterCommit(image.getObjectKey());
+	}
+
+	private void deleteObjectAfterCommit(String objectKey) {
+		if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+			cleanupDeletedObject(objectKey);
+			return;
+		}
+
+		TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+			@Override
+			public void afterCommit() {
+				cleanupDeletedObject(objectKey);
+			}
+		});
+	}
+
+	private void cleanupDeletedObject(String objectKey) {
+		try {
+			imageStorageService.delete(objectKey);
+		} catch (RuntimeException cleanupException) {
+			log.warn("Failed to delete job image object after metadata deletion: {}", objectKey,
+					cleanupException);
+		}
+	}
+
+	private void cleanupUploadedObject(String objectKey, RuntimeException originalException) {
+		try {
+			imageStorageService.delete(objectKey);
+		} catch (RuntimeException cleanupException) {
+			originalException.addSuppressed(cleanupException);
+			log.warn("Failed to delete uploaded job image object after database save failure: {}", objectKey,
+					cleanupException);
+		}
+	}
+
+	private String detectImageContentType(MultipartFile file) {
+		byte[] header;
+		try (InputStream inputStream = file.getInputStream()) {
+			header = inputStream.readNBytes(12);
+		} catch (IOException exception) {
+			throw new InvalidImageException("Failed to read image");
+		}
+
+		if (isJpeg(header)) {
+			return "image/jpeg";
+		}
+
+		if (isPng(header)) {
+			return "image/png";
+		}
+
+		if (isWebp(header)) {
+			return "image/webp";
+		}
+
+		throw new InvalidImageException("Unsupported image type");
+	}
+
+	private boolean isJpeg(byte[] header) {
+		return header.length >= 3
+				&& unsigned(header[0]) == 0xFF
+				&& unsigned(header[1]) == 0xD8
+				&& unsigned(header[2]) == 0xFF;
+	}
+
+	private boolean isPng(byte[] header) {
+		return header.length >= 8
+				&& unsigned(header[0]) == 0x89
+				&& header[1] == 0x50
+				&& header[2] == 0x4E
+				&& header[3] == 0x47
+				&& header[4] == 0x0D
+				&& header[5] == 0x0A
+				&& header[6] == 0x1A
+				&& header[7] == 0x0A;
+	}
+
+	private boolean isWebp(byte[] header) {
+		return header.length >= 12
+				&& header[0] == 0x52
+				&& header[1] == 0x49
+				&& header[2] == 0x46
+				&& header[3] == 0x46
+				&& header[8] == 0x57
+				&& header[9] == 0x45
+				&& header[10] == 0x42
+				&& header[11] == 0x50;
+	}
+
+	private int unsigned(byte value) {
+		return value & 0xFF;
 	}
 }
