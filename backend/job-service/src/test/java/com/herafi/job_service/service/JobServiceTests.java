@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.never;
@@ -19,6 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -232,8 +234,28 @@ class JobServiceTests {
 
         service.deleteImage(jobId, imageId, ownerId);
 
-        verify(imageStorageService).delete(image.getObjectKey());
-        verify(jobImageRepository).delete(image);
+        InOrder order = inOrder(jobImageRepository, imageStorageService);
+        order.verify(jobImageRepository).delete(image);
+        order.verify(imageStorageService).delete(image.getObjectKey());
+    }
+
+    @Test
+    void doesNotDeleteImageObjectWhenMetadataDeletionFails() {
+        UUID jobId = UUID.randomUUID();
+        UUID ownerId = UUID.randomUUID();
+        UUID imageId = UUID.randomUUID();
+        Job job = job(jobId, ownerId, JobStatus.OPEN);
+        JobImage image = image(imageId, job, "jobs/" + jobId + "/" + imageId);
+        when(jobRepository.findByIdAndDeletedFalse(jobId)).thenReturn(Optional.of(job));
+        when(jobImageRepository.findById(imageId)).thenReturn(Optional.of(image));
+        RuntimeException deleteFailure = new RuntimeException("database unavailable");
+        org.mockito.Mockito.doThrow(deleteFailure).when(jobImageRepository).delete(image);
+
+        assertThrows(
+                RuntimeException.class,
+                () -> service.deleteImage(jobId, imageId, ownerId));
+
+        verify(imageStorageService, never()).delete(ArgumentMatchers.anyString());
     }
 
     @Test

@@ -8,10 +8,10 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.unit.DataSize;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.data.domain.Page;
@@ -399,8 +399,31 @@ public class JobService {
 				.filter(candidate -> candidate.getJob().getId().equals(jobId))
 				.orElseThrow(() -> new JobNotFoundException("Image not found: ", imageId));
 
-		imageStorageService.delete(image.getObjectKey());
 		jobImageRepository.delete(image);
+		deleteObjectAfterCommit(image.getObjectKey());
+	}
+
+	private void deleteObjectAfterCommit(String objectKey) {
+		if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+			cleanupDeletedObject(objectKey);
+			return;
+		}
+
+		TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+			@Override
+			public void afterCommit() {
+				cleanupDeletedObject(objectKey);
+			}
+		});
+	}
+
+	private void cleanupDeletedObject(String objectKey) {
+		try {
+			imageStorageService.delete(objectKey);
+		} catch (RuntimeException cleanupException) {
+			log.warn("Failed to delete job image object after metadata deletion: {}", objectKey,
+					cleanupException);
+		}
 	}
 
 	private void cleanupUploadedObject(String objectKey, RuntimeException originalException) {
