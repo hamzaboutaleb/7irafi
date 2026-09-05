@@ -132,7 +132,7 @@ class JobServiceTests {
                 "image.png",
                 "image/png",
                 imageBytes(MAX_IMAGE_BYTES - 1, PNG_SIGNATURE));
-        when(jobRepository.findByIdAndDeletedFalse(jobId)).thenReturn(Optional.of(job));
+        when(jobRepository.findByIdAndDeletedFalseForUpdate(jobId)).thenReturn(Optional.of(job));
 
         service.uploadImage(jobId, ownerId, file);
 
@@ -141,7 +141,7 @@ class JobServiceTests {
                 ArgumentMatchers.any(InputStream.class),
                 ArgumentMatchers.eq((long) (MAX_IMAGE_BYTES - 1)),
                 ArgumentMatchers.eq("image/png"));
-        verify(jobImageRepository).save(ArgumentMatchers.any());
+        verify(jobImageRepository).saveAndFlush(ArgumentMatchers.any());
     }
 
     @Test
@@ -154,7 +154,7 @@ class JobServiceTests {
                 "image.jpg",
                 "application/octet-stream",
                 imageBytes(64, JPEG_SIGNATURE));
-        when(jobRepository.findByIdAndDeletedFalse(jobId)).thenReturn(Optional.of(job));
+        when(jobRepository.findByIdAndDeletedFalseForUpdate(jobId)).thenReturn(Optional.of(job));
 
         service.uploadImage(jobId, ownerId, file);
 
@@ -175,7 +175,7 @@ class JobServiceTests {
                 "image.webp",
                 "application/octet-stream",
                 imageBytes(64, WEBP_SIGNATURE));
-        when(jobRepository.findByIdAndDeletedFalse(jobId)).thenReturn(Optional.of(job));
+        when(jobRepository.findByIdAndDeletedFalseForUpdate(jobId)).thenReturn(Optional.of(job));
 
         service.uploadImage(jobId, ownerId, file);
 
@@ -197,8 +197,8 @@ class JobServiceTests {
                 "image/png",
                 imageBytes(64, PNG_SIGNATURE));
         RuntimeException saveFailure = new RuntimeException("database unavailable");
-        when(jobRepository.findByIdAndDeletedFalse(jobId)).thenReturn(Optional.of(job));
-        when(jobImageRepository.save(ArgumentMatchers.any())).thenThrow(saveFailure);
+        when(jobRepository.findByIdAndDeletedFalseForUpdate(jobId)).thenReturn(Optional.of(job));
+        when(jobImageRepository.saveAndFlush(ArgumentMatchers.any())).thenThrow(saveFailure);
 
         RuntimeException exception = assertThrows(
                 RuntimeException.class,
@@ -273,7 +273,7 @@ class JobServiceTests {
                 "image.jpg",
                 "image/jpeg",
                 new byte[] { 1, 2, 3 });
-        when(jobRepository.findByIdAndDeletedFalse(jobId)).thenReturn(Optional.of(job));
+        when(jobRepository.findByIdAndDeletedFalseForUpdate(jobId)).thenReturn(Optional.of(job));
 
         InvalidImageException exception = assertThrows(
                 InvalidImageException.class,
@@ -281,7 +281,7 @@ class JobServiceTests {
 
         assertEquals("Unsupported image type", exception.getMessage());
         verify(jobImageRepository).countByJob_Id(jobId);
-        verify(jobImageRepository, never()).save(ArgumentMatchers.any());
+        verify(jobImageRepository, never()).saveAndFlush(ArgumentMatchers.any());
         verifyNoMoreInteractions(imageStorageService);
     }
 
@@ -295,7 +295,7 @@ class JobServiceTests {
                 "image.svg",
                 "image/svg+xml",
                 "<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>".getBytes());
-        when(jobRepository.findByIdAndDeletedFalse(jobId)).thenReturn(Optional.of(job));
+        when(jobRepository.findByIdAndDeletedFalseForUpdate(jobId)).thenReturn(Optional.of(job));
 
         InvalidImageException exception = assertThrows(
                 InvalidImageException.class,
@@ -303,7 +303,7 @@ class JobServiceTests {
 
         assertEquals("Unsupported image type", exception.getMessage());
         verify(jobImageRepository).countByJob_Id(jobId);
-        verify(jobImageRepository, never()).save(ArgumentMatchers.any());
+        verify(jobImageRepository, never()).saveAndFlush(ArgumentMatchers.any());
         verifyNoMoreInteractions(imageStorageService);
     }
 
@@ -316,7 +316,7 @@ class JobServiceTests {
                 "image.png",
                 "image/png",
                 imageBytes(64, PNG_SIGNATURE));
-        when(jobRepository.findByIdAndDeletedFalse(jobId)).thenReturn(Optional.empty());
+        when(jobRepository.findByIdAndDeletedFalseForUpdate(jobId)).thenReturn(Optional.empty());
 
         assertThrows(
                 JobNotFoundException.class,
@@ -335,7 +335,7 @@ class JobServiceTests {
                 "image.png",
                 "image/png",
                 imageBytes(64, PNG_SIGNATURE));
-        when(jobRepository.findByIdAndDeletedFalse(jobId)).thenReturn(Optional.of(job));
+        when(jobRepository.findByIdAndDeletedFalseForUpdate(jobId)).thenReturn(Optional.of(job));
 
         assertThrows(
                 JobStateConflictException.class,
@@ -354,7 +354,7 @@ class JobServiceTests {
                 "image.png",
                 "image/png",
                 imageBytes(64, PNG_SIGNATURE));
-        when(jobRepository.findByIdAndDeletedFalse(jobId)).thenReturn(Optional.of(job));
+        when(jobRepository.findByIdAndDeletedFalseForUpdate(jobId)).thenReturn(Optional.of(job));
         when(jobImageRepository.countByJob_Id(jobId)).thenReturn(10L);
 
         InvalidImageException exception = assertThrows(
