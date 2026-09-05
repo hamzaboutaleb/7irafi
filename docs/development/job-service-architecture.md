@@ -126,7 +126,8 @@ Important DTOs are:
 | `JobFilter` | Search filters. |
 | `AssignWorkerRequest` | Internal worker UUID. |
 | `JobListResponse` | Search response without private address or image URLs. |
-| `JobResponse` | Job response, including conditional address and detail images. |
+| `JobResponse` | Lightweight mutation and “my jobs” response without image URLs. |
+| `JobDetailResponse` | Detail response with conditional address and fresh image URLs. |
 | `JobSummaryResponse` | Minimal internal job state. |
 | `JobImageResponse` | Image UUID and temporary download URL. |
 | `PageResponse` | Page content and pagination metadata. |
@@ -155,8 +156,9 @@ Repository rules currently used by the service:
 - Public reads use `findByIdAndDeletedFalse`.
 - “My jobs” uses `findByClientIdAndDeletedFalse`.
 - Search begins with `JobSpecification.isNotDeleted()`.
-- Image counts use `countByJob_Id`.
-- Image detail ordering uses `@OrderBy("createdAt ASC")` on `Job.images`.
+- Image counts use `countByJob_Id` while the parent job row is locked for upload.
+- Image detail ordering uses `findByJob_IdOrderByCreatedAtAscIdAsc` inside the
+  service transaction.
 
 ### Storage layer
 
@@ -187,11 +189,11 @@ job-service port directly.
 | --- | --- | --- | --- |
 | `POST` | `/jobs` | Create a job | Authenticated identity creates `clientId`. |
 | `GET` | `/jobs` | Search jobs | Gateway-authenticated request. |
-| `GET` | `/jobs/{id}` | Get job detail | Address is owner/worker-only. |
+| `GET` | `/jobs/{id}` | Get job detail | Address and images are detail-only. |
 | `GET` | `/jobs/my` | List current user's jobs | `X-User-Id` selects client. |
 | `PUT` | `/jobs/{id}` | Edit an open job | Job owner only. |
 | `PATCH` | `/jobs/{id}/complete` | Complete assigned job | Job owner only. |
-| `PATCH` | `/jobs/{id}/cancel` | Cancel open job | Owner or `ADMIN`. |
+| `PATCH` | `/jobs/{id}/cancel` | Cancel open or assigned job | Owner or `ADMIN`; assigned worker is cleared. |
 | `DELETE` | `/jobs/{id}` | Soft-delete job | Owner or `ADMIN`; assigned jobs rejected. |
 | `GET` | `/jobs/skills` | List active skill codes | Gateway-authenticated request. |
 | `GET` | `/jobs/cities` | List active city codes | Gateway-authenticated request. |
@@ -272,13 +274,15 @@ createdAt, budget, title
 The default is `createdAt,desc`. Page size is limited to 20 by the controller.
 Search always excludes soft-deleted jobs and returns `JobListResponse`.
 
-`JobListResponse` intentionally excludes `addressLine` and image URLs. Detail
-requests return `JobResponse`; the mapper includes the address only when the
-viewer is the job client or assigned worker.
+`JobListResponse` intentionally excludes `addressLine` and image URLs. Mutation
+and “my jobs” requests return lightweight `JobResponse` values. Detail requests
+return `JobDetailResponse`; the mapper includes the address only when the viewer
+is the job client or assigned worker.
 
 Detail image URLs are generated from persisted `JobImage.objectKey` values on
-each request. They are presigned for 15 minutes, so the frontend must not treat
-them as permanent URLs.
+each request. Image metadata is loaded explicitly inside the service
+transaction, then URLs are presigned for 15 minutes. The frontend must not
+treat them as permanent URLs.
 
 ## 7. Lifecycle and State Rules
 
@@ -288,12 +292,12 @@ stateDiagram-v2
     OPEN --> ASSIGNED: application service assigns worker
     ASSIGNED --> COMPLETED: client completes job
     OPEN --> CANCELLED: client/admin cancels
+    ASSIGNED --> CANCELLED: client/admin cancels; worker cleared
     OPEN --> DELETED: owner/admin soft deletes
 
     ASSIGNED --> ASSIGNED: same worker assignment is idempotent
     OPEN --> OPEN: owner edits or uploads images
 
-    ASSIGNED --> CANCELLED: rejected
     COMPLETED --> CANCELLED: rejected
     CANCELLED --> OPEN: rejected
     COMPLETED --> OPEN: rejected
@@ -310,10 +314,13 @@ Rules:
 - Assignment requires `OPEN` and sets both status and worker UUID.
 - A repeated assignment for the same worker is idempotent.
 - A repeated or conflicting assignment returns `JOB_NOT_OPEN` / HTTP 409.
-- Cancellation requires `OPEN` and sets `CANCELLED`.
+- Cancellation requires `OPEN` or `ASSIGNED` and sets `CANCELLED`.
+- Cancelling an assigned job clears `assignedWorkerId` to satisfy the database
+  constraint.
 - Soft deletion preserves the job row and rejects deletion of assigned jobs.
-- Optimistic locking prevents stale concurrent assignment updates from both
-  succeeding.
+- Optimistic locking prevents stale concurrent updates from both succeeding.
+  The loser receives `CONCURRENT_MODIFICATION` / HTTP 409 and should reload
+  before retrying.
 
 The application service supplies the worker assignment through:
 
@@ -360,8 +367,8 @@ sequenceDiagram
     JS-->>Client: JobResponse with fresh image URLs
 
     Client->>JS: DELETE /jobs/{jobId}/images/{imageId}
-    JS->>S3: Delete object
     JS->>DB: Delete image metadata
+    JS->>S3: Delete object after database commit
     JS-->>Client: 204 No Content
 ```
 
@@ -386,10 +393,11 @@ jobs/{jobId}/{imageId}
 The database stores the object key, not the temporary URL. This is what allows a
 detail request after a page reload to create a new valid URL.
 
-Deletion currently removes the S3 object first and then the database row. If the
-storage delete succeeds but the database delete fails, the row can temporarily
-refer to a missing object. This is an operational consistency risk to address if
-image deletion must be fully retryable.
+Individual image deletion removes metadata first and deletes the S3 object after
+the database commit. Soft-deleted jobs retain image metadata as a cleanup queue;
+the scheduled reaper removes each object first and then its metadata. Failed
+cleanup leaves the row for a later retry. Cancelled jobs retain their images for
+historical detail.
 
 ## 9. Persistence Model
 
@@ -454,9 +462,11 @@ Current migration history:
 | `V4__create_job_images.sql` | Image metadata table. |
 | `V5__add_job_version.sql` | Optimistic-lock version column. |
 | `V6__remove_job_image_position.sql` | Removes position and adds created-time index. |
+| `V7__index_job_images_by_creation_and_id.sql` | Adds an index for deterministic image ordering. |
 
 Hibernate uses `ddl-auto=validate`; schema changes must be made through a new
-Flyway migration. The database constrains budget positivity, valid enum strings,
+Flyway migration. V4 and V6 remain unchanged because they are part of the
+existing migration history. The database constrains budget positivity, valid enum strings,
 reference keys, and the relationship between job status and assigned worker.
 
 ## 10. Error Boundary
@@ -468,7 +478,7 @@ The `GlobalExceptionHandler` and security filters expose a common
 {
   "timestamp": "2026-09-04T12:00:00Z",
   "status": 409,
-  "code": "INVALID_STATE",
+  "code": "JOB_STATE_CONFLICT",
   "message": "Only open jobs can be cancelled",
   "path": "/jobs/<id>/cancel"
 }
@@ -484,14 +494,19 @@ Validation errors may also contain `fieldErrors`.
 | Invalid sort field/direction | 400 | `INVALID_SORT` |
 | Unknown or inactive skill/city | 400 | `INVALID_REFERENCE` |
 | Empty, invalid, or oversized image | 400 / 413 | `INVALID_IMAGE` |
+| Missing image multipart part | 400 | `INVALID_IMAGE` |
 | Missing or invalid gateway/internal key | 401 | `UNAUTHORIZED` |
-| Non-owner action | 403 | `NOT_OWNER` |
+| Access denied | 403 | `JOB_ACCESS_DENIED` |
 | Missing active job or image | 404 | `JOB_NOT_FOUND` |
-| Invalid lifecycle state | 409 | `INVALID_STATE` or `JOB_NOT_OPEN` |
+| Invalid lifecycle state | 409 | `JOB_STATE_CONFLICT` or `JOB_NOT_OPEN` |
+| Optimistic-lock conflict | 409 | `CONCURRENT_MODIFICATION` |
 | Unexpected failure | 500 | `INTERNAL_ERROR` |
 
-The response code is the client contract. Clients should not branch on the
-human-readable message.
+The response code is the client contract. The legacy access/state codes remain
+canonical for compatibility: `JOB_ACCESS_DENIED` and `JOB_STATE_CONFLICT`.
+`JOB_NOT_OPEN` is reserved for assignment attempts on non-open jobs, and
+`CONCURRENT_MODIFICATION` is reserved for optimistic-lock conflicts. Clients
+should not branch on the human-readable message.
 
 ## 11. Configuration and Local Runtime
 
@@ -507,13 +522,16 @@ Main configuration is in
 | `aws.s3.endpoint` | `http://minio:9000` | Internal S3 client endpoint. |
 | `aws.s3.public-endpoint` | `http://localhost:9000` | Browser-facing presigned URL endpoint. |
 | `aws.s3.bucket` | `jobs` | Object bucket. |
-| `jobs.images.max-file-size` | `10MB` | Application and multipart limit. |
+| `jobs.images.max-file-size` | `10MB` | Business and per-file upload limit, bound by `JobImageProperties`. |
+| `spring.servlet.multipart.max-request-size` | `12MB` | Multipart envelope plus file request limit. |
 | `jobs.images.max-count` | `10` | Images allowed per job. |
+| `jobs.images.cleanup-delay-ms` | `60000` | Delay between deleted-image cleanup runs. |
 
 Docker Compose provides:
 
 - PostgreSQL with `job_db` created by the initialization scripts.
-- MinIO on ports `9000` and `9001`.
+- MinIO server `RELEASE.2025-07-23T15-54-02Z` on ports `9000` and `9001`.
+- MinIO Client `RELEASE.2025-08-13T08-35-41Z` runs as `minio-init`.
 - `minio-init`, which waits for MinIO health and creates the `jobs` bucket.
 - Job service startup after `minio-init` completes successfully.
 - API gateway on port `8080`.
@@ -570,8 +588,8 @@ These items are not silently solved by the current implementation:
   and database operations are not one atomic transaction.
 - Image deletion has the reverse consistency risk if object deletion succeeds
   and metadata deletion fails.
-- Soft-deleting a job hides its images from the API, but does not currently
-  remove the associated MinIO objects automatically.
+- Soft-deleting a job hides its images from the API; the scheduled cleanup reaper
+  removes associated MinIO objects and metadata, retrying failed objects.
 - The current image check validates magic bytes. Full image decoding and image
   dimension/pixel limits are future hardening options.
 - Skills and cities are fixed, migration-managed reference data. Admin-managed
