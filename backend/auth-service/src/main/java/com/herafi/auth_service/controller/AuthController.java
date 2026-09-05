@@ -2,7 +2,6 @@ package com.herafi.auth_service.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,11 +17,10 @@ import com.herafi.auth_service.service.RegistrationService;
 
 import jakarta.validation.Valid;
 
-
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
-    
+
     private final RegistrationService registrationService;
     private final AuthenticationService authenticationService;
     private final JwtService jwtService;
@@ -38,17 +36,16 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(
-        @Valid @RequestBody RegisterRequest request) {
-            UserCredential credential = registrationService.register(request);
-            String accessToken = jwtService.generateAccessToken(credential);
+            @Valid @RequestBody RegisterRequest request) {
+        UserCredential credential = registrationService.register(request);
+        String accessToken = jwtService.generateAccessToken(credential);
 
-            return ResponseEntity
-                    .status(HttpStatus.CREATED)
-                    .body(AuthResponse.from(
-                        credential, 
-                        accessToken, 
-                        jwtService.getAccessTokenTtlSeconds()
-                    ));
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(AuthResponse.from(
+                        credential,
+                        accessToken,
+                        jwtService.getAccessTokenTtlSeconds()));
     }
 
     @PostMapping("/login")
@@ -59,10 +56,6 @@ public class AuthController {
         return AuthResponse.from(
                 credential,
                 accessToken,
-                jwtService.getAccessTokenTtlSeconds()
-        );
+                jwtService.getAccessTokenTtlSeconds());
     }
-    
-    
-
 }

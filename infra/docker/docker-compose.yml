@@ -4,8 +4,8 @@ services:
     image: postgres:17-alpine
     environment:
       POSTGRES_DB: auth_db
-      POSTGRES_USER: herafi
-      POSTGRES_PASSWORD: herafi
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
@@ -24,12 +24,12 @@ services:
     environment:
       SERVER_PORT: 8081
       DB_URL: jdbc:postgresql://postgres:5432/auth_db
-      DB_USERNAME: herafi
-      DB_PASSWORD: herafi
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
       SHOW_SQL: "true"
       DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka/
-      INTERNAL_API_KEY: 7irafi-development-internal-key
-      JWT_SECRET: 7irafi-development-jwt-secret-change-me-2026
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      JWT_SECRET: ${JWT_SECRET}
       JWT_ISSUER: 7irafi-auth-service
     depends_on:
       postgres:
@@ -50,11 +50,11 @@ services:
       DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka/
       SERVER_PORT: 8082
       DB_URL: jdbc:postgresql://postgres:5432/user_db
-      DB_USERNAME: herafi
-      DB_PASSWORD: herafi
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
       SHOW_SQL: "true"
-      GATEWAY_SHARED_SECRET: 7irafi-development-gateway-key
-      INTERNAL_API_KEY: 7irafi-development-internal-key
+      GATEWAY_SHARED_SECRET: ${GATEWAY_SHARED_SECRET}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
     depends_on:
       postgres:
         condition: service_healthy
@@ -76,16 +76,15 @@ services:
     environment:
       SERVER_PORT: 8083
       DB_URL: jdbc:postgresql://postgres:5432/job_db
-      DB_USERNAME: herafi
-      DB_PASSWORD: herafi
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
       SHOW_SQL: "true"
       DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka/
-      GATEWAY_SHARED_SECRET: 7irafi-development-gateway-key
-
+      GATEWAY_SHARED_SECRET: ${GATEWAY_SHARED_SECRET}
       S3_BUCKET: jobs
       S3_ACCESS_KEY: minio
       S3_SECRET_KEY: minio123
-      INTERNAL_API_KEY: 7irafi-development-internal-key
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
     ports:
       - "8083:8083"
     volumes:
@@ -148,9 +147,9 @@ services:
     environment:
       SERVER_PORT: 8080
       DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka/
-      JWT_SECRET: 7irafi-development-jwt-secret-change-me-2026
+      JWT_SECRET: ${JWT_SECRET}
       JWT_ISSUER: 7irafi-auth-service
-      GATEWAY_SHARED_SECRET: 7irafi-development-gateway-key
+      GATEWAY_SHARED_SECRET: ${GATEWAY_SHARED_SECRET}
       FRONTEND_ORIGIN: http://localhost:4200
     ports:
       - "8080:8080"

@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
+import { Presence } from './presence.js';
 
 export interface AuthUser {
   id: string;
@@ -26,6 +27,7 @@ export interface RegisterRequest {
 })
 export class AuthService {
   private http = inject(HttpClient);
+  private presence = inject(Presence);
 
   login(email: string, password: string) {
     return this.http.post<AuthResponse>('auth/login', { email, password });
@@ -37,6 +39,7 @@ export class AuthService {
 
   saveToken(token: string) {
     localStorage.setItem('token', token);
+    this.presence.start();
   }
 
   getToken(): string | null {
@@ -45,5 +48,6 @@ export class AuthService {
 
   logout() {
     localStorage.removeItem('token');
+    this.presence.stop();
   }
 }
