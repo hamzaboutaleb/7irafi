@@ -1,5 +1,7 @@
 package com.herafi.user_service.repository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -17,6 +19,16 @@ public interface ProfessionalProfileRepository extends JpaRepository<Professiona
 
     @EntityGraph(attributePaths = { "categories", "cities" })
     Optional<ProfessionalProfile> findByUserId(UUID userId);
+
+    /**
+     * Loads several professional profiles at once, for the connections list.
+     * The entity graph matches the directory query: without it, mapping each
+     * card would trigger a query per person.
+     */
+    @EntityGraph(attributePaths = { "categories", "cities", "userProfile" })
+    List<ProfessionalProfile> findByUserIdInAndOnboardingStatus(
+            Collection<UUID> userIds,
+            ProfessionalOnboardingStatus status);
 
     /**
      * Directory read query. A null categoryCode or cityCode means "no filter on
