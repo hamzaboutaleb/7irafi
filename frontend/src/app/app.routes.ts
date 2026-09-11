@@ -11,6 +11,7 @@ import { ProfessionalProfile } from './pages/professional-profile/professional-p
 import { Professionals } from './pages/professionals/professionals.js';
 import { PrivacyPolicy } from './pages/privacy-policy/privacy-policy.js';
 import { TermsOfService } from './pages/terms-of-service/terms-of-service.js';
+import { Job } from './pages/jobs/job.js';
 
 export const routes: Routes = [
   { path: '', component: Landing },
@@ -45,6 +46,11 @@ export const routes: Routes = [
   {
     path: 'professionals',
     component: Professionals,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'jobs',
+    component: Job,
     canActivate: [authGuard],
   },
 ];

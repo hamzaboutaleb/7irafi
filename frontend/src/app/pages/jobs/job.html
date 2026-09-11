@@ -1,0 +1,23 @@
+<app-navbar />
+
+<main class="min-h-screen bg-gray-50 px-4 py-10 sm:px-6">
+  <section class="mx-auto max-w-5xl">
+    @if (isLoading()) {
+      <p class="text-sm text-gray-600">Loading jobs...</p>
+    } @else if (errorMessage()) {
+      <p class="rounded-lg bg-red-50 p-4 text-sm text-red-700">{{ errorMessage() }}</p>
+    } @else if (jobCards().length === 0) {
+      <p class="text-sm text-gray-600">No jobs found.</p>
+    } @else {
+      <ul class="grid grid-cols-1 gap-6 md:grid-cols-3">
+        @for (card of jobCards(); track card.job.id) {
+          <li>
+            <app-job-card [job]="card.job" [images]="card.images" />
+          </li>
+        }
+      </ul>
+    }
+  </section>
+</main>
+
+<app-footer />
