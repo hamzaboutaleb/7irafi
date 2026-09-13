@@ -2,6 +2,7 @@ package com.herafi.job_service.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.inOrder;
@@ -25,8 +26,13 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 
 import com.herafi.job_service.dto.CreateJobRequest;
+import com.herafi.job_service.dto.JobFilter;
 import com.herafi.job_service.dto.UpdateJobRequest;
 import com.herafi.job_service.config.JobImageProperties;
 import com.herafi.job_service.entity.City;
@@ -51,6 +57,63 @@ import com.herafi.job_service.repository.SkillRepository;
 
 @ExtendWith(MockitoExtension.class)
 class JobServiceTests {
+
+    @Test
+    void listsJobsWithOneThumbnailBatchAndPreservesPaginationWhenSigningFails() {
+        Job first = job(UUID.randomUUID(), UUID.randomUUID(), JobStatus.OPEN);
+        Job broken = job(UUID.randomUUID(), UUID.randomUUID(), JobStatus.OPEN);
+        Job withoutImage = job(UUID.randomUUID(), UUID.randomUUID(), JobStatus.OPEN);
+        Job last = job(UUID.randomUUID(), UUID.randomUUID(), JobStatus.OPEN);
+        var pageable = PageRequest.of(1, 4, Sort.by(Sort.Direction.DESC, "createdAt"));
+        when(jobRepository.findAll(ArgumentMatchers.<Specification<Job>>any(), ArgumentMatchers.eq(pageable)))
+                .thenReturn(new PageImpl<>(List.of(first, broken, withoutImage, last), pageable, 12));
+        when(jobImageRepository.findThumbnailsByJobIds(
+                List.of(first.getId(), broken.getId(), withoutImage.getId(), last.getId())))
+                .thenReturn(List.of(thumbnail(first, "first"), thumbnail(broken, "broken"), thumbnail(last, "last")));
+        when(imageStorageService.generateDownloadUrl("first")).thenReturn("https://storage.example/first");
+        when(imageStorageService.generateDownloadUrl("broken")).thenThrow(new IllegalStateException("signing failed"));
+        when(imageStorageService.generateDownloadUrl("last")).thenReturn("https://storage.example/last");
+        JobMapper realMapper = new JobMapper(imageStorageService);
+        when(jobMapper.toListResponse(ArgumentMatchers.any(), ArgumentMatchers.nullable(String.class)))
+                .thenAnswer(invocation -> realMapper.toListResponse(invocation.getArgument(0), invocation.getArgument(1)));
+
+        var response = service.getJobs(new JobFilter(null, null, null, null, null, null, null),
+                "createdAt,desc", 1, 4);
+
+        assertEquals(1, response.page());
+        assertEquals(4, response.size());
+        assertEquals(12, response.totalElements());
+        assertEquals(3, response.totalPages());
+        assertEquals(List.of(first.getId(), broken.getId(), withoutImage.getId(), last.getId()),
+                response.content().stream().map(item -> item.id()).toList());
+        assertEquals("https://storage.example/first", response.content().get(0).thumbnailUrl());
+        assertNull(response.content().get(1).thumbnailUrl());
+        assertNull(response.content().get(2).thumbnailUrl());
+        assertEquals("https://storage.example/last", response.content().get(3).thumbnailUrl());
+        verify(jobImageRepository).findThumbnailsByJobIds(
+                List.of(first.getId(), broken.getId(), withoutImage.getId(), last.getId()));
+        verifyNoMoreInteractions(jobImageRepository);
+    }
+
+    @Test
+    void emptyPageDoesNotFetchOrSignThumbnails() {
+        var pageable = PageRequest.of(0, 12, Sort.by(Sort.Direction.DESC, "createdAt"));
+        when(jobRepository.findAll(ArgumentMatchers.<Specification<Job>>any(), ArgumentMatchers.eq(pageable)))
+                .thenReturn(new PageImpl<>(List.of(), pageable, 0));
+
+        var response = service.getJobs(new JobFilter(null, null, null, null, null, null, null),
+                "createdAt,desc", 0, 12);
+
+        assertEquals(List.of(), response.content());
+        verifyNoMoreInteractions(jobImageRepository, imageStorageService);
+    }
+
+    private JobImageRepository.Thumbnail thumbnail(Job job, String objectKey) {
+        return new JobImageRepository.Thumbnail() {
+            public UUID getJobId() { return job.getId(); }
+            public String getObjectKey() { return objectKey; }
+        };
+    }
 
     private static final int MAX_IMAGE_BYTES = 10 * 1024 * 1024;
     private static final byte[] PNG_SIGNATURE = {

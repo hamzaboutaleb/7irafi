@@ -29,11 +29,20 @@ class JobMapperTests {
 
     @Test
     void listResponseOmitsAddress() {
-        JobListResponse response = mapper.toListResponse(job(JobStatus.OPEN, null));
+        JobListResponse response = mapper.toListResponse(job(JobStatus.OPEN, null), null);
 
         assertEquals("CASABLANCA", response.city());
+        assertNull(response.thumbnailUrl());
         assertFalse(Arrays.stream(JobListResponse.class.getRecordComponents())
                 .anyMatch(component -> component.getName().equals("addressLine")));
+    }
+
+    @Test
+    void listResponseIncludesThumbnailUrl() {
+        JobListResponse response = mapper.toListResponse(
+                job(JobStatus.OPEN, null), "https://storage.example/thumbnail");
+
+        assertEquals("https://storage.example/thumbnail", response.thumbnailUrl());
     }
 
     @Test

@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -137,9 +139,22 @@ public class JobService {
 
 		Page<Job> jobs = jobRepository.findAll(specification, pageable);
 
+		Map<UUID, String> thumbnailUrls = new HashMap<>();
+		if (jobs.hasContent()) {
+			List<UUID> jobIds = jobs.getContent().stream().map(Job::getId).toList();
+			for (JobImageRepository.Thumbnail thumbnail : jobImageRepository.findThumbnailsByJobIds(jobIds)) {
+				try {
+					thumbnailUrls.put(thumbnail.getJobId(),
+							imageStorageService.generateDownloadUrl(thumbnail.getObjectKey()));
+				} catch (RuntimeException exception) {
+					log.warn("Unable to sign thumbnail for job {}", thumbnail.getJobId(), exception);
+				}
+			}
+		}
+
 		return PageResponse.from(
 				jobs,
-				jobMapper::toListResponse);
+				job -> jobMapper.toListResponse(job, thumbnailUrls.get(job.getId())));
 	}
 
 	@Transactional(readOnly = true)

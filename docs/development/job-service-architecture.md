@@ -125,7 +125,7 @@ Important DTOs are:
 | `UpdateJobRequest` | Editable title, description, and address fields. |
 | `JobFilter` | Search filters. |
 | `AssignWorkerRequest` | Internal worker UUID. |
-| `JobListResponse` | Search response without private address or image URLs. |
+| `JobListResponse` | Search response with an optional signed thumbnail URL, without private address. |
 | `JobResponse` | Lightweight mutation and “my jobs” response without image URLs. |
 | `JobDetailResponse` | Detail response with conditional address and fresh image URLs. |
 | `JobSummaryResponse` | Minimal internal job state. |
@@ -189,7 +189,7 @@ job-service port directly.
 | --- | --- | --- | --- |
 | `POST` | `/jobs` | Create a job | Authenticated identity creates `clientId`. |
 | `GET` | `/jobs` | Search jobs | Gateway-authenticated request. |
-| `GET` | `/jobs/{id}` | Get job detail | Address and images are detail-only. |
+| `GET` | `/jobs/{id}` | Get job detail | Conditional address and full image gallery. |
 | `GET` | `/jobs/my` | List current user's jobs | `X-User-Id` selects client. |
 | `PUT` | `/jobs/{id}` | Edit an open job | Job owner only. |
 | `PATCH` | `/jobs/{id}/complete` | Complete assigned job | Job owner only. |
@@ -274,8 +274,18 @@ createdAt, budget, title
 The default is `createdAt,desc`. Page size is limited to 20 by the controller.
 Search always excludes soft-deleted jobs and returns `JobListResponse`.
 
-`JobListResponse` intentionally excludes `addressLine` and image URLs. Mutation
-and “my jobs” requests return lightweight `JobResponse` values. Detail requests
+`JobListResponse` excludes `addressLine` and includes nullable `thumbnailUrl`.
+After loading the page, the service fetches one image reference per job in a
+single batch query, ordered by `createdAt` and then image ID. It signs those
+object keys for 15 minutes. Missing images and individual signing failures
+produce a null thumbnail; signing failures are logged without failing the list.
+These are links to existing images, not resized image derivatives.
+
+The frontend renders cards directly from the list response, without detail
+requests. Cards lazy-load thumbnails and use the placeholder for missing or
+broken URLs. Reloading the list supplies fresh signed URLs.
+
+Mutation and “my jobs” requests return lightweight `JobResponse` values. Detail requests
 return `JobDetailResponse`; the mapper includes the address only when the viewer
 is the job client or assigned worker.
 

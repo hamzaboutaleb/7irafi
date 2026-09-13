@@ -22,7 +22,7 @@ public class JobMapper {
         this.imageStorageService = imageStorageService;
     }
 
-    public JobListResponse toListResponse(Job job) {
+    public JobListResponse toListResponse(Job job, String thumbnailUrl) {
         return new JobListResponse(
                 job.getId(),
                 job.getClientId(),
@@ -36,7 +36,8 @@ public class JobMapper {
                 job.getStatus(),
                 job.getAssignedWorkerId(),
                 job.getCreatedAt(),
-                job.getUpdatedAt()
+                job.getUpdatedAt(),
+                thumbnailUrl
         );
     }
 
