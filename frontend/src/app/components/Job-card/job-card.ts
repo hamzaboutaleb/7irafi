@@ -11,7 +11,7 @@ import { JobListItem } from '../../types/job.js';
 export class JobCard {
 
   readonly job = input.required<JobListItem>();
-  readonly viewDetails = output<void>();
+  readonly viewDetails = output<void>();;
 
   readonly placeholderUrl = 'job-placeholder.png';
 
