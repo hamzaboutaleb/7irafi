@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 
 import { Footer } from '../../components/footer/footer.js';
 import { JobCard } from '../../components/Job-card/job-card.js';
@@ -7,14 +7,27 @@ import { JobDetailsModal } from '../../components/job-details-modal/job-details-
 import { Navbar } from '../../components/navbar/navbar.js';
 import { JobService } from '../../services/job.js';
 import { JobListItem } from '../../types/job.js';
+import { JobPostingResult } from '../../services/job-posting-result.js';
+import { PostingStatusModal } from '../../components/posting-status-modal/posting-status-modal.js';
 
 @Component({
   selector: 'app-job',
-  imports: [Navbar, Footer, JobCard, JobDetailsModal],
+  imports: [Navbar, Footer, JobCard, JobDetailsModal, PostingStatusModal],
   templateUrl: './job.html',
 })
 export class Job implements OnInit {
   private readonly jobService = inject(JobService);
+  private readonly destroyRef = inject(DestroyRef);
+  readonly postingResult = inject(JobPostingResult);
+  readonly photoErrors = computed(() => this.postingResult.result()?.failed.map(
+    (photo) => `${photo.file.name}: ${photo.error}`,
+  ) ?? []);
+
+  retryPhotos(): void {
+    this.postingResult.retry(() => {
+      if (!this.destroyRef.destroyed) this.loadJobs();
+    });
+  }
 
   readonly jobs = signal<JobListItem[]>([]);
   readonly selectedJobId = signal<string | null>(null);
@@ -24,6 +37,7 @@ export class Job implements OnInit {
   readonly errorMessage = signal<string | null>(null);
 
   ngOnInit(): void {
+    this.postingResult.clearIfSessionChanged();
     this.loadJobs();
   }
 

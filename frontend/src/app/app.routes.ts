@@ -12,6 +12,7 @@ import { Professionals } from './pages/professionals/professionals.js';
 import { PrivacyPolicy } from './pages/privacy-policy/privacy-policy.js';
 import { TermsOfService } from './pages/terms-of-service/terms-of-service.js';
 import { Job } from './pages/jobs/job.js';
+import type { CreateJob } from './components/create-job/create-job.js';
 
 export const routes: Routes = [
   { path: '', component: Landing },
@@ -47,6 +48,15 @@ export const routes: Routes = [
     path: 'professionals',
     component: Professionals,
     canActivate: [authGuard],
+  },
+  {
+    path: 'jobs/new',
+    loadComponent: () => import('./components/create-job/create-job.js').then((module) => module.CreateJob),
+    canActivate: [authGuard],
+    canDeactivate: [
+      (component: CreateJob, _route, _state, nextState) =>
+        nextState.url === '/login' || component.canLeave(),
+    ],
   },
   {
     path: 'jobs',
