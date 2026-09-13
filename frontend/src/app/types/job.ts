@@ -67,3 +67,15 @@ export interface JobSearchParams {
 }
 
 export type JobPage = Page<JobListItem>;
+
+export interface JobApiError {
+  message: string;
+  fieldErrors?: { field: string; message: string }[];
+}
+
+export interface JobPhoto {
+  file: File;
+  previewUrl: string;
+  status: 'queued' | 'uploading' | 'uploaded' | 'failed';
+  error: string | null;
+}

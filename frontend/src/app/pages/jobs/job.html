@@ -11,7 +11,7 @@
     } @else {
       <ul class="grid grid-cols-1 gap-6 md:grid-cols-3">
         @for (job of jobs(); track job.id) {
-          <li>
+          <li class="min-w-0">
             <app-job-card [job]="job" (viewDetails)="selectedJobId.set(job.id)" />
           </li>
         }
@@ -47,6 +47,14 @@
 </main>
 
 <app-footer />
+
+@if (postingResult.result(); as result) {
+  <app-posting-status-modal
+    [heading]="result.failed.length ? 'Job posted with missing photos' : 'Job posted'"
+    [message]="postingResult.busy() ? 'Uploading your remaining photos…' : result.failed.length ? 'Your job was posted, but some photos failed. Retry them before closing this message, or close to continue without them.' : 'Your job has been posted successfully.'"
+    [errors]="photoErrors()" [canRetry]="result.failed.length > 0" [busy]="postingResult.busy()"
+    (retry)="retryPhotos()" (closed)="postingResult.clear()" />
+}
 
 @if (selectedJobId(); as jobId) {
   <app-job-details-modal [jobId]="jobId" (closed)="selectedJobId.set(null)" />

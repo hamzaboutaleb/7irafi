@@ -5,7 +5,7 @@
       <img src="logo.svg" alt="7irafy — home" class="h-10" />
     </a>
 
-    <div class="order-last flex w-full items-center gap-1 sm:order-none sm:w-auto">
+    <div class="order-last flex w-full flex-wrap items-center gap-1 lg:order-none lg:w-auto">
       <a routerLink="/how-it-works" routerLinkActive="bg-primary-50 text-primary-700" ariaCurrentWhenActive="page"
         class="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors duration-200 hover:bg-gray-50 hover:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400">
         How it works
@@ -15,10 +15,22 @@
         class="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors duration-200 hover:bg-gray-50 hover:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400">
         Professionals
       </a>
-      <a routerLink="/jobs" routerLinkActive="bg-primary-50 text-primary-700" ariaCurrentWhenActive="page"
-        class="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors duration-200 hover:bg-gray-50 hover:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400">
-        Jobs
-      </a>
+      <div #jobsMenu class="relative" (keydown.escape)="closeJobsWithEscape()">
+        <button #jobsToggle type="button" (click)="jobsOpen.set(!jobsOpen())"
+          [attr.aria-expanded]="jobsOpen()" aria-controls="jobs-navigation"
+          class="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400">
+          Jobs <span aria-hidden="true">▾</span>
+        </button>
+        @if (jobsOpen()) {
+          <div id="jobs-navigation" class="absolute right-0 top-full z-50 mt-2 w-40 rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg">
+            <a routerLink="/jobs" (click)="jobsOpen.set(false)" routerLinkActive="bg-primary-50 text-primary-700"
+              [routerLinkActiveOptions]="{ exact: true }" ariaCurrentWhenActive="page"
+              class="block rounded-lg px-3 py-2.5 text-sm font-gray-600 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400">List jobs</a>
+            <a routerLink="/jobs/new" (click)="jobsOpen.set(false)" routerLinkActive="bg-primary-50 text-primary-700" ariaCurrentWhenActive="page"
+              class="block rounded-lg px-3 py-2.5 text-sm text-gray-600 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400">Post job</a>
+          </div>
+        }
+      </div>
     </div>
 
     <div class="flex items-center gap-1 sm:gap-2">
