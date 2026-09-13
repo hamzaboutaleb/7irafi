@@ -6,18 +6,48 @@
       <p class="text-sm text-gray-600">Loading jobs...</p>
     } @else if (errorMessage()) {
       <p class="rounded-lg bg-red-50 p-4 text-sm text-red-700">{{ errorMessage() }}</p>
-    } @else if (jobCards().length === 0) {
+    } @else if (jobs().length === 0) {
       <p class="text-sm text-gray-600">No jobs found.</p>
     } @else {
       <ul class="grid grid-cols-1 gap-6 md:grid-cols-3">
-        @for (card of jobCards(); track card.job.id) {
+        @for (job of jobs(); track job.id) {
           <li>
-            <app-job-card [job]="card.job" [images]="card.images" />
+            <app-job-card [job]="job" (viewDetails)="selectedJobId.set(job.id)" />
           </li>
         }
       </ul>
+    }
+
+    @if (totalPages() > 0) {
+      <nav aria-label="Jobs pagination" class="mt-8 flex flex-wrap items-center justify-center gap-4">
+        <button
+          type="button"
+          (click)="changePage(currentPage() - 1)"
+          [disabled]="isLoading() || currentPage() === 0"
+          class="cursor-pointer rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-primary-600"
+        >
+          Previous
+        </button>
+
+        <span class="text-sm text-gray-600" aria-live="polite">
+          Page {{ currentPage() + 1 }} of {{ totalPages() }}
+        </span>
+
+        <button
+          type="button"
+          (click)="changePage(currentPage() + 1)"
+          [disabled]="isLoading() || currentPage() >= totalPages() - 1"
+          class="cursor-pointer rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-primary-600"
+        >
+          Next
+        </button>
+      </nav>
     }
   </section>
 </main>
 
 <app-footer />
+
+@if (selectedJobId(); as jobId) {
+  <app-job-details-modal [jobId]="jobId" (closed)="selectedJobId.set(null)" />
+}

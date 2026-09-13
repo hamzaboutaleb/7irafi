@@ -20,9 +20,10 @@ export interface JobListItem {
   assignedWorkerId: string | null;
   createdAt: string;
   updatedAt: string;
+  thumbnailUrl: string | null;
 }
 
-export interface JobResponse extends JobListItem {
+export interface JobResponse extends Omit<JobListItem, 'thumbnailUrl'> {
   addressLine: string | null;
 }
 
