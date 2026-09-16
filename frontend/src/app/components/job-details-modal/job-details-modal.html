@@ -104,17 +104,30 @@
       </section>
 
       <footer class="mt-6 border-t border-gray-100 pt-5">
-        <p id="job-apply-availability" class="mb-3 text-sm text-gray-500">
-          {{ detail.status === 'OPEN' ? 'Applications are not available yet.' : 'This job is no longer accepting applications.' }}
-        </p>
-        <button
-          type="button"
-          disabled
-          aria-describedby="job-apply-availability"
-          class="w-full cursor-not-allowed rounded-xl bg-primary-600 px-5 py-3 text-sm font-semibold text-white opacity-50 sm:w-auto"
-        >
-          Apply to job
-        </button>
+        @if (applied()) {
+          <p role="status" class="text-sm font-semibold text-primary-700">You have applied to this job.</p>
+          <a routerLink="/applications" class="mt-3 inline-block text-sm font-semibold text-primary-700 underline">View my applications</a>
+        } @else if (isOwner()) {
+          <a [routerLink]="['/jobs', detail.id, 'applicants']" class="inline-block rounded-xl bg-primary-600 px-5 py-3 text-sm font-semibold text-white">View applicants</a>
+        } @else if (detail.status !== 'OPEN') {
+          <p class="text-sm text-gray-600">This job is no longer accepting applications.</p>
+        } @else if (eligibility() === 'loading') {
+          <p role="status" class="text-sm text-gray-600">Checking your professional profile...</p>
+        } @else if (eligibility() === 'error') {
+          <p role="alert" class="text-sm text-red-700">Unable to check your profile.</p>
+          <button type="button" (click)="loadEligibility()" class="mt-3 text-sm font-semibold text-primary-700 underline">Try again</button>
+        } @else if (eligibility() === 'ineligible') {
+          <p class="text-sm text-gray-600">An active professional profile is required to apply.</p>
+          <a routerLink="/professional-profile" class="mt-3 inline-block text-sm font-semibold text-primary-700 underline">View professional profile</a>
+        } @else {
+          <button type="button" (click)="apply()" [disabled]="!canApply()"
+            class="w-full cursor-pointer rounded-xl bg-primary-600 px-5 py-3 text-sm font-semibold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto">
+            {{ applying() ? 'Applying...' : 'Apply to job' }}
+          </button>
+        }
+        @if (applyError()) {
+          <p role="alert" class="mt-3 text-sm text-red-700">{{ applyError() }}</p>
+        }
       </footer>
     }
   </div>
