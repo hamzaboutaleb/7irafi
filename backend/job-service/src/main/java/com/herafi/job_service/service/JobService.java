@@ -292,7 +292,7 @@ public class JobService {
 		return new JobSummaryResponse(
 				job.getId(),
 				job.getClientId(),
-				job.getStatus());
+				job.getStatus(), job.getAssignedWorkerId());
 	}
 
 	@Transactional
@@ -304,7 +304,7 @@ public class JobService {
 			return new JobSummaryResponse(
 					job.getId(),
 					job.getClientId(),
-					job.getStatus());
+					job.getStatus(), job.getAssignedWorkerId());
 		}
 
 		if (job.getStatus() != JobStatus.OPEN) {
@@ -319,7 +319,7 @@ public class JobService {
 		return new JobSummaryResponse(
 				job.getId(),
 				job.getClientId(),
-				job.getStatus());
+				job.getStatus(), job.getAssignedWorkerId());
 	}
 
 	public ChatEligibilityResponse getChatEligibility(UUID id) {
