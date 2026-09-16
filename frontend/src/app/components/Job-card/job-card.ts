@@ -2,6 +2,7 @@ import { DatePipe, DecimalPipe, TitleCasePipe } from '@angular/common';
 import { Component, computed, input, linkedSignal, output } from '@angular/core';
 
 import { JobListItem } from '../../types/job.js';
+import { ApplicationStatus, applicationStatusLabels } from '../../types/application.js';
 
 @Component({
   selector: 'app-job-card',
@@ -11,6 +12,12 @@ import { JobListItem } from '../../types/job.js';
 export class JobCard {
 
   readonly job = input.required<JobListItem>();
+  readonly applicationStatus = input<ApplicationStatus | null>(null);
+  readonly appliedAt = input<string | null>(null);
+  readonly applicationLabel = computed(() => {
+    const status = this.applicationStatus();
+    return status ? applicationStatusLabels[status] : null;
+  });
   readonly viewDetails = output<void>();
 
   readonly placeholderUrl = 'job-placeholder.png';
