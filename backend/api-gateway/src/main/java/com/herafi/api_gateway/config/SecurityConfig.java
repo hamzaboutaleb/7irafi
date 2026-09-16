@@ -31,7 +31,7 @@ public class SecurityConfig {
                                                                 "/swagger-ui/**",
                                                                 "/v3/api-docs/**")
                                                 .permitAll()
-                                                .requestMatchers("/users/**", "/jobs/**").authenticated())
+                                                .requestMatchers("/users/**", "/jobs/**", "/applications/**").authenticated())
                                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                                 .build();
         }
@@ -41,7 +41,7 @@ public class SecurityConfig {
                         @Value("${gateway.cors.allowed-origin}") String allowedOrigin) {
                 CorsConfiguration configuration = new CorsConfiguration();
                 configuration.setAllowedOrigins(List.of(allowedOrigin));
-                configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                 configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
                 configuration.setAllowCredentials(true);
 
