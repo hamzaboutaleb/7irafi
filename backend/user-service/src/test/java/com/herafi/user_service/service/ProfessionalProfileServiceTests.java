@@ -62,6 +62,20 @@ class ProfessionalProfileServiceTests {
     }
 
     @Test
+    void onlyActiveProfessionalProfilesAreEligibleWorkers() {
+        UUID userId = UUID.randomUUID();
+        when(professionalProfileRepository.findById(userId)).thenReturn(Optional.empty());
+        assertEquals(false, service.isActiveWorker(userId));
+
+        for (ProfessionalOnboardingStatus status : ProfessionalOnboardingStatus.values()) {
+            ProfessionalProfile profile = new ProfessionalProfile();
+            profile.setOnboardingStatus(status);
+            when(professionalProfileRepository.findById(userId)).thenReturn(Optional.of(profile));
+            assertEquals(status == ProfessionalOnboardingStatus.ACTIVE, service.isActiveWorker(userId));
+        }
+    }
+
+    @Test
     void createsCompleteProfileWithNormalizedSelectionsAndActivatesIt() {
         UUID userId = UUID.randomUUID();
         UserProfile userProfile = userProfile(userId);
