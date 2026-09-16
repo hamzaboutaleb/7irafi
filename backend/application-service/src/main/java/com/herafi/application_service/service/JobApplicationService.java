@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.herafi.application_service.client.JobClient;
+import com.herafi.application_service.client.UserClient;
 import com.herafi.application_service.dto.ApplicationResponse;
 import com.herafi.application_service.dto.PageResponse;
 import com.herafi.application_service.entity.JobApplication;
@@ -26,8 +27,10 @@ public class JobApplicationService {
 
     private final JobApplicationRepository repository;
     private final JobClient jobClient;
+    private final UserClient userClient;
 
     public ApplicationResponse apply(UUID jobId, UUID applicantId) {
+        userClient.requireActiveWorker(applicantId);
         var job = jobClient.getSummary(jobId);
         if (job.clientId().equals(applicantId)) {
             throw new ApplicationException(HttpStatus.FORBIDDEN, "OWN_JOB_APPLICATION",

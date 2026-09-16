@@ -126,6 +126,13 @@ public class ProfessionalProfileService {
     }
 
     @Transactional(readOnly = true)
+    public boolean isActiveWorker(UUID userId) {
+        return professionalProfileRepository.findById(userId)
+                .map(profile -> profile.getOnboardingStatus() == ProfessionalOnboardingStatus.ACTIVE)
+                .orElse(false);
+    }
+
+    @Transactional(readOnly = true)
     public ProfessionalProfile get(UUID userId) {
         return professionalProfileRepository.findByUserId(userId)
                 .orElseThrow(() -> new ProfessionalProfileNotFoundException(userId));
