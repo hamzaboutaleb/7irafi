@@ -21,7 +21,16 @@ Content-Type: application/json
 ```
 
 Returns `201` with `id`, `jobId`, `applicantId`, `createdAt`, and `status=PENDING`.
-Applicant identity comes from the gateway, never the request body. The service
+Applicant identity comes from the gateway, never the request body.
+Only workers with an `ACTIVE` professional profile in user-service can apply.
+Missing, `INCOMPLETE`, or `SUSPENDED` profiles return `403 WORKER_REQUIRED`.
+The service checks `GET /internal/users/{userId}/worker-eligibility` using the
+internal API key before checking the job or saving. An unavailable user-service
+or invalid response returns `503 USER_SERVICE_UNAVAILABLE`; no application is saved.
+JWT roles remain `USER`/`ADMIN`: worker eligibility comes from the current profile,
+so completing onboarding does not require a refreshed token. This is the MVP
+policy in place of the draft job specification's CLIENT/WORKER role promotion.
+Existing applications remain readable; this check controls new submissions. The service
 checks the internal job summary before saving: missing job → `404`, own job →
 `403`, closed job or duplicate application → `409`, job-service unavailable →
 `503`, invalid request → `400`. The database enforces uniqueness for concurrent
@@ -41,6 +50,7 @@ Status is `PENDING` for open jobs, `ACCEPTED` for the selected worker on assigne
 or completed jobs, `NOT_SELECTED` for other applicants, and `CLOSED` for cancelled
 or missing jobs. Job-service failures return `503`, not a false closed status.
 
+Deploy the updated user-service for the worker eligibility endpoint.
 Deploy the updated job-service as well: its internal summary and assignment
 responses now include nullable `assignedWorkerId`. No database migration is needed.
 
@@ -74,7 +84,7 @@ After a timeout, retry the same request: assignment may already have succeeded.
 From the repository root, for a fresh PostgreSQL volume:
 
 ```sh
-docker compose -f infra/docker/docker-compose.yml up --build -d application-service api-gateway
+docker compose -f infra/docker/docker-compose.yml up --build -d user-service application-service api-gateway
 ```
 
 If PostgreSQL already has data, first start PostgreSQL and rerun the idempotent
@@ -84,7 +94,7 @@ when its data directory is empty. These commands preserve existing databases:
 ```sh
 docker compose -f infra/docker/docker-compose.yml up -d postgres
 docker compose -f infra/docker/docker-compose.yml exec -T postgres sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f /docker-entrypoint-initdb.d/01-create-databases.sql'
-docker compose -f infra/docker/docker-compose.yml up --build -d application-service api-gateway
+docker compose -f infra/docker/docker-compose.yml up --build -d user-service application-service api-gateway
 ```
 
 Check health inside the container (the service port is not published):
@@ -96,7 +106,8 @@ docker compose -f infra/docker/docker-compose.yml exec application-service wget 
 For local development with Java 21 and Maven, create `application_db`, then run
 `mvn spring-boot:run` from this directory. Configuration accepts `SERVER_PORT`,
 `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `DISCOVERY_SERVICE_URL`,
-`GATEWAY_SHARED_SECRET`, `INTERNAL_API_KEY`, and `JOB_SERVICE_URL`. The job HTTP client uses the internal API key and job-service URL settings.
+`GATEWAY_SHARED_SECRET`, `INTERNAL_API_KEY`, `JOB_SERVICE_URL`, and
+`USER_SERVICE_URL` (default `http://localhost:8082`). The job HTTP client uses the internal API key and job-service URL settings.
 Defaults are for development only.
 
 ## Verify
@@ -106,5 +117,6 @@ mvn test
 ```
 
 Tests run the Flyway migration against H2 in PostgreSQL mode, check duplicate
-applicants, and verify gateway-key protection and health-path access. They do not
-require a running PostgreSQL or Eureka instance.
+applicants, and verify gateway-key protection and health-path access. Worker eligibility tests also cover active/ineligible applicants, upstream errors,
+invalid responses, and connection failures. They do not require a running
+PostgreSQL, user-service, or Eureka instance.
