@@ -18,6 +18,10 @@ public interface ProfessionalProfileRepository extends JpaRepository<Professiona
     @EntityGraph(attributePaths = { "categories", "cities" })
     Optional<ProfessionalProfile> findByUserId(UUID userId);
 
+    @EntityGraph(attributePaths = { "categories", "cities", "userProfile" })
+    Optional<ProfessionalProfile> findByUserIdAndOnboardingStatus(
+            UUID userId, ProfessionalOnboardingStatus status);
+
     /**
      * Directory read query. A null categoryCode or cityCode means "no filter on
      * that field", so one method covers all four combinations.

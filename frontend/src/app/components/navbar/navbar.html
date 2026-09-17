@@ -29,6 +29,8 @@
             <a routerLink="/jobs/new" (click)="jobsOpen.set(false)" routerLinkActive="bg-primary-50 text-primary-700" ariaCurrentWhenActive="page"
               class="block rounded-lg px-3 py-2.5 text-sm text-gray-600 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400">Post job</a>
             @if (isAuthenticated) {
+              <a routerLink="/jobs/my" (click)="jobsOpen.set(false)" routerLinkActive="bg-primary-50 text-primary-700" ariaCurrentWhenActive="page"
+                class="block rounded-lg px-3 py-2.5 text-sm text-gray-600 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400">My jobs</a>
               <a routerLink="/applications" (click)="jobsOpen.set(false)" routerLinkActive="bg-primary-50 text-primary-700" ariaCurrentWhenActive="page"
                 class="block rounded-lg px-3 py-2.5 text-sm text-gray-600 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400">Applications</a>
             }
