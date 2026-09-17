@@ -138,6 +138,13 @@ public class ProfessionalProfileService {
                 .orElseThrow(() -> new ProfessionalProfileNotFoundException(userId));
     }
 
+    @Transactional(readOnly = true)
+    public ProfessionalProfile getActiveProfessional(UUID userId) {
+        return professionalProfileRepository
+                .findByUserIdAndOnboardingStatus(userId, ProfessionalOnboardingStatus.ACTIVE)
+                .orElseThrow(() -> new ProfessionalProfileNotFoundException(userId));
+    }
+
     @Transactional
     public ProfessionalProfile update(UUID userId, UpdateProfessionalProfileRequest request) {
         ProfessionalProfile professionalProfile = professionalProfileRepository.findById(userId)

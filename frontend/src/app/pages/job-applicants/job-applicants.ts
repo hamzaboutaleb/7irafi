@@ -3,7 +3,9 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { forkJoin, Subscription } from 'rxjs';
+import { catchError, forkJoin, map, of, Subscription, switchMap } from 'rxjs';
+import { UserService } from '../../services/user.js';
+import { PublicProfessionalProfile } from '../../types/professional-profile.js';
 import { Navbar } from '../../components/navbar/navbar.js';
 import { Footer } from '../../components/footer/footer.js';
 import { ApplicationService, applicationError } from '../../services/application.js';
@@ -18,11 +20,13 @@ import { JobDetail } from '../../types/job.js';
 })
 export class JobApplicants implements OnInit {
   private readonly service = inject(ApplicationService);
+  private readonly users = inject(UserService);
   private readonly jobsService = inject(JobService);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private jobId = '';
   private request?: Subscription;
+  readonly profiles = signal<Record<string, PublicProfessionalProfile | null>>({});
   readonly job = signal<JobDetail | null>(null);
   readonly result = signal<ApplicationPage | null>(null);
   readonly loading = signal(false);
@@ -48,11 +52,25 @@ export class JobApplicants implements OnInit {
     this.request?.unsubscribe();
     this.loading.set(true);
     this.error.set(null);
+    this.profiles.set({});
     this.request = forkJoin({
       job: this.jobsService.getJob(this.jobId),
       result: this.service.getApplicants(this.jobId, page),
-    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: ({ job, result }) => {
+    }).pipe(
+      switchMap(({ job, result }) => {
+        const ids = [...new Set(result.content.map(application => application.applicantId))];
+        const requests = ids.map(id => this.users.getProfessional(id).pipe(
+          map(response => [id, response.data] as const),
+          catchError(() => of([id, null] as const)),
+        ));
+        return (requests.length ? forkJoin(requests) : of([])).pipe(
+          map(entries => ({ job, result, profiles: Object.fromEntries(entries) })),
+        );
+      }),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
+      next: ({ job, result, profiles }) => {
+        this.profiles.set(profiles);
         this.job.set(job);
         this.result.set(result);
         this.loading.set(false);
@@ -72,7 +90,8 @@ export class JobApplicants implements OnInit {
     if (this.loading() || this.accepting()) return;
     const retry = this.retryApplication();
     if (retry ? retry.id !== application.id :
-      this.job()?.status !== 'OPEN' || application.status !== 'PENDING') return;
+      this.job()?.status !== 'OPEN' || application.status !== 'PENDING' ||
+      !this.profiles()[application.applicantId]) return;
     this.accepting.set(application.id);
     this.notice.set(null);
     const jobId = this.jobId;

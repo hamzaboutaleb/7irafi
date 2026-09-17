@@ -9,6 +9,7 @@ import {
   CreateProfessionalProfileRequest,
   UpdateProfessionalProfileRequest,
   ProfessionalCard,
+  PublicProfessionalProfile,
 } from '../types/professional-profile.js';
 
 @Injectable({
@@ -66,6 +67,10 @@ export class UserService {
     return this.http.get<ApiSuccess<Page<ProfessionalCard>>>('users/professionals', {
       params: baseParams,
     });
+  }
+
+  getProfessional(userId: string) {
+    return this.http.get<ApiSuccess<PublicProfessionalProfile>>(`users/professionals/${userId}`);
   }
 
   updateOnlineStatus() {
