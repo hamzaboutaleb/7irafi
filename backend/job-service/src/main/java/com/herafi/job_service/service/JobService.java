@@ -12,8 +12,6 @@ import java.util.UUID;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.data.domain.Page;
@@ -65,6 +63,7 @@ public class JobService {
 	private final JobMapper jobMapper;
 	private final JobImageRepository jobImageRepository;
 	private final ImageStorageService imageStorageService;
+	private final JobImageCleanupService imageCleanupService;
 	private final SkillRepository skillRepository;
 	private final CityRepository cityRepository;
 	private final JobImageProperties imageProperties;
@@ -370,10 +369,11 @@ public class JobService {
 
 		UUID imageId = UUID.randomUUID();
 		String objectKey = "jobs/" + jobId + "/" + imageId;
-		try {
+		UUID cleanupId = imageCleanupService.trackUpload(objectKey);
+		try (InputStream inputStream = file.getInputStream()) {
 			imageStorageService.upload(
 					objectKey,
-					file.getInputStream(),
+					inputStream,
 					file.getSize(),
 					contentType);
 		} catch (IOException e) {
@@ -386,14 +386,10 @@ public class JobService {
 		image.setObjectKey(objectKey);
 		image.setCreatedAt(Instant.now());
 
-		try {
-			jobImageRepository.saveAndFlush(image);
-		} catch (RuntimeException exception) {
-			cleanupUploadedObject(objectKey, exception);
-			throw exception;
-		}
+		jobImageRepository.saveAndFlush(image);
 
 		String url = imageStorageService.generateDownloadUrl(objectKey);
+		imageCleanupService.completeUpload(cleanupId);
 
 		return new JobImageResponse(
 				imageId,
@@ -415,40 +411,7 @@ public class JobService {
 				.orElseThrow(() -> new JobNotFoundException("Image not found: ", imageId));
 
 		jobImageRepository.delete(image);
-		deleteObjectAfterCommit(image.getObjectKey());
-	}
-
-	private void deleteObjectAfterCommit(String objectKey) {
-		if (!TransactionSynchronizationManager.isSynchronizationActive()) {
-			cleanupDeletedObject(objectKey);
-			return;
-		}
-
-		TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-			@Override
-			public void afterCommit() {
-				cleanupDeletedObject(objectKey);
-			}
-		});
-	}
-
-	private void cleanupDeletedObject(String objectKey) {
-		try {
-			imageStorageService.delete(objectKey);
-		} catch (RuntimeException cleanupException) {
-			log.warn("Failed to delete job image object after metadata deletion: {}", objectKey,
-					cleanupException);
-		}
-	}
-
-	private void cleanupUploadedObject(String objectKey, RuntimeException originalException) {
-		try {
-			imageStorageService.delete(objectKey);
-		} catch (RuntimeException cleanupException) {
-			originalException.addSuppressed(cleanupException);
-			log.warn("Failed to delete uploaded job image object after database save failure: {}", objectKey,
-					cleanupException);
-		}
+		imageCleanupService.trackDeletion(image.getObjectKey());
 	}
 
 	private String detectImageContentType(MultipartFile file) {

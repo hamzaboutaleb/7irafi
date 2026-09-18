@@ -16,6 +16,7 @@ public class JobImageProperties {
     private DataSize maxFileSize = DataSize.ofMegabytes(10);
     private int maxCount = 10;
     private long cleanupDelayMs = 60000;
+    private int cleanupBatchSize = 50;
 
     public String maxFileSizeLabel() {
         return maxFileSize.toMegabytes() + "MB";

@@ -363,12 +363,13 @@ sequenceDiagram
 
     Client->>JS: POST /jobs/{jobId}/images
     JS->>JS: Check size, owner, state, count, file signature
+    JS->>DB: Commit recovery record in a separate transaction
+    JS->>DB: Lock recovery record for duration of upload transaction
     JS->>S3: PUT jobs/{jobId}/{imageId}
     JS->>DB: INSERT job_images metadata
-    alt metadata insert fails
-        JS->>S3: Delete uploaded object as compensation
-    end
     JS->>S3: Create 15-minute presigned GET URL
+    JS->>DB: Commit metadata and removal of recovery record together
+    Note over JS,DB: On rollback, recovery record survives; cleanup runs after completion
     JS-->>Client: image id + temporary URL
 
     Client->>JS: GET /jobs/{jobId}
@@ -377,8 +378,10 @@ sequenceDiagram
     JS-->>Client: JobResponse with fresh image URLs
 
     Client->>JS: DELETE /jobs/{jobId}/images/{imageId}
-    JS->>DB: Delete image metadata
+    JS->>DB: Commit metadata deletion and cleanup record together
     JS->>S3: Delete object after database commit
+    JS->>DB: Remove cleanup record only after storage deletion succeeds
+    Note over JS,S3: Storage failures leave the record for scheduled retry
     JS-->>Client: 204 No Content
 ```
 
@@ -403,11 +406,40 @@ jobs/{jobId}/{imageId}
 The database stores the object key, not the temporary URL. This is what allows a
 detail request after a page reload to create a new valid URL.
 
-Individual image deletion removes metadata first and deletes the S3 object after
-the database commit. Soft-deleted jobs retain image metadata as a cleanup queue;
+Uploads first commit a `job_image_cleanup` record in an independent transaction,
+before writing an object. The upload transaction locks that record and removes it
+atomically with the new image metadata. Any rollback, including signing failure or
+a failure during commit, leaves the record available for compensation. An
+`afterCompletion` callback tries cleanup in a fresh transaction; the scheduled
+worker also recovers pending records after a process interruption or storage outage.
+If cleanup cannot confirm the database state, it leaves the record for retry.
+
+Individual image deletion removes metadata and creates a cleanup record in the
+same transaction, then attempts S3 deletion after commit. A rollback preserves the
+image and object. Failed storage deletion retains the record, and successful
+deletion removes it. Repeating an S3 delete is safe if the subsequent database
+commit fails. Recovery also checks for committed image metadata before deleting an
+object, to protect images after an uncertain transaction outcome.
+
+The queue worker processes at most `jobs.images.cleanup-batch-size` records per
+run (default `50`). PostgreSQL `FOR UPDATE SKIP LOCKED` prevents competing workers
+from processing the same record or deleting an upload still in progress. Failures
+are rescheduled using `jobs.images.cleanup-delay-ms` (default `60000`). Independent
+transactions require an additional database connection while an upload or a
+transaction-completion callback is active; size the connection pool accordingly.
+
+Soft-deleted jobs retain image metadata as a cleanup queue;
 the scheduled reaper removes each object first and then its metadata. Failed
 cleanup leaves the row for a later retry. Cancelled jobs retain their images for
 historical detail.
+
+Verification on 2026-09-18: the full job-service suite passed **88 tests** with
+both H2 and a disposable PostgreSQL 17 database. The PostgreSQL run applied all
+eight Flyway migrations and used `ddl-auto=validate`. Fourteen transaction tests
+cover upload/metadata/signing/commit failures, failed compensation and deletion
+retries, rollback safety, recovery records left by interruption, and competing
+workers. Object storage failures are simulated; database transactions and row
+locking use the real database engines.
 
 ## 9. Persistence Model
 
@@ -473,6 +505,7 @@ Current migration history:
 | `V5__add_job_version.sql` | Optimistic-lock version column. |
 | `V6__remove_job_image_position.sql` | Removes position and adds created-time index. |
 | `V7__index_job_images_by_creation_and_id.sql` | Adds an index for deterministic image ordering. |
+| `V8__create_job_image_cleanup.sql` | Durable recovery records for rolled-back uploads and individual image deletions. |
 
 Hibernate uses `ddl-auto=validate`; schema changes must be made through a new
 Flyway migration. V4 and V6 remain unchanged because they are part of the
@@ -536,6 +569,7 @@ Main configuration is in
 | `spring.servlet.multipart.max-request-size` | `12MB` | Multipart envelope plus file request limit. |
 | `jobs.images.max-count` | `10` | Images allowed per job. |
 | `jobs.images.cleanup-delay-ms` | `60000` | Delay between deleted-image cleanup runs. |
+| `jobs.images.cleanup-batch-size` | `50` | Maximum durable cleanup records processed per run; environment override `IMAGE_CLEANUP_BATCH_SIZE`. |
 
 Docker Compose provides:
 
