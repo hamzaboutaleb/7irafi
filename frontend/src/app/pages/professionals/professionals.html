@@ -219,6 +219,40 @@
                       </span>
                     </p>
                   </div>
+
+                  <!-- Bookmark toggle. aria-pressed is what tells a screen reader this is a
+                       two-state control rather than a plain button. -->
+                  <button
+                    type="button"
+                    (click)="toggleSave(professional.userId)"
+                    [attr.aria-pressed]="savedIds().has(professional.userId)"
+                    [attr.aria-label]="
+                      savedIds().has(professional.userId)
+                        ? 'Remove ' + professional.firstName + ' from your network'
+                        : 'Save ' + professional.firstName + ' to your network'
+                    "
+                    class="ml-auto flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
+                    [class.text-primary-600]="savedIds().has(professional.userId)"
+                    [class.hover:bg-primary-50]="savedIds().has(professional.userId)"
+                    [class.text-gray-300]="!savedIds().has(professional.userId)"
+                    [class.hover:text-gray-500]="!savedIds().has(professional.userId)"
+                    [class.hover:bg-gray-50]="!savedIds().has(professional.userId)"
+                  >
+                    <svg
+                      class="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      [attr.fill]="savedIds().has(professional.userId) ? 'currentColor' : 'none'"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      aria-hidden="true"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M5 3.5h10a1 1 0 0 1 1 1v12l-6-3.5-6 3.5v-12a1 1 0 0 1 1-1Z"
+                      />
+                    </svg>
+                  </button>
                 </div>
 
                 <!-- Rating is a PLACEHOLDER: Review Service does not exist yet. Stars stay empty and

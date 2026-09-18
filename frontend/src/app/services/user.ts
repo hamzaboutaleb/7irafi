@@ -71,4 +71,16 @@ export class UserService {
   updateOnlineStatus() {
     return this.http.post<void>('users/me/heartbeat', {});
   }
+
+  getConnections() {
+    return this.http.get<ApiSuccess<ProfessionalCard[]>>('users/me/connections');
+  }
+
+  addConnection(userId: string) {
+    return this.http.post<void>('users/me/connections/' + userId, {});
+  }
+
+  deleteConnection(userId: string) {
+    return this.http.delete<void>('users/me/connections/' + userId);
+  }
 }
