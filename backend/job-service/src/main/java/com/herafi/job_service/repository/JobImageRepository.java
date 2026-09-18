@@ -33,6 +33,8 @@ public interface JobImageRepository extends JpaRepository<JobImage, UUID> {
 
     long countByJob_Id(UUID jobId);
 
+    boolean existsByObjectKey(String objectKey);
+
     @Query("SELECT image FROM JobImage image "
             + "WHERE image.job.deleted = true "
             + "ORDER BY image.createdAt ASC, image.id ASC")
