@@ -73,6 +73,31 @@ public class GlobalExceptionHandler {
                                 .body(ApiErrorResponse.of("PROFESSIONAL_PROFILE_NOT_FOUND", exception.getMessage()));
         }
 
+        @ExceptionHandler(SelfConnectionException.class)
+        public ResponseEntity<ApiErrorResponse> handleSelfConnection(
+                        SelfConnectionException exception) {
+                return ResponseEntity
+                                .status(HttpStatus.BAD_REQUEST)
+                                .body(ApiErrorResponse.of("SELF_CONNECTION_NOT_ALLOWED",
+                                                exception.getMessage()));
+        }
+
+        @ExceptionHandler(NotAProfessionalException.class)
+        public ResponseEntity<ApiErrorResponse> handleNotAProfessional(
+                        NotAProfessionalException exception) {
+                return ResponseEntity
+                                .status(HttpStatus.BAD_REQUEST)
+                                .body(ApiErrorResponse.of("NOT_A_PROFESSIONAL", exception.getMessage()));
+        }
+
+        @ExceptionHandler(ConnectionNotFoundException.class)
+        public ResponseEntity<ApiErrorResponse> handleConnectionNotFound(
+                        ConnectionNotFoundException exception) {
+                return ResponseEntity
+                                .status(HttpStatus.NOT_FOUND)
+                                .body(ApiErrorResponse.of("CONNECTION_NOT_FOUND", exception.getMessage()));
+        }
+
         @ExceptionHandler(ProfessionalProfileAlreadyExistsException.class)
         public ResponseEntity<ApiErrorResponse> handleAlreadyExists(
                         ProfessionalProfileAlreadyExistsException exception) {

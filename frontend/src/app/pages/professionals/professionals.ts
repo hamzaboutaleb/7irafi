@@ -6,6 +6,7 @@ import {
   ServiceCity,
 } from '../../types/professional-profile.js';
 import { UserService } from '../../services/user.js';
+import { NetworkService } from '../../services/network.js';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Navbar } from '../../components/navbar/navbar.js';
@@ -20,6 +21,7 @@ import { RouterLink } from '@angular/router';
 })
 export class Professionals implements OnInit {
   private readonly userService = inject(UserService);
+  private readonly network = inject(NetworkService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly size = signal<number>(12);
@@ -32,6 +34,9 @@ export class Professionals implements OnInit {
   readonly filtersUnavailable = signal(false);
   readonly selectedCity = signal<string | null>(null);
   readonly selectedCategory = signal<string | null>(null);
+  // Owned by NetworkService so the contacts rail and these bookmark buttons
+  // never disagree about who is saved.
+  readonly savedIds = this.network.savedIds;
 
   readonly canGoForward = computed(() => {
     const current = this.page();
@@ -114,6 +119,10 @@ export class Professionals implements OnInit {
     }
     this.pageNumber.update((value) => value - 1);
     this.load();
+  }
+
+  toggleSave(userId: string): void {
+    this.network.toggle(userId);
   }
 
   private reloadFromFirstPage(): void {
