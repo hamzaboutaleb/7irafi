@@ -90,6 +90,31 @@ services:
       timeout: 5s
       retries: 20
 
+  chat-service:
+    build: 
+      context: ../../backend/chat-service
+      dockerfile: Dockerfile
+    environment:
+      DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka/
+      SERVER_PORT: 8085
+      DB_URL: jdbc:postgresql://postgres:5432/chat_db
+      DB_USERNAME: ${DB_USERNAME:-herafi}
+      DB_PASSWORD: ${DB_PASSWORD:-herafi}
+      SHOW_SQL: "true"
+      GATEWAY_SHARED_SECRET: ${GATEWAY_SHARED_SECRET:-7irafi-development-gateway-key}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:-7irafi-development-internal-key}
+    depends_on:
+      postgres: 
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8085/actuator/health | grep -q UP" ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+
   job-service:
     container_name: job-service-dev
     build:
