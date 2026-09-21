@@ -1,7 +1,7 @@
 package com.herafi.chat_service.controller;
 
 import java.security.Principal;
-import java.time.Instant;
+import java.util.UUID;
 
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -9,26 +9,43 @@ import org.springframework.stereotype.Controller;
 
 import com.herafi.chat_service.dto.ChatMessageRequest;
 import com.herafi.chat_service.dto.ChatMessageResponse;
+import com.herafi.chat_service.service.ConversationService;
 
-@Controller 
+import jakarta.validation.Valid;
+
+/**
+ * Live messages. Clients publish to /app/chat and receive on
+ * /user/queue/messages.
+ */
+@Controller
 public class ChatController {
-    private final SimpMessagingTemplate simpMessagingTemplate;
 
-    public ChatController(SimpMessagingTemplate simpMessagingTemplate) {
+    private final SimpMessagingTemplate simpMessagingTemplate;
+    private final ConversationService conversationService;
+
+    public ChatController(
+            SimpMessagingTemplate simpMessagingTemplate,
+            ConversationService conversationService) {
         this.simpMessagingTemplate = simpMessagingTemplate;
+        this.conversationService = conversationService;
     }
 
     @MessageMapping("/chat")
-    public void sendMessage(ChatMessageRequest messageRequest, Principal principal) {
-        // The sender is taken from the authenticated session, never from the
-        // payload: otherwise any client could send messages as someone else.
-        ChatMessageResponse message = new ChatMessageResponse(
-                messageRequest.conversationId(),
-                principal.getName(),
-                messageRequest.text(),
-                Instant.now());
+    public void sendMessage(@Valid ChatMessageRequest messageRequest, Principal principal) {
+        // The sender comes from the authenticated session, never from the payload.
+        UUID senderId = UUID.fromString(principal.getName());
 
-        this.simpMessagingTemplate.convertAndSendToUser(
-                messageRequest.recipientId(), "/queue/messages", message);
+        ConversationService.Delivery delivery = conversationService.send(
+                messageRequest.conversationId(), senderId, messageRequest.text());
+
+        ChatMessageResponse message = ChatMessageResponse.from(delivery.message());
+
+        simpMessagingTemplate.convertAndSendToUser(
+                delivery.recipientId().toString(), "/queue/messages", message);
+
+        // Echoed back so the sender's own UI gets the stored id and timestamp
+        // instead of inventing them, and sees the message on its other devices.
+        simpMessagingTemplate.convertAndSendToUser(
+                senderId.toString(), "/queue/messages", message);
     }
 }
