@@ -119,18 +119,18 @@ filter.
 DTOs define the API boundary and prevent entities from becoming request bodies.
 Important DTOs are:
 
-| DTO | Purpose |
-| --- | --- |
-| `CreateJobRequest` | New job fields with validation. |
-| `UpdateJobRequest` | Editable title, description, and address fields. |
-| `JobFilter` | Search filters. |
-| `AssignWorkerRequest` | Internal worker UUID. |
-| `JobListResponse` | Search response with an optional signed thumbnail URL, without private address. |
-| `JobResponse` | Lightweight mutation and “my jobs” response without image URLs. |
-| `JobDetailResponse` | Detail response with conditional address and fresh image URLs. |
-| `JobSummaryResponse` | Minimal internal job state. |
-| `JobImageResponse` | Image UUID and temporary download URL. |
-| `PageResponse` | Page content and pagination metadata. |
+| DTO                   | Purpose                                                                         |
+| --------------------- | ------------------------------------------------------------------------------- |
+| `CreateJobRequest`    | New job fields with validation.                                                 |
+| `UpdateJobRequest`    | Editable title, description, and address fields.                                |
+| `JobFilter`           | Search filters.                                                                 |
+| `AssignWorkerRequest` | Internal worker UUID.                                                           |
+| `JobListResponse`     | Search response with an optional signed thumbnail URL, without private address. |
+| `JobResponse`         | Lightweight mutation and “my jobs” response without image URLs.                 |
+| `JobDetailResponse`   | Detail response with conditional address and fresh image URLs.                  |
+| `JobSummaryResponse`  | Minimal internal job state.                                                     |
+| `JobImageResponse`    | Image UUID and temporary download URL.                                          |
+| `PageResponse`        | Page content and pagination metadata.                                           |
 
 ### Service layer
 
@@ -185,20 +185,20 @@ Routes that use a role also require the gateway-provided `X-User-Role` header.
 Clients should normally call the gateway at `http://localhost:8080`, not the
 job-service port directly.
 
-| Method | Path | Purpose | Main authorization |
-| --- | --- | --- | --- |
-| `POST` | `/jobs` | Create a job | Authenticated identity creates `clientId`. |
-| `GET` | `/jobs` | Search jobs | Gateway-authenticated request. |
-| `GET` | `/jobs/{id}` | Get job detail | Conditional address and full image gallery. |
-| `GET` | `/jobs/my` | List current user's jobs | `X-User-Id` selects client. |
-| `PUT` | `/jobs/{id}` | Edit an open job | Job owner only. |
-| `PATCH` | `/jobs/{id}/complete` | Complete assigned job | Job owner only. |
-| `PATCH` | `/jobs/{id}/cancel` | Cancel open or assigned job | Owner or `ADMIN`; assigned worker is cleared. |
-| `DELETE` | `/jobs/{id}` | Soft-delete job | Owner or `ADMIN`; assigned jobs rejected. |
-| `GET` | `/jobs/skills` | List active skill codes | Gateway-authenticated request. |
-| `GET` | `/jobs/cities` | List active city codes | Gateway-authenticated request. |
-| `POST` | `/jobs/{jobId}/images` | Upload job image | Owner, open job, image limit. |
-| `DELETE` | `/jobs/{jobId}/images/{imageId}` | Delete job image | Job owner only. |
+| Method   | Path                             | Purpose                     | Main authorization                            |
+| -------- | -------------------------------- | --------------------------- | --------------------------------------------- |
+| `POST`   | `/jobs`                          | Create a job                | Authenticated identity creates `clientId`.    |
+| `GET`    | `/jobs`                          | Search jobs                 | Gateway-authenticated request.                |
+| `GET`    | `/jobs/{id}`                     | Get job detail              | Conditional address and full image gallery.   |
+| `GET`    | `/jobs/my`                       | List current user's jobs    | `X-User-Id` selects client.                   |
+| `PUT`    | `/jobs/{id}`                     | Edit an open job            | Job owner only.                               |
+| `PATCH`  | `/jobs/{id}/complete`            | Complete assigned job       | Job owner only.                               |
+| `PATCH`  | `/jobs/{id}/cancel`              | Cancel open or assigned job | Owner or `ADMIN`; assigned worker is cleared. |
+| `DELETE` | `/jobs/{id}`                     | Soft-delete job             | Owner or `ADMIN`; assigned jobs rejected.     |
+| `GET`    | `/jobs/skills`                   | List active skill codes     | Gateway-authenticated request.                |
+| `GET`    | `/jobs/cities`                   | List active city codes      | Gateway-authenticated request.                |
+| `POST`   | `/jobs/{jobId}/images`           | Upload job image            | Owner, open job, image limit.                 |
+| `DELETE` | `/jobs/{jobId}/images/{imageId}` | Delete job image            | Job owner only.                               |
 
 ### Request and response flow
 
@@ -406,32 +406,19 @@ jobs/{jobId}/{imageId}
 The database stores the object key, not the temporary URL. This is what allows a
 detail request after a page reload to create a new valid URL.
 
-Uploads first commit a `job_image_cleanup` record in an independent transaction,
-before writing an object. The upload transaction locks that record and removes it
-atomically with the new image metadata. Any rollback, including signing failure or
-a failure during commit, leaves the record available for compensation. An
-`afterCompletion` callback tries cleanup in a fresh transaction; the scheduled
-worker also recovers pending records after a process interruption or storage outage.
-If cleanup cannot confirm the database state, it leaves the record for retry.
+Uploads are written with the S3 tag `cleanup=pending`. After the metadata
+transaction commits, the service changes the tag to `cleanup=committed`. If the
+transaction rolls back, or metadata saving/signing fails, the pending tag remains
+and the object-storage lifecycle rule expires it. Individual image deletion and
+soft-deleting a job mark the existing object `cleanup=pending` after commit; the
+metadata rows remain available for historical consistency while lifecycle expiry
+removes the object. Cancelled jobs retain their images.
 
-Individual image deletion removes metadata and creates a cleanup record in the
-same transaction, then attempts S3 deletion after commit. A rollback preserves the
-image and object. Failed storage deletion retains the record, and successful
-deletion removes it. Repeating an S3 delete is safe if the subsequent database
-commit fails. Recovery also checks for committed image metadata before deleting an
-object, to protect images after an uncertain transaction outcome.
-
-The queue worker processes at most `jobs.images.cleanup-batch-size` records per
-run (default `50`). PostgreSQL `FOR UPDATE SKIP LOCKED` prevents competing workers
-from processing the same record or deleting an upload still in progress. Failures
-are rescheduled using `jobs.images.cleanup-delay-ms` (default `60000`). Independent
-transactions require an additional database connection while an upload or a
-transaction-completion callback is active; size the connection pool accordingly.
-
-Soft-deleted jobs retain image metadata as a cleanup queue;
-the scheduled reaper removes each object first and then its metadata. Failed
-cleanup leaves the row for a later retry. Cancelled jobs retain their images for
-historical detail.
+The local MinIO bucket has a lifecycle rule that expires objects tagged
+`cleanup=pending` after one day. Production S3-compatible deployments must install
+the equivalent rule in object storage. Tag updates are retried by the storage
+provider's normal request retry policy; a failure to update a deletion tag leaves
+the object for operator inspection rather than adding another database queue.
 
 Verification on 2026-09-18: the full job-service suite passed **88 tests** with
 both H2 and a disposable PostgreSQL 17 database. The PostgreSQL run applied all
@@ -496,16 +483,17 @@ backend/job-service/src/main/resources/db/migration/
 
 Current migration history:
 
-| Migration | Change |
-| --- | --- |
-| `V1__init_jobs.sql` | Core tables, foreign keys, indexes, and state constraints. |
-| `V2__seed_job_reference_data.sql` | Initial skills and cities. |
-| `V3__add_soft_delete.sql` | Soft-delete fields on `jobs`. |
-| `V4__create_job_images.sql` | Image metadata table. |
-| `V5__add_job_version.sql` | Optimistic-lock version column. |
-| `V6__remove_job_image_position.sql` | Removes position and adds created-time index. |
-| `V7__index_job_images_by_creation_and_id.sql` | Adds an index for deterministic image ordering. |
-| `V8__create_job_image_cleanup.sql` | Durable recovery records for rolled-back uploads and individual image deletions. |
+| Migration                                     | Change                                                                         |
+| --------------------------------------------- | ------------------------------------------------------------------------------ |
+| `V1__init_jobs.sql`                           | Core tables, foreign keys, indexes, and state constraints.                     |
+| `V2__seed_job_reference_data.sql`             | Initial skills and cities.                                                     |
+| `V3__add_soft_delete.sql`                     | Soft-delete fields on `jobs`.                                                  |
+| `V4__create_job_images.sql`                   | Image metadata table.                                                          |
+| `V5__add_job_version.sql`                     | Optimistic-lock version column.                                                |
+| `V6__remove_job_image_position.sql`           | Removes position and adds created-time index.                                  |
+| `V7__index_job_images_by_creation_and_id.sql` | Adds an index for deterministic image ordering.                                |
+| `V8__create_job_image_cleanup.sql`            | Historical cleanup table migration retained for Flyway compatibility.          |
+| `V9__remove_job_image_cleanup.sql`            | Removes the obsolete cleanup table; object lifecycle rules now handle cleanup. |
 
 Hibernate uses `ddl-auto=validate`; schema changes must be made through a new
 Flyway migration. V4 and V6 remain unchanged because they are part of the
@@ -529,21 +517,21 @@ The `GlobalExceptionHandler` and security filters expose a common
 
 Validation errors may also contain `fieldErrors`.
 
-| Condition | HTTP | Code |
-| --- | ---: | --- |
-| Invalid DTO fields | 400 | `VALIDATION_ERROR` |
-| Malformed body or UUID | 400 | `INVALID_REQUEST` |
-| Invalid page parameters | 400 | `INVALID_PAGINATION` |
-| Invalid sort field/direction | 400 | `INVALID_SORT` |
-| Unknown or inactive skill/city | 400 | `INVALID_REFERENCE` |
-| Empty, invalid, or oversized image | 400 / 413 | `INVALID_IMAGE` |
-| Missing image multipart part | 400 | `INVALID_IMAGE` |
-| Missing or invalid gateway/internal key | 401 | `UNAUTHORIZED` |
-| Access denied | 403 | `JOB_ACCESS_DENIED` |
-| Missing active job or image | 404 | `JOB_NOT_FOUND` |
-| Invalid lifecycle state | 409 | `JOB_STATE_CONFLICT` or `JOB_NOT_OPEN` |
-| Optimistic-lock conflict | 409 | `CONCURRENT_MODIFICATION` |
-| Unexpected failure | 500 | `INTERNAL_ERROR` |
+| Condition                               |      HTTP | Code                                   |
+| --------------------------------------- | --------: | -------------------------------------- |
+| Invalid DTO fields                      |       400 | `VALIDATION_ERROR`                     |
+| Malformed body or UUID                  |       400 | `INVALID_REQUEST`                      |
+| Invalid page parameters                 |       400 | `INVALID_PAGINATION`                   |
+| Invalid sort field/direction            |       400 | `INVALID_SORT`                         |
+| Unknown or inactive skill/city          |       400 | `INVALID_REFERENCE`                    |
+| Empty, invalid, or oversized image      | 400 / 413 | `INVALID_IMAGE`                        |
+| Missing image multipart part            |       400 | `INVALID_IMAGE`                        |
+| Missing or invalid gateway/internal key |       401 | `UNAUTHORIZED`                         |
+| Access denied                           |       403 | `JOB_ACCESS_DENIED`                    |
+| Missing active job or image             |       404 | `JOB_NOT_FOUND`                        |
+| Invalid lifecycle state                 |       409 | `JOB_STATE_CONFLICT` or `JOB_NOT_OPEN` |
+| Optimistic-lock conflict                |       409 | `CONCURRENT_MODIFICATION`              |
+| Unexpected failure                      |       500 | `INTERNAL_ERROR`                       |
 
 The response code is the client contract. The legacy access/state codes remain
 canonical for compatibility: `JOB_ACCESS_DENIED` and `JOB_STATE_CONFLICT`.
@@ -556,27 +544,26 @@ should not branch on the human-readable message.
 Main configuration is in
 `backend/job-service/src/main/resources/application.properties`.
 
-| Property | Default / Docker value | Meaning |
-| --- | --- | --- |
-| `server.port` | `8083` | Job service HTTP port. |
-| `spring.datasource.url` | `jdbc:postgresql://localhost:5432/job_db` | Job database. |
-| `gateway.shared-secret` | Development default | Gateway-to-job-service key. |
-| `service.security.internal-api-key` | Development default | Service-to-service key. |
-| `aws.s3.endpoint` | `http://minio:9000` | Internal S3 client endpoint. |
-| `aws.s3.public-endpoint` | `http://localhost:9000` | Browser-facing presigned URL endpoint. |
-| `aws.s3.bucket` | `jobs` | Object bucket. |
-| `jobs.images.max-file-size` | `10MB` | Business and per-file upload limit, bound by `JobImageProperties`. |
-| `spring.servlet.multipart.max-request-size` | `12MB` | Multipart envelope plus file request limit. |
-| `jobs.images.max-count` | `10` | Images allowed per job. |
-| `jobs.images.cleanup-delay-ms` | `60000` | Delay between deleted-image cleanup runs. |
-| `jobs.images.cleanup-batch-size` | `50` | Maximum durable cleanup records processed per run; environment override `IMAGE_CLEANUP_BATCH_SIZE`. |
+| Property                                    | Default / Docker value                    | Meaning                                                                                               |
+| ------------------------------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `server.port`                               | `8083`                                    | Job service HTTP port.                                                                                |
+| `spring.datasource.url`                     | `jdbc:postgresql://localhost:5432/job_db` | Job database.                                                                                         |
+| `gateway.shared-secret`                     | Development default                       | Gateway-to-job-service key.                                                                           |
+| `service.security.internal-api-key`         | Development default                       | Service-to-service key.                                                                               |
+| `aws.s3.endpoint`                           | `http://minio:9000`                       | Internal S3 client endpoint.                                                                          |
+| `aws.s3.public-endpoint`                    | `http://localhost:9000`                   | Browser-facing presigned URL endpoint.                                                                |
+| `aws.s3.bucket`                             | `jobs`                                    | Object bucket.                                                                                        |
+| `jobs.images.max-file-size`                 | `10MB`                                    | Business and per-file upload limit, bound by `JobImageProperties`.                                    |
+| `spring.servlet.multipart.max-request-size` | `12MB`                                    | Multipart envelope plus file request limit.                                                           |
+| `jobs.images.max-count`                     | `10`                                      | Images allowed per job.                                                                               |
+| MinIO lifecycle                             | `1 day`                                   | Expires objects tagged `cleanup=pending`; configure the equivalent rule in production object storage. |
 
 Docker Compose provides:
 
 - PostgreSQL with `job_db` created by the initialization scripts.
 - MinIO server `RELEASE.2025-07-23T15-54-02Z` on ports `9000` and `9001`.
 - MinIO Client `RELEASE.2025-08-13T08-35-41Z` runs as `minio-init`.
-- `minio-init`, which waits for MinIO health and creates the `jobs` bucket.
+- `minio-init`, which waits for MinIO health, creates the `jobs` bucket, and installs the pending-object lifecycle rule.
 - Job service startup after `minio-init` completes successfully.
 - API gateway on port `8080`.
 
@@ -628,12 +615,8 @@ These items are not silently solved by the current implementation:
   trusted service callers.
 - Gateway headers are trusted only after the shared key is verified. The shared
   key must therefore remain private to the gateway and job service.
-- Image upload compensates for a metadata-save failure, but external storage
-  and database operations are not one atomic transaction.
-- Image deletion has the reverse consistency risk if object deletion succeeds
-  and metadata deletion fails.
-- Soft-deleting a job hides its images from the API; the scheduled cleanup reaper
-  removes associated MinIO objects and metadata, retrying failed objects.
+- Image storage and database operations are not one atomic transaction; lifecycle
+  cleanup is intentionally eventual and depends on successful post-commit tagging.
 - The current image check validates magic bytes. Full image decoding and image
   dimension/pixel limits are future hardening options.
 - Skills and cities are fixed, migration-managed reference data. Admin-managed
@@ -643,19 +626,19 @@ These items are not silently solved by the current implementation:
 
 Start here when tracing a change:
 
-| Concern | Primary files |
-| --- | --- |
-| Public endpoints | `controller/JobController.java` |
-| Internal endpoints | `controller/InternalJobController.java` |
-| Business rules | `service/JobService.java` |
-| Object storage | `service/ImageStorageService.java`, `service/S3ImageStorageService.java` |
-| S3 endpoints | `config/S3Config.java` |
-| Gateway security | `config/GatewayKeyFilter.java` |
-| Internal security | `config/InternalApiKeyFilter.java` |
-| Response privacy | `mapper/JobMapper.java` |
-| Job persistence | `entity/Job.java`, `repository/JobRepository.java` |
-| Image persistence | `entity/JobImage.java`, `repository/JobImageRepository.java` |
-| Search predicates | `specification/JobSpecification.java` |
-| API errors | `exceptions/GlobalExceptionHandler.java`, `config/ApiErrorWriter.java` |
-| Schema | `src/main/resources/db/migration/*.sql` |
-| Local dependencies | `infra/docker/docker-compose.yml` |
+| Concern            | Primary files                                                            |
+| ------------------ | ------------------------------------------------------------------------ |
+| Public endpoints   | `controller/JobController.java`                                          |
+| Internal endpoints | `controller/InternalJobController.java`                                  |
+| Business rules     | `service/JobService.java`                                                |
+| Object storage     | `service/ImageStorageService.java`, `service/S3ImageStorageService.java` |
+| S3 endpoints       | `config/S3Config.java`                                                   |
+| Gateway security   | `config/GatewayKeyFilter.java`                                           |
+| Internal security  | `config/InternalApiKeyFilter.java`                                       |
+| Response privacy   | `mapper/JobMapper.java`                                                  |
+| Job persistence    | `entity/Job.java`, `repository/JobRepository.java`                       |
+| Image persistence  | `entity/JobImage.java`, `repository/JobImageRepository.java`             |
+| Search predicates  | `specification/JobSpecification.java`                                    |
+| API errors         | `exceptions/GlobalExceptionHandler.java`, `config/ApiErrorWriter.java`   |
+| Schema             | `src/main/resources/db/migration/*.sql`                                  |
+| Local dependencies | `infra/docker/docker-compose.yml`                                        |
