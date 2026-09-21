@@ -82,6 +82,13 @@ public class ConversationService {
     }
 
     @Transactional(readOnly = true)
+    public Conversation getForParticipant(UUID conversationId, UUID userId) {
+        Conversation conversation = get(conversationId);
+        requireParticipant(conversation, userId);
+        return conversation;
+    }
+
+    @Transactional(readOnly = true)
     public Page<Message> messages(UUID conversationId, UUID userId, int page, int size) {
         requireParticipant(get(conversationId), userId);
 
