@@ -35,8 +35,6 @@ public interface JobImageRepository extends JpaRepository<JobImage, UUID> {
 
     boolean existsByObjectKey(String objectKey);
 
-    @Query("SELECT image FROM JobImage image "
-            + "WHERE image.job.deleted = true "
-            + "ORDER BY image.createdAt ASC, image.id ASC")
-    List<JobImage> findImagesForDeletedJobs();
+    @Query("SELECT image.objectKey FROM JobImage image WHERE image.job.id = :jobId")
+    List<String> findObjectKeysByJobId(@Param("jobId") UUID jobId);
 }

@@ -13,5 +13,7 @@ public interface ImageStorageService {
 
     String generateDownloadUrl(String objectKey);
 
-    void delete(String objectKey);
+    void markCommitted(String objectKey);
+
+    void markPendingCleanup(String objectKey);
 }

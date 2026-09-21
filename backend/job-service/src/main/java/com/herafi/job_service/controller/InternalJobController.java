@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.herafi.job_service.dto.AssignWorkerRequest;
-import com.herafi.job_service.dto.ChatEligibilityResponse;
 import com.herafi.job_service.dto.JobSummaryResponse;
 import com.herafi.job_service.service.JobService;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -38,10 +37,4 @@ public class InternalJobController {
         return jobService.assignWorker(id, request.workerId());
     }
 
-    @GetMapping("/{id}/chat-eligibility")
-    public ChatEligibilityResponse getChatEligibility(
-            @PathVariable UUID id) {
-
-        return jobService.getChatEligibility(id);
-    }
 }
