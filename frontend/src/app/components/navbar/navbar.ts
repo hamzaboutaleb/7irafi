@@ -1,6 +1,7 @@
 import { Component, ElementRef, HostListener, inject, signal, viewChild } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../services/auth';
+import { ChatService } from '../../services/chat.js';
 
 @Component({
   selector: 'app-navbar',
@@ -23,6 +24,7 @@ export class Navbar {
     this.jobsToggle()?.nativeElement.focus();
   }
   private authService = inject(AuthService);
+  private chat = inject(ChatService);
   private router = inject(Router);
 
   get isAuthenticated(): boolean {
@@ -30,6 +32,9 @@ export class Navbar {
   }
 
   logout() {
+    // Close the socket first: it is authenticated as this user, and must not
+    // stay open for whoever signs in next in this tab.
+    this.chat.disconnect();
     this.authService.logout();
     this.router.navigate(['/']);
   }

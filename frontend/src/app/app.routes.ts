@@ -81,4 +81,14 @@ export const routes: Routes = [
     component: Job,
     canActivate: [authGuard],
   },
+  {
+    path: 'conversations',
+    loadComponent: () => import('./pages/conversations/conversations.js').then((m) => m.Conversations),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'conversations/:id',
+    loadComponent: () => import('./pages/conversation/conversation.js').then((m) => m.Conversation),
+    canActivate: [authGuard],
+  },
 ];

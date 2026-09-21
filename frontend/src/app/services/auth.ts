@@ -52,6 +52,22 @@ export class AuthService {
     return sessionStorage.getItem('token');
   }
 
+  /**
+   * The signed-in user's id: the JWT subject. Read for display only ("is this
+   * message mine?"); the server never trusts the browser's claim about it.
+   */
+  currentUserId(): string | null {
+    const token = this.getToken();
+    if (!token) return null;
+
+    try {
+      const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+      return JSON.parse(atob(payload)).sub ?? null;
+    } catch {
+      return null;
+    }
+  }
+
   logout() {
     sessionStorage.removeItem('token');
     this.presence.stop();

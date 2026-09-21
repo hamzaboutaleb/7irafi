@@ -79,6 +79,11 @@
           }
           <div class="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-4">
             <p class="text-xs text-gray-500">Applied {{ application.createdAt | date: 'mediumDate' }}</p>
+            <div class="flex flex-wrap items-center gap-2">
+            <button type="button" (click)="message(application)" [disabled]="opening() !== null"
+              class="min-h-11 rounded-xl border border-primary-200 bg-white px-4 py-2.5 text-sm font-semibold text-primary-700 hover:bg-primary-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 disabled:cursor-not-allowed disabled:opacity-50">
+              {{ opening() === application.id ? 'Opening…' : 'Message' }}
+            </button>
             @if (job()?.status === 'OPEN' && application.status === 'PENDING' && !retryApplication()) {
             <button type="button" (click)="accept(application)"
               [disabled]="accepting() !== null || !profiles()[application.applicantId]"
@@ -86,6 +91,7 @@
               {{ accepting() === application.id ? 'Accepting…' : 'Accept applicant' }}
             </button>
             }
+            </div>
           </div>
         </article>
       </li>
