@@ -55,6 +55,13 @@ public class ConversationController {
                 .toList();
     }
 
+    @GetMapping("/{conversationId}")
+    public ConversationResponse one(
+            @PathVariable UUID conversationId,
+            @RequestHeader("X-User-Id") UUID userId) {
+        return ConversationResponse.from(conversationService.getForParticipant(conversationId, userId));
+    }
+
     @GetMapping("/{conversationId}/messages")
     public PageResponse<MessageResponse> messages(
             @PathVariable UUID conversationId,
