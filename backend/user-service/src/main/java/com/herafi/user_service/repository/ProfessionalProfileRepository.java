@@ -20,6 +20,10 @@ public interface ProfessionalProfileRepository extends JpaRepository<Professiona
     @EntityGraph(attributePaths = { "categories", "cities" })
     Optional<ProfessionalProfile> findByUserId(UUID userId);
 
+    @EntityGraph(attributePaths = { "categories", "cities", "userProfile" })
+    Optional<ProfessionalProfile> findByUserIdAndOnboardingStatus(
+            UUID userId, ProfessionalOnboardingStatus status);
+
     /**
      * Loads several professional profiles at once, for the connections list.
      * The entity graph matches the directory query: without it, mapping each

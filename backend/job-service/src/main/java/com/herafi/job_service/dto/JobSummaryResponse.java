@@ -7,7 +7,8 @@ import com.herafi.job_service.entity.JobStatus;
 public record JobSummaryResponse (
     UUID id,
     UUID clientId,
-    JobStatus status
+    JobStatus status,
+    UUID assignedWorkerId
 ) {
 
 }

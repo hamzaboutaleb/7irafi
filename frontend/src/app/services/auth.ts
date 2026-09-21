@@ -29,6 +29,11 @@ export class AuthService {
   private http = inject(HttpClient);
   private presence = inject(Presence);
 
+  constructor() {
+    // The shared token may belong to a different tab's account. Require a fresh login.
+    localStorage.removeItem('token');
+  }
+
   login(email: string, password: string) {
     return this.http.post<AuthResponse>('auth/login', { email, password });
   }
@@ -38,16 +43,17 @@ export class AuthService {
   }
 
   saveToken(token: string) {
-    localStorage.setItem('token', token);
+    // Keep each tab's account independent, including across page reloads.
+    sessionStorage.setItem('token', token);
     this.presence.start();
   }
 
   getToken(): string | null {
-    return localStorage.getItem('token');
+    return sessionStorage.getItem('token');
   }
 
   logout() {
-    localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
     this.presence.stop();
   }
 }

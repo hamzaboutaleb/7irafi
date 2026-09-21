@@ -1,0 +1,180 @@
+<app-navbar />
+
+<main class="min-h-screen bg-gray-50 px-4 py-10 sm:px-6">
+  <section class="mx-auto max-w-5xl">
+    <header class="mb-7">
+      <p class="mt-2 text-gray-600">Find work that matches your skills.</p>
+    </header>
+
+    <div class="mb-6 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
+      <button type="button" class="filter-button w-full md:hidden" (click)="openFilters()"
+        aria-haspopup="dialog">Filters @if (chips().length) { ({{ chips().length }}) }</button>
+      <div class="hidden md:block">
+        <ng-container *ngTemplateOutlet="filterFields; context: { mobile: false }" />
+      </div>
+      @if (optionsError()) {
+        <p class="mt-3 text-sm text-red-700">Some filter options could not load.
+          <button type="button" class="underline" (click)="loadOptions()">Retry</button>
+        </p>
+      }
+      @if (chips().length) {
+        <div class="mt-4 flex flex-wrap items-center gap-2" aria-label="Active filters">
+          @for (chip of chips(); track chip.key) {
+            <button type="button" class="rounded-full bg-primary-50 px-3 py-1.5 text-sm font-medium text-primary-700 hover:bg-primary-100 focus-visible:outline-2"
+              [attr.aria-label]="'Remove filter: ' + chip.label" (click)="removeFilter(chip.key)">
+              {{ chip.label | titlecase }} <span aria-hidden="true" class="ml-2">×</span>
+            </button>
+          }
+          <button type="button" class="px-2 py-1.5 text-sm font-medium text-gray-600 underline" (click)="clearFilters()">Clear all</button>
+        </div>
+      }
+    </div>
+
+    <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+      <p class="text-sm text-gray-600" role="status">
+        @if (isLoading()) { Finding jobs… } @else if (!errorMessage()) {
+          <span class="font-semibold text-gray-900">{{ totalJobs() }}</span> {{ totalJobs() === 1 ? 'job' : 'jobs' }} found
+        }
+      </p>
+      <label class="flex items-center gap-2 text-sm text-gray-600">Sort by
+        <select class="filter-control !w-auto" [ngModel]="sort()" (ngModelChange)="changeSort($event)">
+          <option value="createdAt,desc">Newest</option>
+          <option value="budget,desc">Budget: high to low</option>
+          <option value="budget,asc">Budget: low to high</option>
+        </select>
+      </label>
+    </div>
+    @if (isLoading()) {
+      <div class="grid grid-cols-1 gap-6 md:grid-cols-3" aria-hidden="true">
+        @for (placeholder of [1, 2, 3]; track placeholder) {
+          <div class="h-[480px] motion-safe:animate-pulse rounded-2xl border border-gray-200 bg-white p-5">
+            <div class="h-60 rounded-xl bg-gray-100"></div>
+            <div class="mt-5 h-6 w-3/4 rounded bg-gray-100"></div>
+            <div class="mt-4 h-4 w-1/2 rounded bg-gray-100"></div>
+          </div>
+        }
+      </div>
+    } @else if (errorMessage()) {
+      <p class="rounded-lg bg-red-50 p-4 text-sm text-red-700">{{ errorMessage() }} <button type="button" class="ml-2 underline" (click)="loadJobs()">Try again</button></p>
+    } @else if (jobs().length === 0) {
+      <div class="rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-16 text-center">
+        <h2 class="text-lg font-semibold text-gray-900">No jobs found</h2>
+        <p class="mt-2 text-sm text-gray-600">@if (chips().length) { Try a different city, trade, or wider budget. } @else { Check back soon for new opportunities. }</p>
+        @if (chips().length) {
+          <button type="button" class="filter-button mt-5" (click)="clearFilters()">Clear filters</button>
+        }
+      </div>
+    } @else {
+      <ul class="grid grid-cols-1 gap-6 md:grid-cols-3">
+        @for (job of jobs(); track job.id) {
+          <li class="min-w-0">
+            <app-job-card [job]="job" (viewDetails)="selectedJobId.set(job.id)" />
+          </li>
+        }
+      </ul>
+    }
+
+    @if (!isLoading() && !errorMessage() && totalPages() > 0) {
+      <nav aria-label="Jobs pagination" class="mt-8 flex flex-wrap items-center justify-center gap-4">
+        <button
+          type="button"
+          (click)="changePage(currentPage() - 1)"
+          [disabled]="isLoading() || currentPage() === 0"
+          class="cursor-pointer rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-primary-600"
+        >
+          Previous
+        </button>
+
+        <span class="text-sm text-gray-600" aria-live="polite">
+          Page {{ currentPage() + 1 }} of {{ totalPages() }}
+        </span>
+
+        <button
+          type="button"
+          (click)="changePage(currentPage() + 1)"
+          [disabled]="isLoading() || currentPage() >= totalPages() - 1"
+          class="cursor-pointer rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-primary-600"
+        >
+          Next
+        </button>
+      </nav>
+    }
+  </section>
+</main>
+
+<app-footer />
+
+@if (postingResult.result(); as result) {
+  <app-posting-status-modal
+    [heading]="result.failed.length ? 'Job posted with missing photos' : 'Job posted'"
+    [message]="postingResult.busy() ? 'Uploading your remaining photos…' : result.failed.length ? 'Your job was posted, but some photos failed. Retry them before closing this message, or close to continue without them.' : 'Your job has been posted successfully.'"
+    [errors]="photoErrors()" [canRetry]="result.failed.length > 0" [busy]="postingResult.busy()"
+    (retry)="retryPhotos()" (closed)="postingResult.clear()" />
+}
+
+@if (selectedJobId(); as jobId) {
+  <app-job-details-modal [jobId]="jobId" (closed)="selectedJobId.set(null)" />
+}
+
+<ng-template #filterFields let-mobile="mobile">
+  <div class="grid grid-cols-1 gap-4 md:grid-cols-[1fr_1fr_1.5fr_auto] md:items-end">
+    <label class="filter-label">Trade
+      <select class="filter-control" [ngModel]="draft().skill" (ngModelChange)="updateFilter('skill', $event, mobile)">
+        <option value="">All trades</option>
+        @for (skill of skills(); track skill) { <option [value]="skill">{{ skill | titlecase }}</option> }
+      </select>
+    </label>
+    <label class="filter-label">City
+      <select class="filter-control" [ngModel]="draft().city" (ngModelChange)="updateFilter('city', $event, mobile)">
+        <option value="">All cities</option>
+        @for (city of cities(); track city) { <option [value]="city">{{ city }}</option> }
+      </select>
+    </label>
+    <fieldset>
+      <legend class="filter-label mb-2">Budget (MAD)</legend>
+      <div class="flex items-center gap-2">
+        <input type="number" min="0" class="filter-control min-w-0" placeholder="Min" aria-label="Minimum budget in MAD"
+          [attr.aria-invalid]="budgetError() ? true : null" [attr.aria-describedby]="budgetError() ? (mobile ? 'mobile-budget-error' : 'budget-error') : null"
+          [ngModel]="draft().minBudget" (ngModelChange)="updateFilter('minBudget', $event, true)" (change)="!mobile && applyFilters()" />
+        <span class="text-gray-400" aria-hidden="true">–</span>
+        <input type="number" min="0" class="filter-control min-w-0" placeholder="Max" aria-label="Maximum budget in MAD"
+          [attr.aria-invalid]="budgetError() ? true : null" [attr.aria-describedby]="budgetError() ? (mobile ? 'mobile-budget-error' : 'budget-error') : null"
+          [ngModel]="draft().maxBudget" (ngModelChange)="updateFilter('maxBudget', $event, true)" (change)="!mobile && applyFilters()" />
+      </div>
+    </fieldset>
+    @if (!mobile) {
+      <button type="button" class="filter-button" [attr.aria-expanded]="moreFilters()" aria-controls="extra-filters" (click)="moreFilters.set(!moreFilters())">More filters <span aria-hidden="true">{{ moreFilters() ? '−' : '+' }}</span></button>
+    }
+  </div>
+  @if (budgetError()) { <p [id]="mobile ? 'mobile-budget-error' : 'budget-error'" class="mt-3 text-sm text-red-700" role="alert">{{ budgetError() }}</p> }
+  @if (mobile || moreFilters()) {
+    <div [id]="mobile ? 'mobile-extra-filters' : 'extra-filters'" class="mt-4 grid grid-cols-1 gap-4 border-t border-gray-100 pt-4 md:grid-cols-2">
+      <label class="filter-label">Estimated duration
+        <select class="filter-control" [ngModel]="draft().duration" (ngModelChange)="updateFilter('duration', $event, mobile)">
+          <option value="">Any duration</option>
+          @for (duration of durations; track duration.value) { <option [value]="duration.value">{{ duration.label }}</option> }
+        </select>
+      </label>
+      <label class="filter-label">Preferred time
+        <select class="filter-control" [ngModel]="draft().preferredTime" (ngModelChange)="updateFilter('preferredTime', $event, mobile)">
+          <option value="">Any time</option>
+          @for (time of times; track time) { <option [value]="time">{{ time | titlecase }}</option> }
+        </select>
+      </label>
+    </div>
+  }
+</ng-template>
+
+<dialog #filterDialog class="filter-sheet" aria-labelledby="filter-heading" (cancel)="closeFilters()">
+  <div class="flex items-center justify-between border-b border-gray-100 p-5">
+    <h2 id="filter-heading" class="text-xl font-semibold text-gray-900">Filter jobs</h2>
+    <button type="button" class="filter-button" aria-label="Close filters" (click)="closeFilters()">×</button>
+  </div>
+  <div class="overflow-y-auto p-5">
+    <ng-container *ngTemplateOutlet="filterFields; context: { mobile: true }" />
+  </div>
+  <div class="flex gap-3 border-t border-gray-100 bg-white p-5">
+    <button type="button" class="filter-button" (click)="clearFilters(true)">Reset</button>
+    <button type="button" class="flex-1 rounded-xl bg-primary-600 px-5 py-3 font-semibold text-white hover:bg-primary-700 focus-visible:outline-2 focus-visible:outline-offset-2" (click)="showResults()">Show results</button>
+  </div>
+</dialog>

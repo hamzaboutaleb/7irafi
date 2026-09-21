@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, ElementRef, HostListener, inject, signal, viewChild } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../services/auth';
 
@@ -9,6 +9,19 @@ import { AuthService } from '../../services/auth';
   styleUrl: './navbar.css',
 })
 export class Navbar {
+  readonly jobsOpen = signal(false);
+  private readonly jobsMenu = viewChild<ElementRef<HTMLElement>>('jobsMenu');
+  private readonly jobsToggle = viewChild<ElementRef<HTMLButtonElement>>('jobsToggle');
+
+  @HostListener('document:click', ['$event'])
+  closeJobsOutside(event: MouseEvent): void {
+    if (!this.jobsMenu()?.nativeElement.contains(event.target as Node)) this.jobsOpen.set(false);
+  }
+
+  closeJobsWithEscape(): void {
+    this.jobsOpen.set(false);
+    this.jobsToggle()?.nativeElement.focus();
+  }
   private authService = inject(AuthService);
   private router = inject(Router);
 
