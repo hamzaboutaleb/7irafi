@@ -39,6 +39,13 @@ submissions. Applying does not assign a worker or change the job state.
 `PENDING` reflects the open job observed when applying; a job may close concurrently.
 No application status is stored. The personal list derives current status from job-service.
 
+## Chat context (internal)
+
+`GET /internal/applications/{applicationId}/chat-context` is consumed by the chat
+service. It requires the `X-Internal-Api-Key` header and returns the application,
+job, applicant, client, and current derived status. `PENDING` applications are
+included so the client and applicant can start a conversation before acceptance.
+
 ## My applications
 
 `GET /applications/my?page=0&size=10` with a bearer token returns only the current

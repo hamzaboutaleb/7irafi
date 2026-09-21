@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import com.herafi.application_service.client.JobClient;
 import com.herafi.application_service.client.UserClient;
 import com.herafi.application_service.dto.ApplicationResponse;
+import com.herafi.application_service.dto.ChatContextResponse;
 import com.herafi.application_service.dto.PageResponse;
 import com.herafi.application_service.entity.JobApplication;
 import com.herafi.application_service.exceptions.ApplicationException;
@@ -61,6 +62,19 @@ public class JobApplicationService {
         }
         return new ApplicationResponse(application.getId(), jobId, applicantId,
                 application.getCreatedAt(), "PENDING");
+    }
+
+    public ChatContextResponse getChatContext(UUID applicationId) {
+        var application = repository.findById(applicationId)
+                .orElseThrow(() -> new ApplicationException(HttpStatus.NOT_FOUND,
+                        "APPLICATION_NOT_FOUND", "Application not found"));
+        var job = jobClient.getSummary(application.getJobId());
+        return new ChatContextResponse(
+                application.getId(),
+                application.getJobId(),
+                application.getApplicantId(),
+                job.clientId(),
+                getStatus(job, application.getApplicantId()));
     }
 
     public ApplicationResponse accept(UUID applicationId, UUID userId) {
