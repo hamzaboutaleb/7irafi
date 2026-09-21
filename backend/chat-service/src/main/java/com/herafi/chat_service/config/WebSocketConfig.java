@@ -27,7 +27,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker("/topic");
+        // /queue is required for per-user delivery: /user/queue/messages is
+        // rewritten to /queue/messages-user<session>, and the broker only delivers
+        // destinations whose prefix it was told to handle.
+        registry.enableSimpleBroker("/topic", "/queue");
         registry.setApplicationDestinationPrefixes("/app");
         registry.setUserDestinationPrefix("/user");
     }
