@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import com.herafi.job_service.entity.EstimatedDuration;
 import com.herafi.job_service.entity.PreferredTime;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -30,6 +31,8 @@ public record CreateJobRequest(
 
         @NotNull
         @DecimalMin(value = "0.01")
+        @Digits(integer = 8, fraction = 2,
+                message = "Budget must have at most 8 integer digits and 2 decimal places")
         BigDecimal budget,
 
         @NotNull

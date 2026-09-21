@@ -1,0 +1,143 @@
+<app-navbar />
+<main class="min-h-screen bg-gray-50 px-4 py-10 sm:px-6">
+  <section class="mx-auto max-w-5xl">
+    <div class="mb-6 flex justify-end">
+      <label class="flex items-center gap-3 text-sm font-medium text-gray-600">
+        Status
+        <select
+          class="field status-filter"
+          [ngModel]="status()"
+          (ngModelChange)="status.set($event)"
+        >
+          <option value="">All jobs</option>
+          @for (value of statuses; track value) {
+            <option [value]="value">{{ value | titlecase }}</option>
+          }
+        </select>
+      </label>
+    </div>
+    @if (notice()) { <p role="status" class="mb-5 rounded-xl bg-primary-50 p-4 text-primary-800">{{ notice() }}</p> }
+    @if (loading()) {
+      <p role="status" class="py-10 text-center text-gray-600">Loading your jobs…</p>
+    } @else if (error()) {
+      <div role="alert" class="rounded-xl bg-red-50 p-5 text-red-700">
+        {{ error() }} <button type="button" class="ml-2 underline" (click)="load()">Try again</button>
+      </div>
+    } @else if (!visibleJobs().length) {
+      <div class="rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-16 text-center">
+        <h2 class="text-xl font-semibold text-gray-900">{{ jobs().length ? 'No jobs with this status' : 'Your next project starts here' }}</h2>
+        <p class="mt-2 text-gray-600">{{ jobs().length ? 'Choose another status to see your other posts.' : 'Post your first job to find the right professional.' }}</p>
+        @if (jobs().length) {
+          <button type="button" class="secondary-button mt-5" (click)="status.set('')">Show all jobs</button>
+        } @else { <a routerLink="/jobs/new" class="primary-button mt-5">Post a job</a> }
+      </div>
+    } @else {
+      <p class="mb-4 text-sm text-gray-500">{{ visibleJobs().length }} {{ visibleJobs().length === 1 ? 'job' : 'jobs' }}</p>
+      <ul class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        @for (job of visibleJobs(); track job.id) {
+          <li class="min-w-0">
+            <article class="flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <span class="rounded-full px-3 py-1 text-xs font-semibold"
+                  [class]="job.status === 'OPEN' ? 'bg-emerald-50 text-emerald-700' : job.status === 'ASSIGNED' ? 'bg-amber-50 text-amber-800' : 'bg-gray-100 text-gray-600'">{{ job.status | titlecase }}</span>
+                <details #actions class="job-actions relative" name="job-actions" (keydown.escape)="closeMenu(actions)"
+                  (focusout)="closeMenuOnFocusOut($event, actions)">
+                  <summary class="flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-xl text-gray-500 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-primary-500"
+                    [attr.aria-label]="'Actions for ' + job.title">
+                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <circle cx="12" cy="5" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="12" cy="19" r="2" />
+                    </svg>
+                  </summary>
+                  <div class="absolute right-0 top-full z-20 mt-1 w-44 rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg">
+                    @if (allowed(job, 'edit')) {
+                      <button type="button" class="menu-action" (click)="closeMenu(actions); openAction(job, 'edit')">
+                        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 5 5L8 21H3v-5Z" /><path d="m14 5 5 5" /></svg>
+                        Edit job
+                      </button>
+                    }
+                    @if (allowed(job, 'complete')) {
+                      <button type="button" class="menu-action" (click)="closeMenu(actions); openAction(job, 'complete')">
+                        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6" /></svg>
+                        Mark complete
+                      </button>
+                    }
+                    @if (allowed(job, 'delete')) {
+                      <button type="button" class="menu-action menu-action-danger" (click)="closeMenu(actions); openAction(job, 'delete')">
+                        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7" /></svg>
+                        Delete job
+                      </button>
+                    }
+                  </div>
+                </details>
+              </div>
+              <h2 class="mt-4 break-words text-lg font-semibold text-gray-900">
+                <button type="button" class="cursor-pointer text-left hover:text-primary-700 hover:underline" (click)="selectedJobId.set(job.id)">{{ job.title }}</button>
+              </h2>
+              <p class="mt-1 text-xs text-gray-500">Posted {{ job.createdAt | date: 'mediumDate' }}</p>
+              <p class="mt-2 line-clamp-3 break-words text-sm leading-6 text-gray-600">{{ job.description }}</p>
+              <dl class="my-5 grid grid-cols-2 gap-3 text-sm">
+                <div><dt class="text-gray-500">Trade</dt><dd class="mt-1 break-words font-medium">{{ job.skill | titlecase }}</dd></div>
+                <div><dt class="text-gray-500">City</dt><dd class="mt-1 break-words font-medium">{{ job.city | titlecase }}</dd></div>
+                <div class="col-span-2"><dt class="text-gray-500">Budget</dt><dd class="mt-1 font-semibold text-gray-900">{{ job.budget | number }} MAD</dd></div>
+              </dl>
+              <div class="mt-auto border-t border-gray-100 pt-4">
+                <div class="flex flex-wrap gap-2">
+                  <a [routerLink]="['/jobs', job.id, 'applicants']" class="primary-button">View applicants</a>
+                  @if (allowed(job, 'cancel')) {
+                    <button type="button" class="secondary-button" (click)="openAction(job, 'cancel')">Cancel job</button>
+                  }
+                </div>
+                @if (job.status === 'ASSIGNED') { <p class="mt-3 text-xs leading-5 text-gray-500">Assigned jobs can be completed or cancelled. Editing and deletion are unavailable while work is assigned.</p> }
+              </div>
+            </article>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+</main>
+<app-footer />
+
+<dialog #actionDialog class="action-dialog" aria-labelledby="action-heading" (cancel)="closeAction($event)">
+  @if (target(); as job) {
+    <form (ngSubmit)="submit()" class="p-6">
+      <div class="flex items-start justify-between gap-3">
+        <h2 id="action-heading" class="text-xl font-semibold text-gray-900">{{ actionLabels[action()] }}</h2>
+        <button type="button" class="secondary-button" aria-label="Close dialog" [disabled]="busy()" (click)="closeAction()">×</button>
+      </div>
+      @if (action() === 'edit') {
+        <p class="mt-2 text-sm text-gray-500">Update your job’s title, description, or address.</p>
+        <fieldset [disabled]="busy()" class="mt-5 space-y-4">
+          <label class="block text-sm font-medium text-gray-700">Title
+            <input name="title" class="field mt-2" required maxlength="120" [(ngModel)]="draft.title" />
+          </label>
+          <label class="block text-sm font-medium text-gray-700">Description
+            <textarea name="description" class="field mt-2" rows="5" required [(ngModel)]="draft.description"></textarea>
+          </label>
+          <label class="block text-sm font-medium text-gray-700">Address <span class="font-normal text-gray-500">(optional)</span>
+            <input name="address" class="field mt-2" maxlength="200" [(ngModel)]="draft.addressLine" />
+          </label>
+        </fieldset>
+      } @else {
+        <p class="mt-5 break-words font-medium text-gray-900">{{ job.title }}</p>
+        <p class="mt-2 text-sm leading-6 text-gray-600">
+          @switch (action()) {
+            @case ('delete') { This will remove your job from the listings and your posted jobs. You cannot undo this action. }
+            @case ('cancel') { This will close the job to new applications and cancel any worker assignment. You cannot reopen it. }
+            @case ('complete') { Confirm that the assigned work is finished. This will mark the job as completed. }
+          }
+        </p>
+      }
+      @if (actionError()) { <p role="alert" class="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">{{ actionError() }}</p> }
+      <div class="mt-6 flex flex-wrap justify-end gap-3">
+        <button type="button" class="secondary-button" [disabled]="busy()" (click)="closeAction()">{{ action() === 'edit' ? 'Discard changes' : 'Keep job' }}</button>
+        <button type="submit" class="primary-button" [class.danger-button]="action() === 'delete' || action() === 'cancel'" [disabled]="busy()">
+          {{ busy() ? 'Saving…' : action() === 'edit' ? 'Save changes' : actionLabels[action()] }}
+        </button>
+      </div>
+    </form>
+  }
+</dialog>
+@if (selectedJobId(); as jobId) {
+  <app-job-details-modal [jobId]="jobId" (closed)="selectedJobId.set(null)" />
+}

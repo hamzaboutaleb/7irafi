@@ -38,3 +38,7 @@ export interface ProfessionalCard {
   cities: ServiceCity[];
   online: boolean;
 }
+
+export interface PublicProfessionalProfile extends ProfessionalCard {
+  biography: string;
+}

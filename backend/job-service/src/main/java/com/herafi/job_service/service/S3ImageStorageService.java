@@ -10,9 +10,11 @@ import lombok.RequiredArgsConstructor;
 
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectTaggingRequest;
+import software.amazon.awssdk.services.s3.model.Tag;
+import software.amazon.awssdk.services.s3.model.Tagging;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 
@@ -38,6 +40,7 @@ public class S3ImageStorageService implements ImageStorageService {
                                 .bucket(bucket)
                                 .key(objectKey)
                                 .contentType(contentType)
+                                .tagging("cleanup=pending")
                                 .build();
 
                 s3Client.putObject(
@@ -64,13 +67,23 @@ public class S3ImageStorageService implements ImageStorageService {
         }
 
         @Override
-        public void delete(String objectKey) {
+        public void markCommitted(String objectKey) {
+                setCleanupTag(objectKey, "committed");
+        }
 
-                DeleteObjectRequest request = DeleteObjectRequest.builder()
+        @Override
+        public void markPendingCleanup(String objectKey) {
+                setCleanupTag(objectKey, "pending");
+        }
+
+        private void setCleanupTag(String objectKey, String state) {
+                PutObjectTaggingRequest request = PutObjectTaggingRequest.builder()
                                 .bucket(bucket)
                                 .key(objectKey)
+                                .tagging(Tagging.builder()
+                                                .tagSet(Tag.builder().key("cleanup").value(state).build())
+                                                .build())
                                 .build();
-
-                s3Client.deleteObject(request);
+                s3Client.putObjectTagging(request);
         }
 }

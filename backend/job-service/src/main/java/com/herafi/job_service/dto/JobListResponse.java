@@ -21,6 +21,7 @@ public record JobListResponse(
         JobStatus status,
         UUID assignedWorkerId,
         Instant createdAt,
-        Instant updatedAt
+        Instant updatedAt,
+        String thumbnailUrl
 ) {
 }
