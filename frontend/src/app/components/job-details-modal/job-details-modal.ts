@@ -22,10 +22,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { JobService } from '../../services/job.js';
 import { EstimatedDuration, JobDetail } from '../../types/job.js';
+import { TranslatePipe } from '../../pipes/translate-pipe.js';
 
 @Component({
   selector: 'app-job-details-modal',
-  imports: [DatePipe, DecimalPipe, TitleCasePipe, RouterLink],
+  imports: [DatePipe, DecimalPipe, TitleCasePipe, RouterLink, TranslatePipe],
   templateUrl: './job-details-modal.html',
 })
 export class JobDetailsModal implements OnInit, AfterViewInit, OnDestroy {
