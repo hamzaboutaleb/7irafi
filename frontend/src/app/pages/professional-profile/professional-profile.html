@@ -3,10 +3,10 @@
 <main class="min-h-screen bg-gray-50 px-4 py-10 sm:px-6">
   <div class="mx-auto max-w-3xl">
     <header class="mb-8">
-      <p class="text-sm font-semibold text-primary-600">My professional profile</p>
-      <h1 class="mt-2 text-3xl font-bold text-gray-900">Professional profile</h1>
+      <p class="text-sm font-semibold text-primary-600">{{ 'proProfile.eyebrow' | translate }}</p>
+      <h1 class="mt-2 text-3xl font-bold text-gray-900">{{ 'profile.professional' | translate }}</h1>
       <p class="mt-2 max-w-2xl text-gray-600">
-        Choose the services you provide and the cities where you are available.
+        {{ 'proProfile.intro' | translate }}
       </p>
     </header>
 
@@ -16,21 +16,21 @@
         role="status"
         aria-live="polite"
       >
-        <p class="font-medium text-gray-900">Loading your professional profile…</p>
+        <p class="font-medium text-gray-900">{{ 'profile.loadingProfessional' | translate }}</p>
         <p class="mt-1 text-sm text-gray-600">
-          We are retrieving your profile, service categories, and cities.
+          {{ 'proProfile.loadingDetail' | translate }}
         </p>
       </section>
     } @else if (mode() === 'error') {
       <section class="rounded-2xl border border-red-200 bg-red-50 p-6 sm:p-8" role="alert">
-        <h2 class="text-lg font-semibold text-red-900">We could not load this page</h2>
+        <h2 class="text-lg font-semibold text-red-900">{{ 'proProfile.loadError' | translate }}</h2>
         <p class="mt-2 text-sm text-red-700">{{ errorMessage() }}</p>
         <button
           type="button"
           (click)="loadPage()"
           class="mt-5 inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl bg-red-700 px-5 py-2.5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-red-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
         >
-          Try again
+          {{ 'common.retry' | translate }}
         </button>
       </section>
     } @else {
@@ -60,7 +60,7 @@
 
           @if (professionalProfile(); as currentProfile) {
             <div class="shrink-0">
-              <p class="text-xs font-medium uppercase tracking-wide text-gray-500">Status</p>
+              <p class="text-xs font-medium uppercase tracking-wide text-gray-500">{{ 'proProfile.status' | translate }}</p>
               <span
                 class="mt-1 inline-flex min-h-11 items-center rounded-full bg-primary-50 px-4 py-2 text-sm font-semibold text-primary-700"
               >
@@ -81,7 +81,7 @@
           <div>
             <div class="flex items-end justify-between gap-4">
               <label for="biography" class="block text-sm font-semibold text-gray-800">
-                Professional biography
+                {{ 'proProfile.biography' | translate }}
               </label>
               <span class="text-xs text-gray-500">{{ biography.value.length }}/2000</span>
             </div>
@@ -91,7 +91,7 @@
               formControlName="biography"
               rows="6"
               maxlength="2000"
-              placeholder="Describe your experience, the work you do, and what clients can expect."
+              [attr.placeholder]="'proProfile.biographyPlaceholder' | translate"
               [attr.aria-invalid]="biography.invalid && biography.touched"
               [attr.aria-describedby]="
                 biography.invalid && biography.touched
@@ -103,7 +103,7 @@
             ></textarea>
 
             <p id="biography-help" class="mt-1.5 text-sm text-gray-500">
-              Use between 10 and 2000 characters. Do not include private contact information.
+              {{ 'proProfile.biographyHint' | translate }}
             </p>
 
             @if (biography.invalid && biography.touched) {
@@ -120,9 +120,9 @@
           </div>
 
           <fieldset>
-            <legend class="text-sm font-semibold text-gray-800">Services you provide</legend>
+            <legend class="text-sm font-semibold text-gray-800">{{ 'profile.servicesProvided' | translate }}</legend>
             <p id="categories-help" class="mt-1 text-sm text-gray-500">
-              Select at least one service category.
+              {{ 'proProfile.selectCategory' | translate }}
             </p>
 
             <div
@@ -152,7 +152,7 @@
                   </span>
                 </label>
               } @empty {
-                <p class="text-sm text-gray-600">No service categories are currently available.</p>
+                <p class="text-sm text-gray-600">{{ 'proProfile.noCategories' | translate }}</p>
               }
             </div>
 
@@ -164,9 +164,9 @@
           </fieldset>
 
           <fieldset>
-            <legend class="text-sm font-semibold text-gray-800">Cities where you work</legend>
+            <legend class="text-sm font-semibold text-gray-800">{{ 'proProfile.cities' | translate }}</legend>
             <p id="cities-help" class="mt-1 text-sm text-gray-500">
-              Select every city where you are available for work.
+              {{ 'proProfile.citiesHint' | translate }}
             </p>
 
             <div
@@ -189,13 +189,13 @@
                   <span class="text-sm font-semibold text-gray-900">{{ city.displayName }}</span>
                 </label>
               } @empty {
-                <p class="text-sm text-gray-600">No service cities are currently available.</p>
+                <p class="text-sm text-gray-600">{{ 'proProfile.noCities' | translate }}</p>
               }
             </div>
 
             @if (cityCodes.invalid && cityCodes.touched) {
               <p id="cities-error" class="mt-2 text-sm font-medium text-red-600" role="alert">
-                Select at least one service city.
+                {{ 'proProfile.selectCity' | translate }}
               </p>
             }
           </fieldset>
@@ -207,7 +207,7 @@
               routerLink="/profile"
               class="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-700 transition-colors duration-200 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2"
             >
-              Back to profile
+              {{ 'proProfile.back' | translate }}
             </a>
 
             <button

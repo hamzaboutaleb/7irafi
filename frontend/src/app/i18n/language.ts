@@ -1,3 +1,5 @@
+import { en } from './en.js';
+
 export const LANGUAGES = ['en', 'fr', 'ar'] as const;
 
 export type Language = (typeof LANGUAGES)[number];
@@ -16,4 +18,4 @@ export const LANGUAGE_OPTIONS: LanguageOption[] = [
 ];
 
 /** Every translatable string in the app, flat and typed. */
-export type TranslationKey = keyof typeof import('./en.js').en;
+export type TranslationKey = keyof typeof en;

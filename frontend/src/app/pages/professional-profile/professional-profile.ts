@@ -9,6 +9,7 @@ import { Footer } from '../../components/footer/footer';
 import { Navbar } from '../../components/navbar/navbar';
 import { UserService } from '../../services/user.js';
 import { ApiError } from '../../types/api.js';
+import { TranslatePipe } from '../../pipes/translate-pipe.js';
 import {
   ProfessionalProfile as ProfessionalProfileModel,
   ServiceCategory,
@@ -19,7 +20,7 @@ type ProfessionalProfileMode = 'loading' | 'create' | 'edit' | 'error';
 
 @Component({
   selector: 'app-professional-profile',
-  imports: [Footer, Navbar, ReactiveFormsModule, RouterLink],
+  imports: [Footer, Navbar, ReactiveFormsModule, RouterLink, TranslatePipe],
   templateUrl: './professional-profile.html',
   styleUrl: './professional-profile.css',
 })

@@ -3,10 +3,11 @@ import { Component, computed, input, linkedSignal, output } from '@angular/core'
 
 import { JobListItem } from '../../types/job.js';
 import { ApplicationStatus, applicationStatusLabels } from '../../types/application.js';
+import { TranslatePipe } from '../../pipes/translate-pipe.js';
 
 @Component({
   selector: 'app-job-card',
-  imports: [DatePipe, DecimalPipe, TitleCasePipe],
+  imports: [DatePipe, DecimalPipe, TitleCasePipe, TranslatePipe],
   templateUrl: './job-card.html',
 })
 export class JobCard {

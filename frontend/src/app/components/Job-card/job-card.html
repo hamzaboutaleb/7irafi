@@ -16,17 +16,17 @@
 
   <dl class="mt-5 grid grid-cols-2 gap-3 text-sm">
     <div class="min-w-0">
-      <dt class="text-gray-500">Skill</dt>
+      <dt class="text-gray-500">{{ 'job.skill' | translate }}</dt>
       <dd class="mt-1 truncate font-semibold text-gray-900">{{ job().skill }}</dd>
     </div>
 
     <div class="min-w-0">
-      <dt class="text-gray-500">City</dt>
+      <dt class="text-gray-500">{{ 'job.city' | translate }}</dt>
       <dd class="mt-1 truncate font-semibold text-gray-900">{{ job().city }}</dd>
     </div>
 
     <div class="min-w-0">
-      <dt class="text-gray-500">Budget</dt>
+      <dt class="text-gray-500">{{ 'job.budget' | translate }}</dt>
       <dd class="mt-1 truncate font-semibold text-gray-900">
         {{ job().budget | number: '1.0-2' }} MAD
       </dd>
