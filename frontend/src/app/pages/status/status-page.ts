@@ -6,10 +6,11 @@ import { Footer } from '../../components/footer/footer.js';
 import { DatePipe } from '@angular/common';
 import { StatusService } from '../../services/status.js';
 import { PlatformStatus } from '../../types/status.js';
+import { TranslatePipe } from '../../pipes/translate-pipe.js';
 
 @Component({
   selector: 'app-status-page',
-  imports: [Navbar, Footer, DatePipe],
+  imports: [Navbar, Footer, DatePipe, TranslatePipe],
   templateUrl: './status-page.html',
 })
 export class StatusPage implements OnInit {

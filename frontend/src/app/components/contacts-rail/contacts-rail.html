@@ -5,7 +5,7 @@
     class="fixed right-0 top-1/2 z-40 hidden -translate-y-1/2 flex-col rounded-l-2xl border border-r-0 border-gray-200 bg-white/90 py-3 shadow-lg backdrop-blur-sm md:flex"
     [class.w-16]="!expanded()"
     [class.w-64]="expanded()"
-    aria-label="Your network"
+    aria-label="{{ 'network.title' | translate }}"
   >
     <button
       type="button"
@@ -24,7 +24,7 @@
       </svg>
 
       @if (expanded()) {
-        <span class="truncate">Your network</span>
+        <span class="truncate">{{ 'network.title' | translate }}</span>
       }
 
       <span class="sr-only">
