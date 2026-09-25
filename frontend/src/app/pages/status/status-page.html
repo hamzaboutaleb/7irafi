@@ -3,10 +3,10 @@
 <main class="min-h-screen bg-gray-50 px-4 py-10 sm:px-6">
   <div class="mx-auto max-w-3xl">
     <header class="mb-8">
-      <p class="text-sm font-semibold text-primary-600">Platform</p>
-      <h1 class="mt-2 text-3xl font-bold text-gray-900">Service status</h1>
+      <p class="text-sm font-semibold text-primary-600">{{ 'status.eyebrow' | translate }}</p>
+      <h1 class="mt-2 text-3xl font-bold text-gray-900">{{ 'status.title' | translate }}</h1>
       <p class="mt-2 text-gray-600">
-        Live health of every service, refreshed automatically every 15 seconds.
+        {{ 'status.subtitle' | translate }}
       </p>
     </header>
 
@@ -25,7 +25,7 @@
         role="status"
         aria-live="polite"
       >
-        <p class="text-sm text-gray-600">Checking services…</p>
+        <p class="text-sm text-gray-600">{{ 'status.checking' | translate }}</p>
       </section>
     } @else if (status(); as platform) {
       <section
