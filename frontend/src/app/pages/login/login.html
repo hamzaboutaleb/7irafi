@@ -15,8 +15,8 @@
   <!-- Right: form side -->
   <div class="flex items-center justify-center p-12">
     <div class="w-full max-w-sm">
-      <h1 class="text-3xl font-bold text-gray-900">Welcome back</h1>
-      <p class="text-gray-500 mt-2">Sign in to your account to continue</p>
+      <h1 class="text-3xl font-bold text-gray-900">{{ 'auth.login.heading' | translate }}</h1>
+      <p class="text-gray-500 mt-2">{{ 'auth.login.hint' | translate }}</p>
 
       <form [formGroup]="form" (ngSubmit)="login()">
         @if (errorMessage()) {
@@ -25,7 +25,7 @@
           </div>
         }
         <div class="mt-8">
-          <label class="block text-sm font-medium text-gray-700 mb-1.5">Email address</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ 'auth.field.emailAddress' | translate }}</label>
           <input
             type="email"
             formControlName="email"
@@ -34,10 +34,10 @@
           />
           @if (email.invalid && (email.dirty || email.touched)) {
             @if (email.errors?.['email']) {
-              <div class="text-red-500 text-xs mt-1">Please enter a valid email address.</div>
+              <div class="text-red-500 text-xs mt-1">{{ 'auth.error.emailInvalid' | translate }}</div>
             }
             @if (email.errors?.['required']) {
-              <div class="text-red-500 text-xs mt-1">Email is required.</div>
+              <div class="text-red-500 text-xs mt-1">{{ 'auth.error.emailRequired' | translate }}</div>
             }
             @if (email.errors?.['maxlength']) {
               <div class="text-red-500 text-xs mt-1">
@@ -50,8 +50,8 @@
 
         <div class="mt-5">
           <div class="flex items-center justify-between mb-1.5">
-            <label class="text-sm font-medium text-gray-700">Password</label>
-            <a href="#" class="text-xs text-primary-600 hover:text-primary-700">Forgot password?</a>
+            <label class="text-sm font-medium text-gray-700">{{ 'auth.field.password' | translate }}</label>
+            <a href="#" class="text-xs text-primary-600 hover:text-primary-700">{{ 'auth.forgotPassword' | translate }}</a>
           </div>
           <input
             type="password"
@@ -61,7 +61,7 @@
           />
           @if (password.invalid && (password.dirty || password.touched)) {
             @if (password.errors?.['required']) {
-              <div class="text-red-500 text-xs mt-1">Passwords required.</div>
+              <div class="text-red-500 text-xs mt-1">{{ 'auth.error.passwordRequired' | translate }}</div>
             }
             @if (password.errors?.['maxlength']) {
               <div class="text-red-500 text-xs mt-1">
@@ -75,15 +75,15 @@
         <button
           class="w-full mt-8 bg-gradient-to-r from-primary-500 to-primary-700 hover:from-primary-600 hover:to-primary-800 text-white text-sm font-medium py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-sm shadow-primary-200 cursor-pointer"
         >
-          Sign in
+          {{ 'auth.login.submit' | translate }}
           <svg [lucideIcon]="arrowIcon" class="w-4 h-4" />
         </button>
       </form>
 
       <p class="text-center text-sm text-gray-500 mt-6">
-        Don't have an account?
+        {{ 'auth.login.noAccount' | translate }}
         <a routerLink="/register" class="text-primary-600 font-medium hover:text-primary-700"
-          >Sign up</a
+          >{{ 'nav.register' | translate }}</a
         >
       </p>
     </div>

@@ -7,8 +7,10 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, filter, map, of, switchMap } from 'rxjs';
 import { Footer } from '../../components/footer/footer.js';
 import { Navbar } from '../../components/navbar/navbar.js';
+import { TranslatePipe } from '../../pipes/translate-pipe.js';
 import { AuthService } from '../../services/auth.js';
 import { ChatService, chatError } from '../../services/chat.js';
+import { I18nService } from '../../services/i18n.js';
 import { JobService } from '../../services/job.js';
 import { UserService } from '../../services/user.js';
 import { ChatMessage, Conversation as ConversationModel } from '../../types/chat.js';
@@ -18,11 +20,12 @@ const MAX_LENGTH = 4000;
 
 @Component({
   selector: 'app-conversation',
-  imports: [DatePipe, FormsModule, RouterLink, Navbar, Footer],
+  imports: [DatePipe, FormsModule, RouterLink, Navbar, Footer, TranslatePipe],
   templateUrl: './conversation.html',
 })
 export class Conversation implements OnInit {
   private readonly chat = inject(ChatService);
+  private readonly i18n = inject(I18nService);
   private readonly jobs = inject(JobService);
   private readonly users = inject(UserService);
   private readonly auth = inject(AuthService);
@@ -97,7 +100,7 @@ export class Conversation implements OnInit {
       this.draft = '';
       this.notice.set(null);
     } else {
-      this.notice.set('Not connected right now. Your message was not sent — reconnecting…');
+      this.notice.set(this.i18n.translate('chat.notConnected'));
     }
   }
 

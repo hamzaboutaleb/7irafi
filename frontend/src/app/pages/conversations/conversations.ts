@@ -5,6 +5,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { catchError, forkJoin, map, of, switchMap } from 'rxjs';
 import { Footer } from '../../components/footer/footer.js';
+import { TranslatePipe } from '../../pipes/translate-pipe.js';
 import { Navbar } from '../../components/navbar/navbar.js';
 import { AuthService } from '../../services/auth.js';
 import { ChatService, chatError } from '../../services/chat.js';
@@ -23,7 +24,7 @@ interface ConversationRow {
 
 @Component({
   selector: 'app-conversations',
-  imports: [DatePipe, RouterLink, Navbar, Footer],
+  imports: [DatePipe, RouterLink, Navbar, Footer, TranslatePipe],
   templateUrl: './conversations.html',
 })
 export class Conversations implements OnInit {

@@ -1,6 +1,8 @@
 import { HttpErrorResponse, HttpEventType } from '@angular/common/http';
 import { Component, DestroyRef, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslatePipe } from '../../pipes/translate-pipe.js';
+import { I18nService } from '../../services/i18n.js';
 import { UserService } from '../../services/user.js';
 import { ApiError } from '../../types/api.js';
 import { UserProfile } from '../../types/user.js';
@@ -17,11 +19,12 @@ const MAX_BYTES = 2 * 1024 * 1024;
  */
 @Component({
   selector: 'app-avatar-upload',
-  imports: [],
+  imports: [TranslatePipe],
   templateUrl: './avatar-upload.html',
 })
 export class AvatarUpload {
   private readonly userService = inject(UserService);
+  private readonly i18n = inject(I18nService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly profile = input.required<UserProfile>();
@@ -85,7 +88,7 @@ export class AvatarUpload {
           this.profileChange.emit(event.body.data);
           this.clearPick();
           this.uploading.set(false);
-          this.notice.set('Picture updated.');
+          this.notice.set(this.i18n.translate('profile.picture.updated'));
         }
       },
       error: (error: HttpErrorResponse) => {
@@ -105,7 +108,7 @@ export class AvatarUpload {
     this.userService.deleteAvatar().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.removing.set(false);
-        this.notice.set('Picture removed.');
+        this.notice.set(this.i18n.translate('profile.picture.removed'));
         this.profileChange.emit({ ...this.profile(), avatarUrl: null });
       },
       error: (error: HttpErrorResponse) => {
