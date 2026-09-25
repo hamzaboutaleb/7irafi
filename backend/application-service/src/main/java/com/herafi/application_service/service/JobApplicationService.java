@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.herafi.application_service.client.JobClient;
+import com.herafi.application_service.client.NotificationClient;
 import com.herafi.application_service.client.UserClient;
 import com.herafi.application_service.dto.ApplicationResponse;
 import com.herafi.application_service.dto.ChatContextResponse;
@@ -29,6 +30,7 @@ public class JobApplicationService {
     private final JobApplicationRepository repository;
     private final JobClient jobClient;
     private final UserClient userClient;
+    private final NotificationClient notificationClient;
 
     public ApplicationResponse apply(UUID jobId, UUID applicantId) {
         userClient.requireActiveWorker(applicantId);
@@ -60,6 +62,15 @@ public class JobApplicationService {
             }
             throw exception;
         }
+        // The client is told someone applied; a failure here must not undo an
+        // application that was stored successfully.
+        notificationClient.notify(
+                job.clientId(),
+                "APPLICATION_RECEIVED",
+                "New application",
+                "A professional applied to your job.",
+                "/jobs/" + jobId + "/applicants");
+
         return new ApplicationResponse(application.getId(), jobId, applicantId,
                 application.getCreatedAt(), "PENDING");
     }
@@ -94,6 +105,13 @@ public class JobApplicationService {
                         "Only open jobs can accept an applicant");
             }
             job = jobClient.assignWorker(application.getJobId(), application.getApplicantId());
+
+            notificationClient.notify(
+                    application.getApplicantId(),
+                    "APPLICATION_ACCEPTED",
+                    "You were accepted",
+                    "A client accepted your application. You can now agree the details.",
+                    "/applications");
         }
         return new ApplicationResponse(application.getId(), application.getJobId(),
                 application.getApplicantId(), application.getCreatedAt(),

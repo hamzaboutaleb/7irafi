@@ -7,6 +7,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ApiError } from '../../types/api.js';
 
 import { AvatarUpload } from '../../components/avatar-upload/avatar-upload.js';
+import { NotificationPanel } from '../../components/notification-panel/notification-panel.js';
 import { Navbar } from '../../components/navbar/navbar';
 import { Footer } from '../../components/footer/footer';
 import { DatePipe } from '@angular/common';
@@ -17,7 +18,7 @@ type ProfessionalSectionState = 'loading' | 'none' | 'loaded' | 'error';
 
 @Component({
   selector: 'app-profile',
-  imports: [ReactiveFormsModule, Navbar, Footer, DatePipe, RouterLink, AvatarUpload],
+  imports: [ReactiveFormsModule, Navbar, Footer, DatePipe, RouterLink, AvatarUpload, NotificationPanel],
   templateUrl: './profile.html',
   styleUrl: './profile.css',
 })
