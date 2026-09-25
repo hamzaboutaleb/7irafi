@@ -19,18 +19,22 @@ import com.herafi.user_service.dto.PageResponse;
 import com.herafi.user_service.dto.ProfessionalCardResponse;
 import com.herafi.user_service.dto.PublicProfessionalProfileResponse;
 import com.herafi.user_service.entity.ProfessionalProfile;
+import com.herafi.user_service.service.AvatarService;
 import com.herafi.user_service.service.ProfessionalProfileService;
 
 @RestController
 @RequestMapping("/users/professionals")
 public class ProfessionalDirectoryController {
     private final ProfessionalProfileService professionalProfileService;
+    private final AvatarService avatarService;
     private final Duration onlineThreshold;
 
     public ProfessionalDirectoryController(
             ProfessionalProfileService professionalProfileService,
+            AvatarService avatarService,
             @Value("${users.presence.online-threshold}") Duration onlineThreshold) {
         this.professionalProfileService = professionalProfileService;
+        this.avatarService = avatarService;
         this.onlineThreshold = onlineThreshold;
     }
 
@@ -45,7 +49,9 @@ public class ProfessionalDirectoryController {
     public ApiResponse<PublicProfessionalProfileResponse> getProfessional(@PathVariable UUID userId) {
         ProfessionalProfile profile = professionalProfileService.getActiveProfessional(userId);
         return ApiResponse.success(PublicProfessionalProfileResponse.from(
-                profile, Instant.now().minus(onlineThreshold)));
+                profile,
+                Instant.now().minus(onlineThreshold),
+                avatarService.urlFor(profile.getUserProfile())));
     }
 
     @GetMapping
@@ -65,7 +71,8 @@ public class ProfessionalDirectoryController {
 
         PageResponse<ProfessionalCardResponse> response = PageResponse.from(
                 profiles,
-                profile -> ProfessionalCardResponse.from(profile, onlineCutoff));
+                profile -> ProfessionalCardResponse.from(
+                        profile, onlineCutoff, avatarService.urlFor(profile.getUserProfile())));
 
         return ApiResponse.success(response);
     }

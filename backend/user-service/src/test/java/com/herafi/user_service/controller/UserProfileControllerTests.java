@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.herafi.user_service.dto.UpdateUserProfileRequest;
 import com.herafi.user_service.entity.UserProfile;
+import com.herafi.user_service.service.AvatarService;
 import com.herafi.user_service.service.UserProfileService;
 
 @ActiveProfiles("test")
@@ -33,6 +34,10 @@ class UserProfileControllerTests {
 
     @MockitoBean
     private UserProfileService userProfileService;
+
+    // The controller resolves avatar links through it; storage is not part of these tests.
+    @MockitoBean
+    private AvatarService avatarService;
 
     @Test
     void rejectsProfileUpdateWithShortFirstName() throws Exception {
