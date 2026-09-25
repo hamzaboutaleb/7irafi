@@ -174,12 +174,20 @@
                   <!-- Real presence: the backend derives `online` from last_seen_at against a
                        configured threshold. The raw timestamp never reaches the browser. -->
                   <div class="relative shrink-0">
-                    <div
-                      class="flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 text-2xl font-bold uppercase text-primary-700 ring-4 ring-primary-50"
-                      aria-hidden="true"
-                    >
-                      {{ professional.firstName.charAt(0) }}
-                    </div>
+                    @if (professional.avatarUrl) {
+                      <img
+                        [src]="professional.avatarUrl"
+                        alt=""
+                        class="h-16 w-16 rounded-full object-cover ring-4 ring-primary-50"
+                      />
+                    } @else {
+                      <div
+                        class="flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 text-2xl font-bold uppercase text-primary-700 ring-4 ring-primary-50"
+                        aria-hidden="true"
+                      >
+                        {{ professional.firstName.charAt(0) }}
+                      </div>
+                    }
 
                     <span
                       class="absolute bottom-0 right-0 block h-4 w-4 rounded-full border-2 border-white"

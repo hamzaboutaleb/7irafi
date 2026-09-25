@@ -37,6 +37,7 @@ export interface ProfessionalCard {
   categories: ServiceCategory[];
   cities: ServiceCity[];
   online: boolean;
+  avatarUrl: string | null;
 }
 
 export interface PublicProfessionalProfile extends ProfessionalCard {

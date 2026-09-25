@@ -12,7 +12,8 @@ public record ProfessionalCardResponse(
         String firstName,
         Set<ServiceCategoryResponse> categories,
         Set<ServiceCityResponse> cities,
-        boolean online) {
+        boolean online,
+        String avatarUrl) {
 
     /**
      * @param onlineCutoff the instant a heartbeat must be newer than to count as
@@ -22,6 +23,13 @@ public record ProfessionalCardResponse(
     public static ProfessionalCardResponse from(
             ProfessionalProfile professionalProfile,
             Instant onlineCutoff) {
+        return from(professionalProfile, onlineCutoff, null);
+    }
+
+    public static ProfessionalCardResponse from(
+            ProfessionalProfile professionalProfile,
+            Instant onlineCutoff,
+            String avatarUrl) {
         Set<ServiceCategoryResponse> categoryResponses = professionalProfile.getCategories() == null
                 ? Set.of()
                 : professionalProfile.getCategories().stream()
@@ -41,6 +49,7 @@ public record ProfessionalCardResponse(
                 professionalProfile.getUserProfile().getFirstName(),
                 categoryResponses,
                 cityResponses,
-                lastSeenAt != null && lastSeenAt.isAfter(onlineCutoff));
+                lastSeenAt != null && lastSeenAt.isAfter(onlineCutoff),
+                avatarUrl);
     }
 }
