@@ -2,14 +2,12 @@
 <main class="min-h-screen bg-gray-50 px-4 py-10 sm:px-6">
   <section class="mx-auto max-w-5xl">
     <div class="mb-6 flex justify-end">
-      <label class="flex items-center gap-3 text-sm font-medium text-gray-600">
-        Status
-        <select
+      <label class="flex items-center gap-3 text-sm font-medium text-gray-600">{{ 'myJobs.status' | translate }}<select
           class="field status-filter"
           [ngModel]="status()"
           (ngModelChange)="status.set($event)"
         >
-          <option value="">All jobs</option>
+          <option value="">{{ 'myJobs.all' | translate }}</option>
           @for (value of statuses; track value) {
             <option [value]="value">{{ value | titlecase }}</option>
           }
@@ -18,18 +16,18 @@
     </div>
     @if (notice()) { <p role="status" class="mb-5 rounded-xl bg-primary-50 p-4 text-primary-800">{{ notice() }}</p> }
     @if (loading()) {
-      <p role="status" class="py-10 text-center text-gray-600">Loading your jobs…</p>
+      <p role="status" class="py-10 text-center text-gray-600">{{ 'myJobs.loading' | translate }}</p>
     } @else if (error()) {
       <div role="alert" class="rounded-xl bg-red-50 p-5 text-red-700">
-        {{ error() }} <button type="button" class="ml-2 underline" (click)="load()">Try again</button>
+        {{ error() }} <button type="button" class="ml-2 underline" (click)="load()">{{ 'common.retry' | translate }}</button>
       </div>
     } @else if (!visibleJobs().length) {
       <div class="rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-16 text-center">
         <h2 class="text-xl font-semibold text-gray-900">{{ jobs().length ? 'No jobs with this status' : 'Your next project starts here' }}</h2>
         <p class="mt-2 text-gray-600">{{ jobs().length ? 'Choose another status to see your other posts.' : 'Post your first job to find the right professional.' }}</p>
         @if (jobs().length) {
-          <button type="button" class="secondary-button mt-5" (click)="status.set('')">Show all jobs</button>
-        } @else { <a routerLink="/jobs/new" class="primary-button mt-5">Post a job</a> }
+          <button type="button" class="secondary-button mt-5" (click)="status.set('')">{{ 'myJobs.showAll' | translate }}</button>
+        } @else { <a routerLink="/jobs/new" class="primary-button mt-5">{{ 'myJobs.post' | translate }}</a> }
       </div>
     } @else {
       <p class="mb-4 text-sm text-gray-500">{{ visibleJobs().length }} {{ visibleJobs().length === 1 ? 'job' : 'jobs' }}</p>
@@ -52,19 +50,19 @@
                     @if (allowed(job, 'edit')) {
                       <button type="button" class="menu-action" (click)="closeMenu(actions); openAction(job, 'edit')">
                         <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 5 5L8 21H3v-5Z" /><path d="m14 5 5 5" /></svg>
-                        Edit job
+                        {{ 'myJobs.edit' | translate }}
                       </button>
                     }
                     @if (allowed(job, 'complete')) {
                       <button type="button" class="menu-action" (click)="closeMenu(actions); openAction(job, 'complete')">
                         <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6" /></svg>
-                        Mark complete
+                        {{ 'myJobs.complete' | translate }}
                       </button>
                     }
                     @if (allowed(job, 'delete')) {
                       <button type="button" class="menu-action menu-action-danger" (click)="closeMenu(actions); openAction(job, 'delete')">
                         <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7" /></svg>
-                        Delete job
+                        {{ 'myJobs.delete' | translate }}
                       </button>
                     }
                   </div>
@@ -76,18 +74,19 @@
               <p class="mt-1 text-xs text-gray-500">Posted {{ job.createdAt | date: 'mediumDate' }}</p>
               <p class="mt-2 line-clamp-3 break-words text-sm leading-6 text-gray-600">{{ job.description }}</p>
               <dl class="my-5 grid grid-cols-2 gap-3 text-sm">
-                <div><dt class="text-gray-500">Trade</dt><dd class="mt-1 break-words font-medium">{{ job.skill | titlecase }}</dd></div>
-                <div><dt class="text-gray-500">City</dt><dd class="mt-1 break-words font-medium">{{ job.city | titlecase }}</dd></div>
-                <div class="col-span-2"><dt class="text-gray-500">Budget</dt><dd class="mt-1 font-semibold text-gray-900">{{ job.budget | number }} MAD</dd></div>
+                <div><dt class="text-gray-500">{{ 'jobs.trade' | translate }}</dt><dd class="mt-1 break-words font-medium">{{ job.skill | titlecase }}</dd></div>
+                <div><dt class="text-gray-500">{{ 'job.city' | translate }}</dt><dd class="mt-1 break-words font-medium">{{ job.city | titlecase }}</dd></div>
+                <div class="col-span-2"><dt class="text-gray-500">{{ 'job.budget' | translate }}</dt><dd class="mt-1 font-semibold text-gray-900">{{ job.budget | number }} MAD</dd></div>
               </dl>
               <div class="mt-auto border-t border-gray-100 pt-4">
                 <div class="flex flex-wrap gap-2">
-                  <a [routerLink]="['/jobs', job.id, 'applicants']" class="primary-button">View applicants</a>
+                  <a [routerLink]="['/jobs', job.id, 'applicants']" class="primary-button">{{ 'myJobs.viewApplicants' | translate }}</a>
                   @if (allowed(job, 'cancel')) {
-                    <button type="button" class="secondary-button" (click)="openAction(job, 'cancel')">Cancel job</button>
+                    <button type="button" class="secondary-button" (click)="openAction(job, 'cancel')">{{ 'myJobs.cancel' | translate }}</button>
                   }
                 </div>
-                @if (job.status === 'ASSIGNED') { <p class="mt-3 text-xs leading-5 text-gray-500">Assigned jobs can be completed or cancelled. Editing and deletion are unavailable while work is assigned.</p> }
+                @if (job.status === 'ASSIGNED') { <p class="mt-3 text-xs leading-5 text-gray-500">{{ 'myJobs.assignedNote' | translate }}
+      </p> }
               </div>
             </article>
           </li>
@@ -103,18 +102,16 @@
     <form (ngSubmit)="submit()" class="p-6">
       <div class="flex items-start justify-between gap-3">
         <h2 id="action-heading" class="text-xl font-semibold text-gray-900">{{ actionLabels[action()] }}</h2>
-        <button type="button" class="secondary-button" aria-label="Close dialog" [disabled]="busy()" (click)="closeAction()">×</button>
+        <button type="button" class="secondary-button" [attr.aria-label]="'common.closeDialog' | translate" [disabled]="busy()" (click)="closeAction()">×</button>
       </div>
       @if (action() === 'edit') {
-        <p class="mt-2 text-sm text-gray-500">Update your job’s title, description, or address.</p>
+        <p class="mt-2 text-sm text-gray-500">{{ 'myJobs.editIntro' | translate }}</p>
         <fieldset [disabled]="busy()" class="mt-5 space-y-4">
-          <label class="block text-sm font-medium text-gray-700">Title
-            <input name="title" class="field mt-2" required maxlength="120" [(ngModel)]="draft.title" />
+          <label class="block text-sm font-medium text-gray-700">{{ 'job.title' | translate }}<input name="title" class="field mt-2" required maxlength="120" [(ngModel)]="draft.title" />
           </label>
-          <label class="block text-sm font-medium text-gray-700">Description
-            <textarea name="description" class="field mt-2" rows="5" required [(ngModel)]="draft.description"></textarea>
+          <label class="block text-sm font-medium text-gray-700">{{ 'job.description' | translate }}<textarea name="description" class="field mt-2" rows="5" required [(ngModel)]="draft.description"></textarea>
           </label>
-          <label class="block text-sm font-medium text-gray-700">Address <span class="font-normal text-gray-500">(optional)</span>
+          <label class="block text-sm font-medium text-gray-700">{{ 'job.address' | translate }}<span class="font-normal text-gray-500">{{ 'common.optional' | translate }}</span>
             <input name="address" class="field mt-2" maxlength="200" [(ngModel)]="draft.addressLine" />
           </label>
         </fieldset>

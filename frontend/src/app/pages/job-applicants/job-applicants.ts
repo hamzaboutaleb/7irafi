@@ -13,10 +13,11 @@ import { JobService } from '../../services/job.js';
 import { ChatService, chatError } from '../../services/chat.js';
 import { ApplicationPage, JobApplication, applicationStatusLabels } from '../../types/application.js';
 import { JobDetail } from '../../types/job.js';
+import { TranslatePipe } from '../../pipes/translate-pipe.js';
 
 @Component({
   selector: 'app-job-applicants',
-  imports: [DatePipe, RouterLink, Navbar, Footer],
+  imports: [DatePipe, RouterLink, Navbar, Footer, TranslatePipe],
   templateUrl: './job-applicants.html',
 })
 export class JobApplicants implements OnInit {

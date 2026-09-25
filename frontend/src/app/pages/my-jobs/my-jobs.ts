@@ -10,12 +10,13 @@ import { Footer } from '../../components/footer/footer.js';
 import { JobDetailsModal } from '../../components/job-details-modal/job-details-modal.js';
 import { JobService } from '../../services/job.js';
 import { JobResponse, JobStatus, UpdateJobRequest } from '../../types/job.js';
+import { TranslatePipe } from '../../pipes/translate-pipe.js';
 
 type Action = 'edit' | 'cancel' | 'complete' | 'delete';
 
 @Component({
   selector: 'app-my-jobs',
-  imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, RouterLink, Navbar, Footer, JobDetailsModal],
+  imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, RouterLink, Navbar, Footer, JobDetailsModal, TranslatePipe],
   templateUrl: './my-jobs.html',
   styleUrl: './my-jobs.css',
 })
