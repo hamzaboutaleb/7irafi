@@ -3,11 +3,10 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../services/auth';
 import { ChatService } from '../../services/chat.js';
 import { NotificationService } from '../../services/notification.js';
-import { NotificationBell } from '../notification-bell/notification-bell.js';
 
 @Component({
   selector: 'app-navbar',
-  imports: [RouterLink, RouterLinkActive, NotificationBell],
+  imports: [RouterLink, RouterLinkActive],
   templateUrl: './navbar.html',
   styleUrl: './navbar.css',
 })
@@ -29,6 +28,9 @@ export class Navbar {
   private chat = inject(ChatService);
   private notifications = inject(NotificationService);
   private router = inject(Router);
+
+  /** Unread notifications, shown as a red count on the Profile link. */
+  readonly unread = this.notifications.unread;
 
   get isAuthenticated(): boolean {
     return this.authService.getToken() !== null;
