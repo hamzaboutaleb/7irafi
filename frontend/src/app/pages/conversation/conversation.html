@@ -2,17 +2,17 @@
 <main class="bg-gray-50 px-4 py-8 sm:px-6">
   <section class="mx-auto flex h-[calc(100vh-10rem)] min-h-[28rem] max-w-3xl flex-col">
     <a routerLink="/conversations" class="text-sm font-semibold text-primary-700 underline"><span
-        aria-hidden="true">⇦</span> All messages</a>
+        aria-hidden="true">⇦</span> {{ 'chat.allMessages' | translate }}</a>
 
     <header class="mt-4 flex flex-wrap items-start justify-between gap-3">
       <div class="min-w-0">
-        <h1 class="break-words text-2xl font-bold text-gray-900">{{ title() || 'Conversation' }}</h1>
+        <h1 class="break-words text-2xl font-bold text-gray-900">{{ title() || ('chat.title' | translate) }}</h1>
         @if (conversation(); as current) {
         <p class="mt-1 text-sm text-gray-600">
           @if (current.clientId === me) {
-          With {{ otherName() ?? 'the applicant' }} · you posted this job
+          {{ 'chat.withApplicant' | translate: { name: otherName() ?? '' } }}
           } @else {
-          With the job owner · you applied to this job
+          {{ 'chat.withOwner' | translate }}
           }
         </p>
         }
@@ -25,7 +25,7 @@
         <span aria-hidden="true" class="h-2 w-2 rounded-full"
           [class]="connection() === 'connected' ? 'bg-emerald-500'
             : connection() === 'connecting' ? 'animate-pulse bg-amber-500' : 'bg-gray-400'"></span>
-        {{ connection() === 'connected' ? 'Live' : connection() === 'connecting' ? 'Reconnecting…' : 'Offline' }}
+        {{ (connection() === 'connected' ? 'chat.live' : connection() === 'connecting' ? 'chat.reconnecting' : 'chat.disconnected') | translate }}
       </p>
     </header>
 
@@ -36,21 +36,20 @@
       class="mt-4 flex-1 overflow-y-auto rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6"
       aria-live="polite" aria-label="Messages">
       @if (loading()) {
-      <p role="status" class="text-center text-sm text-gray-500">Loading messages…</p>
+      <p role="status" class="text-center text-sm text-gray-500">{{ 'common.loading' | translate }}</p>
       } @else {
       @if (hasOlder()) {
       <div class="mb-4 text-center">
         <button type="button" (click)="loadOlder()" [disabled]="loadingOlder()"
           class="min-h-11 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50">
-          {{ loadingOlder() ? 'Loading…' : 'Load older messages' }}
+          {{ (loadingOlder() ? 'common.loading' : 'chat.loadOlder') | translate }}
         </button>
       </div>
       }
 
       @if (messages().length === 0) {
       <div class="flex h-full items-center justify-center">
-        <p class="max-w-sm text-center text-sm leading-6 text-gray-500">No messages yet. Say hello and agree on the
-          details — price, date, what needs doing.</p>
+        <p class="max-w-sm text-center text-sm leading-6 text-gray-500">{{ 'chat.noMessages' | translate }}</p>
       </div>
       }
 
@@ -76,16 +75,16 @@
     }
 
     <form (ngSubmit)="send()" class="mt-4 flex items-end gap-3">
-      <label for="draft" class="sr-only">Message</label>
+      <label for="draft" class="sr-only">{{ 'chat.title' | translate }}</label>
       <textarea id="draft" name="draft" rows="2" [(ngModel)]="draft" [maxlength]="maxLength"
-        (keydown.enter)="onEnter($event)" placeholder="Write a message…"
+        (keydown.enter)="onEnter($event)" [attr.placeholder]="'chat.placeholder' | translate"
         class="min-h-11 flex-1 resize-none rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"></textarea>
       <button type="submit" [disabled]="!draft.trim() || connection() !== 'connected'"
         class="min-h-11 rounded-xl bg-primary-600 px-5 py-3 text-sm font-semibold text-white hover:bg-primary-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 disabled:cursor-not-allowed disabled:opacity-50">
-        Send
+        {{ 'chat.send' | translate }}
       </button>
     </form>
-    <p class="mt-2 text-xs text-gray-400">Enter to send · Shift+Enter for a new line</p>
+    <p class="mt-2 text-xs text-gray-400">{{ 'chat.sendHint' | translate }}</p>
     }
   </section>
 </main>

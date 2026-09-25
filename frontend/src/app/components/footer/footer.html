@@ -6,54 +6,53 @@
           routerLink="/"
           class="inline-block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
         >
-          <img src="logo.svg" alt="7irafy — home" class="h-10" />
+          <img src="logo.svg" alt="{{ 'nav.home' | translate }}" class="h-10" />
         </a>
         <p class="mt-4 max-w-sm text-sm leading-6 text-gray-400">
-          A marketplace prototype for finding skilled professionals and sharing local work
-          opportunities.
+          {{ 'footer.about' | translate }}
         </p>
       </div>
 
       <div>
-        <h2 class="text-sm font-semibold text-white">Explore</h2>
-        <nav class="mt-4 flex flex-col gap-3" aria-label="Footer navigation">
+        <h2 class="text-sm font-semibold text-white">{{ 'footer.explore' | translate }}</h2>
+        <nav class="mt-4 flex flex-col gap-3" [attr.aria-label]="'footer.navigation' | translate">
           <a
             routerLink="/how-it-works"
             class="w-fit rounded text-sm text-gray-400 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300"
-            >How it works</a
+            >{{ 'nav.howItWorks' | translate }}</a
           >
           <a
             routerLink="/professionals"
             class="w-fit rounded text-sm text-gray-400 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300"
-            >Professionals</a
+            >{{ 'nav.professionals' | translate }}</a
           >
           <a
             routerLink="/status"
             class="w-fit rounded text-sm text-gray-400 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300"
-            >Service status</a
+            >{{ 'footer.status' | translate }}</a
           >
         </nav>
       </div>
 
       <div>
-        <h2 class="text-sm font-semibold text-white">Legal</h2>
-        <nav class="mt-4 flex flex-col gap-3" aria-label="Legal navigation">
+        <h2 class="text-sm font-semibold text-white">{{ 'footer.legal' | translate }}</h2>
+        <nav class="mt-4 flex flex-col gap-3" [attr.aria-label]="'footer.legalNavigation' | translate">
           <a
             routerLink="/privacy-policy"
             class="w-fit rounded text-sm text-gray-400 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300"
-            >Privacy policy</a
+            >{{ 'footer.privacy' | translate }}</a
           >
           <a
             routerLink="/terms-of-service"
             class="w-fit rounded text-sm text-gray-400 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300"
-            >Terms of service</a
+            >{{ 'footer.terms' | translate }}</a
           >
         </nav>
       </div>
     </div>
 
     <div class="mt-10 border-t border-gray-800 pt-6">
-      <p class="text-sm text-gray-500">© 2026 7irafy. Course-project prototype.</p>
+      <p class="text-sm text-gray-500">{{ 'footer.copyright' | translate }}</p>
     </div>
   </div>
 </footer>
