@@ -12,10 +12,11 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Navbar } from '../../components/navbar/navbar.js';
 import { Footer } from '../../components/footer/footer.js';
 import { RouterLink } from '@angular/router';
+import { TranslatePipe } from '../../pipes/translate-pipe.js';
 
 @Component({
   selector: 'app-professionals',
-  imports: [Navbar, Footer, RouterLink],
+  imports: [Navbar, Footer, RouterLink, TranslatePipe],
   templateUrl: './professionals.html',
   styleUrl: './professionals.css',
 })

@@ -1,7 +1,9 @@
 import { AfterViewInit, Component, ElementRef, input, output, viewChild } from '@angular/core';
+import { TranslatePipe } from '../../pipes/translate-pipe.js';
 
 @Component({
   selector: 'app-posting-status-modal',
+  imports: [TranslatePipe],
   templateUrl: './posting-status-modal.html',
 })
 export class PostingStatusModal implements AfterViewInit {
