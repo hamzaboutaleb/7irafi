@@ -5,10 +5,10 @@
   >
     <img src="logo.svg" alt="7irafy" class="h-14 brightness-0 invert mb-8" />
     <h2 class="text-white text-4xl font-bold text-center max-w-xs leading-snug">
-      Whatever the problem, find someone to fix it
+      {{ 'auth.sideTitle' | translate }}
     </h2>
     <p class="text-primary-100 text-base text-center max-w-xs">
-      Browse thousands of verified professionals or post your request.
+      {{ 'auth.sideBody' | translate }}
     </p>
   </div>
 
@@ -31,7 +31,7 @@
             <input
               type="text"
               formControlName="firstName"
-              placeholder="John"
+              [attr.placeholder]="'auth.field.firstName' | translate"
               class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
             />
             @if (firstName.invalid && (firstName.dirty || firstName.touched)) {
@@ -56,7 +56,7 @@
             <input
               type="text"
               formControlName="lastName"
-              placeholder="Doe"
+              [attr.placeholder]="'auth.field.lastName' | translate"
               class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
             />
             @if (lastName.invalid && (lastName.dirty || lastName.touched)) {
@@ -82,7 +82,7 @@
           <input
             type="email"
             formControlName="email"
-            placeholder="you@example.com"
+            [attr.placeholder]="'auth.field.emailAddress' | translate"
             class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
           />
           @if (email.invalid && (email.dirty || email.touched)) {

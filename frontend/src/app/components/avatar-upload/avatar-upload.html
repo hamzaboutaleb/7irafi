@@ -43,7 +43,7 @@
       @if (uploading()) {
       <div class="mt-4">
         <div class="h-2 w-full overflow-hidden rounded-full bg-gray-100" role="progressbar"
-          [attr.aria-valuenow]="progress()" aria-valuemin="0" aria-valuemax="100" aria-label="Upload progress">
+          [attr.aria-valuenow]="progress()" aria-valuemin="0" aria-valuemax="100" [attr.aria-label]="'profile.uploadProgress' | translate">
           <div class="h-full rounded-full bg-primary-600 transition-[width] duration-150"
             [style.width.%]="progress()"></div>
         </div>

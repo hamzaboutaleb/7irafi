@@ -19,10 +19,11 @@ import {
   PreferredTime,
 } from '../../types/job.js';
 import { JobPhoto } from '../../types/job.js';
+import { TranslatePipe } from '../../pipes/translate-pipe.js';
 
 @Component({
   selector: 'app-create-job',
-  imports: [Navbar, Footer, RouterLink, ReactiveFormsModule, PostingStatusModal, NgTemplateOutlet],
+  imports: [Navbar, Footer, RouterLink, ReactiveFormsModule, PostingStatusModal, NgTemplateOutlet, TranslatePipe],
   templateUrl: './create-job.html',
 })
 export class CreateJob implements OnInit {
