@@ -6,16 +6,15 @@
       <span
         class="rounded-full bg-primary-50 px-4 py-1 text-sm font-medium text-primary-600"
       >
-        How it works
+        {{ 'howItWorksPage.eyebrow' | translate }}
       </span>
 
       <h1 class="mt-4 text-4xl font-bold text-gray-900">
-        Find a trusted professional, or find your next job
+        {{ 'howItWorksPage.title' | translate }}
       </h1>
 
       <p class="mx-auto mt-4 max-w-2xl text-gray-500">
-        7irafy connects people who need work done with skilled professionals in their city.
-        Whichever side you are on, it takes a few minutes to get started.
+        {{ 'howItWorksPage.intro' | translate }}
       </p>
     </div>
   </section>
@@ -28,13 +27,13 @@
         <span
           class="mb-4 rounded-full bg-primary-50 px-4 py-1 text-sm font-medium text-primary-600"
         >
-          For professionals
+          {{ 'howItWorksPage.forPros' | translate }}
         </span>
 
-        <h2 class="text-center text-4xl font-bold text-gray-900">Turn your skills into work</h2>
+        <h2 class="text-center text-4xl font-bold text-gray-900">{{ 'howItWorksPage.prosTitle' | translate }}</h2>
 
         <p class="mt-3 max-w-xl text-center text-sm text-gray-500">
-          Tell clients what you do and where you work, and let the jobs come to you.
+          {{ 'howItWorksPage.prosIntro' | translate }}
         </p>
       </div>
 
@@ -47,9 +46,9 @@
               {{ step.number }}
             </div>
 
-            <h3 class="mt-4 text-xl font-semibold text-gray-900">{{ step.title }}</h3>
+            <h3 class="mt-4 text-xl font-semibold text-gray-900">{{ step.title | translate }}</h3>
 
-            <p class="mt-2 text-gray-500">{{ step.description }}</p>
+            <p class="mt-2 text-gray-500">{{ step.description | translate }}</p>
           </li>
         }
       </ol>
@@ -58,13 +57,13 @@
 
   <section class="bg-white px-8 py-16">
     <div class="mx-auto max-w-3xl">
-      <h2 class="text-center text-4xl font-bold text-gray-900">Common questions</h2>
+      <h2 class="text-center text-4xl font-bold text-gray-900">{{ 'howItWorksPage.faq' | translate }}</h2>
 
       <dl class="mt-10 space-y-4">
         @for (item of answers(); track item.question) {
           <div class="rounded-2xl border border-gray-200 bg-gray-50 p-6">
-            <dt class="text-lg font-semibold text-gray-900">{{ item.question }}</dt>
-            <dd class="mt-2 text-gray-600">{{ item.answer }}</dd>
+            <dt class="text-lg font-semibold text-gray-900">{{ item.question | translate }}</dt>
+            <dd class="mt-2 text-gray-600">{{ item.answer | translate }}</dd>
           </div>
         }
       </dl>
@@ -73,10 +72,10 @@
 
   <section class="bg-primary-500 px-8 py-16">
     <div class="mx-auto max-w-3xl text-center">
-      <h2 class="text-3xl font-bold text-white">Ready to get started?</h2>
+      <h2 class="text-3xl font-bold text-white">{{ 'howItWorksPage.ctaTitle' | translate }}</h2>
 
       <p class="mt-3 text-primary-50">
-        Join 7irafy today and post your first job, or start offering your services.
+        {{ 'howItWorksPage.ctaBody' | translate }}
       </p>
 
       <div class="mt-8 flex flex-wrap items-center justify-center gap-4">
@@ -85,28 +84,28 @@
             routerLink="/dashboard"
             class="inline-flex min-h-11 items-center justify-center rounded-xl bg-white px-6 py-3 text-sm font-semibold text-primary-700 transition-colors duration-200 hover:bg-primary-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-500"
           >
-            Go to your dashboard
+            {{ 'howItWorksPage.dashboard' | translate }}
           </a>
 
           <a
             routerLink="/profile"
             class="inline-flex min-h-11 items-center justify-center rounded-xl border border-white px-6 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-500"
           >
-            Become a professional
+            {{ 'howItWorksPage.becomePro' | translate }}
           </a>
         } @else {
           <a
             routerLink="/register"
             class="inline-flex min-h-11 items-center justify-center rounded-xl bg-white px-6 py-3 text-sm font-semibold text-primary-700 transition-colors duration-200 hover:bg-primary-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-500"
           >
-            Create your account
+            {{ 'auth.register.heading' | translate }}
           </a>
 
           <a
             routerLink="/login"
             class="inline-flex min-h-11 items-center justify-center rounded-xl border border-white px-6 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-500"
           >
-            Sign in
+            {{ 'auth.login.submit' | translate }}
           </a>
         }
       </div>

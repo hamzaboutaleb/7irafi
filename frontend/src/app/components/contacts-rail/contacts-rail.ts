@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { NetworkService } from '../../services/network.js';
 import { AuthService } from '../../services/auth.js';
+import { TranslatePipe } from '../../pipes/translate-pipe.js';
 
 /**
  * A fixed rail of the people in your network, collapsed to avatars by default.
@@ -13,7 +14,7 @@ import { AuthService } from '../../services/auth.js';
  */
 @Component({
   selector: 'app-contacts-rail',
-  imports: [],
+  imports: [TranslatePipe],
   templateUrl: './contacts-rail.html',
 })
 export class ContactsRail implements OnInit {

@@ -1,15 +1,17 @@
 import { Component, signal } from '@angular/core';
+import { TranslationKey } from '../../i18n/language.js';
+import { TranslatePipe } from '../../pipes/translate-pipe.js';
 
 @Component({
   selector: 'app-how-it-works',
-  imports: [],
+  imports: [TranslatePipe],
   templateUrl: './how-it-works.html',
   styleUrl: './how-it-works.css',
 })
 export class HowItWorks {
-  steps = signal([
-    { number: 1, title: 'Post your problem', description: 'Describe what you need in a few words' },
-    { number: 2, title: 'Get matched', description: 'Professionals respond to your request' },
-    { number: 3, title: 'Get it done', description: 'Choose the best pro and get the job done' },
+  steps = signal<{ number: number; title: TranslationKey; description: TranslationKey }[]>([
+    { number: 1, title: 'howItWorks.step1.title', description: 'howItWorks.step1.body' },
+    { number: 2, title: 'howItWorks.step2.title', description: 'howItWorks.step2.body' },
+    { number: 3, title: 'howItWorks.step3.title', description: 'howItWorks.step3.body' },
   ]);
 }
