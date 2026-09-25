@@ -2,10 +2,12 @@ import { Component, ElementRef, HostListener, inject, signal, viewChild } from '
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../services/auth';
 import { ChatService } from '../../services/chat.js';
+import { NotificationService } from '../../services/notification.js';
+import { NotificationBell } from '../notification-bell/notification-bell.js';
 
 @Component({
   selector: 'app-navbar',
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, NotificationBell],
   templateUrl: './navbar.html',
   styleUrl: './navbar.css',
 })
@@ -25,6 +27,7 @@ export class Navbar {
   }
   private authService = inject(AuthService);
   private chat = inject(ChatService);
+  private notifications = inject(NotificationService);
   private router = inject(Router);
 
   get isAuthenticated(): boolean {
@@ -35,6 +38,7 @@ export class Navbar {
     // Close the socket first: it is authenticated as this user, and must not
     // stay open for whoever signs in next in this tab.
     this.chat.disconnect();
+    this.notifications.disconnect();
     this.authService.logout();
     this.router.navigate(['/']);
   }

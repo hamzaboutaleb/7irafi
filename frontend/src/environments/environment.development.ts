@@ -4,4 +4,5 @@ export const environment = {
   // Not the gateway: the gateway flavour we use cannot proxy websockets, so the
   // browser connects to chat-service directly.
   chatSocketUrl: 'ws://localhost:8085/ws',
+  notificationSocketUrl: 'ws://localhost:8086/ws',
 };
