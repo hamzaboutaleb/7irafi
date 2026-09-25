@@ -77,6 +77,9 @@ services:
       SHOW_SQL: "true"
       GATEWAY_SHARED_SECRET: ${GATEWAY_SHARED_SECRET:-7irafi-development-gateway-key}
       INTERNAL_API_KEY: ${INTERNAL_API_KEY:-7irafi-development-internal-key}
+      S3_BUCKET: avatars
+      S3_ACCESS_KEY: minio
+      S3_SECRET_KEY: minio123
     depends_on:
       postgres:
         condition: service_healthy
@@ -84,6 +87,8 @@ services:
         condition: service_healthy
       discovery-service:
         condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
     healthcheck:
       test: [ "CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health | grep -q UP" ]
       interval: 5s
@@ -215,6 +220,7 @@ services:
     entrypoint: >
       /bin/sh -c " mc alias set local http://minio:9000 ${MINIO_ROOT_USER:-minio} ${MINIO_ROOT_PASSWORD:-minio123}
       && mc mb --ignore-existing local/jobs
+      && mc mb --ignore-existing local/avatars
       && mc ilm rule add --tags 'cleanup=pending' --expire-days 1 local/jobs "
 
   api-gateway:
