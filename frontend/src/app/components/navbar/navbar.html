@@ -46,16 +46,21 @@
         Dashboard
       </a>
 
-      <app-notification-bell />
-
       <a routerLink="/conversations" routerLinkActive="bg-primary-50 text-primary-700" ariaCurrentWhenActive="page"
         class="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors duration-200 hover:bg-gray-50 hover:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400">
         Messages
       </a>
 
       <a routerLink="/profile" routerLinkActive="bg-primary-50 text-primary-700" ariaCurrentWhenActive="page"
-        class="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors duration-200 hover:bg-gray-50 hover:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400">
+        class="relative rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors duration-200 hover:bg-gray-50 hover:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400">
         Profile
+        @if (unread()) {
+        <span
+          class="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[11px] font-bold text-white"
+          [attr.aria-label]="unread() + ' unread notifications'">
+          {{ unread() > 9 ? '9+' : unread() }}
+        </span>
+        }
       </a>
 
       <button type="button" (click)="logout()"
