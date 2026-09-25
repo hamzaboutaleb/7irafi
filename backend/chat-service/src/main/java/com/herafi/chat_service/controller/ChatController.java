@@ -7,6 +7,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
+import com.herafi.chat_service.client.NotificationClient;
 import com.herafi.chat_service.dto.ChatMessageRequest;
 import com.herafi.chat_service.dto.ChatMessageResponse;
 import com.herafi.chat_service.service.ConversationService;
@@ -22,12 +23,15 @@ public class ChatController {
 
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final ConversationService conversationService;
+    private final NotificationClient notificationClient;
 
     public ChatController(
             SimpMessagingTemplate simpMessagingTemplate,
-            ConversationService conversationService) {
+            ConversationService conversationService,
+            NotificationClient notificationClient) {
         this.simpMessagingTemplate = simpMessagingTemplate;
         this.conversationService = conversationService;
+        this.notificationClient = notificationClient;
     }
 
     @MessageMapping("/chat")
@@ -47,5 +51,14 @@ public class ChatController {
         // instead of inventing them, and sees the message on its other devices.
         simpMessagingTemplate.convertAndSendToUser(
                 senderId.toString(), "/queue/messages", message);
+
+        // So the recipient still learns about it while they are on another page
+        // or offline entirely.
+        notificationClient.notify(
+                delivery.recipientId(),
+                "NEW_MESSAGE",
+                "New message",
+                messageRequest.text(),
+                "/conversations/" + messageRequest.conversationId());
     }
 }

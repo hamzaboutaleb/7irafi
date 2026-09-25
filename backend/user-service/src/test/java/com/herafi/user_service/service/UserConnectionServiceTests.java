@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import com.herafi.user_service.client.NotificationClient;
 import com.herafi.user_service.entity.ProfessionalOnboardingStatus;
 import com.herafi.user_service.entity.ProfessionalProfile;
 import com.herafi.user_service.entity.UserConnection;
@@ -35,6 +37,7 @@ class UserConnectionServiceTests {
 
     private UserConnectionRepository userConnectionRepository;
     private ProfessionalProfileRepository professionalProfileRepository;
+    private NotificationClient notificationClient;
     private UserConnectionService service;
 
     private UUID owner;
@@ -44,7 +47,9 @@ class UserConnectionServiceTests {
     void setUp() {
         userConnectionRepository = mock(UserConnectionRepository.class);
         professionalProfileRepository = mock(ProfessionalProfileRepository.class);
-        service = new UserConnectionService(userConnectionRepository, professionalProfileRepository);
+        notificationClient = mock(NotificationClient.class);
+        service = new UserConnectionService(
+                userConnectionRepository, professionalProfileRepository, notificationClient);
 
         owner = UUID.randomUUID();
         target = UUID.randomUUID();
@@ -194,5 +199,26 @@ class UserConnectionServiceTests {
         connection.setOwnerId(ownerId);
         connection.setConnectionId(connectionId);
         return connection;
+    }
+
+    @Test
+    void savingSomeoneNotifiesThem() {
+        when(professionalProfileRepository.findByUserId(target)).thenReturn(Optional.of(professional(target, ProfessionalOnboardingStatus.ACTIVE)));
+        when(userConnectionRepository.existsByOwnerIdAndConnectionId(owner, target)).thenReturn(false);
+
+        service.addConnection(owner, target);
+
+        verify(notificationClient).notify(
+                eq(target), eq("NETWORK_CONNECTION_ADDED"), any(), any(), any());
+    }
+
+    @Test
+    void savingSomeoneTwiceDoesNotNotifyTwice() {
+        when(professionalProfileRepository.findByUserId(target)).thenReturn(Optional.of(professional(target, ProfessionalOnboardingStatus.ACTIVE)));
+        when(userConnectionRepository.existsByOwnerIdAndConnectionId(owner, target)).thenReturn(true);
+
+        service.addConnection(owner, target);
+
+        verifyNoInteractions(notificationClient);
     }
 }
