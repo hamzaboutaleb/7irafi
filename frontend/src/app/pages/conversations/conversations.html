@@ -1,22 +1,19 @@
 <app-navbar />
 <main class="min-h-screen bg-gray-50 px-4 py-10 sm:px-6">
   <section class="mx-auto max-w-3xl">
-    <h1 class="text-3xl font-bold text-gray-900">Messages</h1>
-    <p class="mt-2 text-gray-600">Conversations about the jobs you posted and the jobs you applied to.</p>
+    <h1 class="text-3xl font-bold text-gray-900">{{ 'chat.title' | translate }}</h1>
+    <p class="mt-2 text-gray-600">{{ 'chat.subtitle' | translate }}</p>
 
     @if (loading()) {
-    <p role="status" class="mt-8 text-gray-600">Loading conversations…</p>
+    <p role="status" class="mt-8 text-gray-600">{{ 'common.loading' | translate }}</p>
     } @else if (error()) {
     <p role="alert" class="mt-8 rounded-xl bg-red-50 p-4 text-red-700">{{ error() }}</p>
-    <button type="button" (click)="load()" class="mt-4 min-h-11 font-semibold text-primary-700 underline">Try
-      again</button>
+    <button type="button" (click)="load()" class="mt-4 min-h-11 font-semibold text-primary-700 underline">{{ 'common.retry' | translate }}</button>
     } @else if (rows().length === 0) {
     <div class="mt-8 rounded-2xl border border-gray-200 bg-white p-6">
-      <p class="text-gray-700">No conversations yet.</p>
-      <p class="mt-2 text-sm leading-6 text-gray-500">A conversation starts when a client messages someone who
-        applied to their job, from the job's applicants page.</p>
-      <a routerLink="/jobs/my" class="mt-4 inline-block font-semibold text-primary-700 underline">Go to my posted
-        jobs</a>
+      <p class="text-gray-700">{{ 'chat.empty' | translate }}</p>
+      <p class="mt-2 text-sm leading-6 text-gray-500">{{ 'chat.emptyHint' | translate }}</p>
+      <a routerLink="/jobs/my" class="mt-4 inline-block font-semibold text-primary-700 underline">{{ 'chat.goToMyJobs' | translate }}</a>
     </div>
     } @else {
     <ul class="mt-8 space-y-3">
@@ -32,9 +29,9 @@
             <h2 class="truncate font-semibold text-gray-900">{{ row.jobTitle }}</h2>
             <p class="mt-1 truncate text-sm text-gray-600">
               @if (row.iAmClient) {
-              With {{ row.otherName ?? 'the applicant' }} · you posted this job
+              {{ 'chat.withApplicant' | translate: { name: row.otherName ?? '' } }}
               } @else {
-              With the job owner · you applied to this job
+              {{ 'chat.withOwner' | translate }}
               }
             </p>
           </div>

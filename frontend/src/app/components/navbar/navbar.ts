@@ -1,12 +1,14 @@
 import { Component, ElementRef, HostListener, inject, signal, viewChild } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../services/auth';
+import { TranslatePipe } from '../../pipes/translate-pipe.js';
+import { LanguageSwitcher } from '../language-switcher/language-switcher.js';
 import { ChatService } from '../../services/chat.js';
 import { NotificationService } from '../../services/notification.js';
 
 @Component({
   selector: 'app-navbar',
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, TranslatePipe, LanguageSwitcher],
   templateUrl: './navbar.html',
   styleUrl: './navbar.css',
 })

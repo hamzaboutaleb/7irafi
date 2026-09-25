@@ -6,11 +6,12 @@ import { AuthService } from '../../services/auth.js';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslatePipe } from '../../pipes/translate-pipe.js';
 import { ApiError } from '../../types/api.js';
 
 @Component({
   selector: 'app-login',
-  imports: [LucideDynamicIcon, ReactiveFormsModule, CommonModule, RouterLink],
+  imports: [LucideDynamicIcon, ReactiveFormsModule, CommonModule, RouterLink, TranslatePipe],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })

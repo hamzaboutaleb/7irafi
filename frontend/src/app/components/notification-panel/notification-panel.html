@@ -2,7 +2,7 @@
   aria-labelledby="notifications-heading">
   <div class="flex flex-wrap items-center justify-between gap-3">
     <h2 id="notifications-heading" class="text-xl font-semibold text-gray-900">
-      Notifications
+      {{ 'notifications.title' | translate }}
       @if (unread()) {
       <span class="ml-2 inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-red-600 px-2 text-xs font-bold text-white">
         {{ unread() }}
@@ -12,12 +12,12 @@
 
     @if (unread()) {
     <button type="button" (click)="markAllRead()"
-      class="min-h-11 text-sm font-semibold text-primary-700 underline">Mark all read</button>
+      class="min-h-11 text-sm font-semibold text-primary-700 underline">{{ 'notifications.markAllRead' | translate }}</button>
     }
   </div>
 
   @if (items().length === 0) {
-  <p class="mt-4 text-sm text-gray-500">Nothing yet. Applications, acceptances and new messages show up here.</p>
+  <p class="mt-4 text-sm text-gray-500">{{ 'notifications.empty' | translate }}</p>
   } @else {
   <ul class="mt-4 divide-y divide-gray-100">
     @for (notification of items(); track notification.id) {
