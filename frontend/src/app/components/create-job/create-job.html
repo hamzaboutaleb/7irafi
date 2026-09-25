@@ -6,13 +6,13 @@
       routerLink="/jobs"
       class="rounded text-sm font-semibold text-primary-700 hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
       >
-      <span aria-hidden="true">⇦</span> Back to jobs
+      <span aria-hidden="true">⇦</span> {{ 'createJob.back' | translate }}
     </a>
-    <h2 class="mt-3 text-gray-600">Tell professionals what you need done and where.</h2>
+    <h2 class="mt-3 text-gray-600">{{ 'createJob.intro' | translate }}</h2>
 
     @if (createdJob(); as job) {
       <section class="mt-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 class="text-xl font-semibold text-gray-900">Your job has been posted</h2>
+        <h2 class="text-xl font-semibold text-gray-900">{{ 'createJob.posted' | translate }}</h2>
         <p role="status" class="mt-2 text-sm text-gray-600">
           {{ isUploading() ? 'Uploading photos. Keep this page open.' : 'Opening the jobs page…' }}
         </p>
@@ -25,11 +25,11 @@
         class="mt-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8"
         novalidate
       >
-        <h2 class="text-xl font-semibold text-gray-900">Job details</h2>
-        <p class="mt-2 text-sm text-gray-500">All fields are required unless marked optional.</p>
+        <h2 class="text-xl font-semibold text-gray-900">{{ 'createJob.details' | translate }}</h2>
+        <p class="mt-2 text-sm text-gray-500">{{ 'createJob.requiredNote' | translate }}</p>
 
         @if (isLoading()) {
-          <p role="status" class="mt-6 text-sm text-gray-600">Loading skills and cities…</p>
+          <p role="status" class="mt-6 text-sm text-gray-600">{{ 'createJob.loading' | translate }}</p>
         }
         @if (referenceError()) {
           <div class="mt-6 rounded-xl bg-red-50 p-4">
@@ -39,22 +39,22 @@
               (click)="loadReferences()"
               class="mt-3 min-h-11 cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold text-primary-700 hover:bg-primary-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
             >
-              Try again
+              {{ 'common.retry' | translate }}
             </button>
           </div>
         }
 
         <fieldset [disabled]="isSaving()" class="mt-6 min-w-0 space-y-6">
-          <legend class="sr-only">Job information</legend>
+          <legend class="sr-only">{{ 'createJob.information' | translate }}</legend>
           <div>
-            <label for="title" class="mb-1.5 block text-sm font-medium text-gray-700">Job title</label>
+            <label for="title" class="mb-1.5 block text-sm font-medium text-gray-700">{{ 'createJob.jobTitle' | translate }}</label>
             <input
               id="title"
               type="text"
               formControlName="title"
               required
               maxlength="120"
-              placeholder="e.g. Fix a leaking kitchen tap"
+              [attr.placeholder]="'createJob.titlePlaceholder' | translate"
               [attr.aria-invalid]="!!fieldError('title')"
               [attr.aria-describedby]="fieldError('title') ? 'title-error' : null"
               class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
@@ -65,13 +65,13 @@
           </div>
 
           <div>
-            <label for="description" class="mb-1.5 block text-sm font-medium text-gray-700">Description</label>
+            <label for="description" class="mb-1.5 block text-sm font-medium text-gray-700">{{ 'job.description' | translate }}</label>
             <textarea
               id="description"
               formControlName="description"
               required
               rows="5"
-              placeholder="Describe the work, what needs fixing, and any useful details."
+              [attr.placeholder]="'createJob.descriptionPlaceholder' | translate"
               [attr.aria-invalid]="!!fieldError('description')"
               [attr.aria-describedby]="fieldError('description') ? 'description-error' : null"
               class="w-full resize-y rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
@@ -82,9 +82,9 @@
           </div>
 
           <fieldset [disabled]="isLoading() || !!referenceError()" class="grid min-w-0 gap-6 sm:grid-cols-2">
-            <legend class="sr-only">Skill and city</legend>
+            <legend class="sr-only">{{ 'createJob.skillCity' | translate }}</legend>
             <div class="min-w-0">
-              <label for="skill" class="mb-1.5 block text-sm font-medium text-gray-700">Skill</label>
+              <label for="skill" class="mb-1.5 block text-sm font-medium text-gray-700">{{ 'job.skill' | translate }}</label>
               <select
                 id="skill"
                 formControlName="skill"
@@ -93,7 +93,7 @@
                 [attr.aria-describedby]="fieldError('skill') ? 'skill-error' : null"
                 class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-200 disabled:bg-gray-100"
               >
-                <option value="" disabled>Select a skill</option>
+                <option value="" disabled>{{ 'createJob.selectSkill' | translate }}</option>
                 @for (skill of skills(); track skill) {
                   <option [value]="skill">{{ skill }}</option>
                 }
@@ -103,7 +103,7 @@
               }
             </div>
             <div class="min-w-0">
-              <label for="city" class="mb-1.5 block text-sm font-medium text-gray-700">City</label>
+              <label for="city" class="mb-1.5 block text-sm font-medium text-gray-700">{{ 'job.city' | translate }}</label>
               <select
                 id="city"
                 formControlName="city"
@@ -112,7 +112,7 @@
                 [attr.aria-describedby]="fieldError('city') ? 'city-error' : null"
                 class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-200 disabled:bg-gray-100"
               >
-                <option value="" disabled>Select a city</option>
+                <option value="" disabled>{{ 'createJob.selectCity' | translate }}</option>
                 @for (city of cities(); track city) {
                   <option [value]="city">{{ city }}</option>
                 }
@@ -124,7 +124,7 @@
           </fieldset>
 
           <div>
-            <label for="addressLine" class="mb-1.5 block text-sm font-medium text-gray-700">Address (optional)</label>
+            <label for="addressLine" class="mb-1.5 block text-sm font-medium text-gray-700">{{ 'createJob.addressOptional' | translate }}</label>
             <input
               id="addressLine"
               type="text"
@@ -141,7 +141,7 @@
           </div>
 
           <div>
-            <label for="budget" class="mb-1.5 block text-sm font-medium text-gray-700">Budget (MAD)</label>
+            <label for="budget" class="mb-1.5 block text-sm font-medium text-gray-700">{{ 'jobs.budgetMad' | translate }}</label>
             <input
               id="budget"
               type="number"
@@ -151,7 +151,7 @@
               min="0.01"
               max="99999999.99"
               step="0.01"
-              placeholder="e.g. 250"
+              [attr.placeholder]="'createJob.budgetPlaceholder' | translate"
               [attr.aria-invalid]="!!fieldError('budget')"
               [attr.aria-describedby]="fieldError('budget') ? 'budget-error' : null"
               class="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
@@ -163,7 +163,7 @@
 
           <div class="grid gap-6 sm:grid-cols-2">
             <div class="min-w-0">
-              <label for="estimatedDuration" class="mb-1.5 block text-sm font-medium text-gray-700">Estimated duration</label>
+              <label for="estimatedDuration" class="mb-1.5 block text-sm font-medium text-gray-700">{{ 'jobs.duration' | translate }}</label>
               <select
                 id="estimatedDuration"
                 formControlName="estimatedDuration"
@@ -172,17 +172,17 @@
                 [attr.aria-describedby]="fieldError('estimatedDuration') ? 'estimatedDuration-error' : null"
                 class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
               >
-                <option [ngValue]="null" disabled>Select a duration</option>
-                <option value="HALF_DAY">Half day</option>
-                <option value="FULL_DAY">Full day</option>
-                <option value="MULTI_DAY">Multiple days</option>
+                <option [ngValue]="null" disabled>{{ 'createJob.selectDuration' | translate }}</option>
+                <option value="HALF_DAY">{{ 'createJob.halfDay' | translate }}</option>
+                <option value="FULL_DAY">{{ 'createJob.fullDay' | translate }}</option>
+                <option value="MULTI_DAY">{{ 'createJob.multipleDays' | translate }}</option>
               </select>
               @if (fieldError('estimatedDuration'); as error) {
                 <p id="estimatedDuration-error" role="alert" class="mt-1.5 text-sm text-red-600">{{ error }}</p>
               }
             </div>
             <div class="min-w-0">
-              <label for="preferredTime" class="mb-1.5 block text-sm font-medium text-gray-700">Preferred time (optional)</label>
+              <label for="preferredTime" class="mb-1.5 block text-sm font-medium text-gray-700">{{ 'createJob.timeOptional' | translate }}</label>
               <select
                 id="preferredTime"
                 formControlName="preferredTime"
@@ -190,10 +190,10 @@
                 [attr.aria-describedby]="fieldError('preferredTime') ? 'preferredTime-error' : null"
                 class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
               >
-                <option value="ANYTIME">Anytime</option>
-                <option value="MORNING">Morning</option>
-                <option value="AFTERNOON">Afternoon</option>
-                <option value="EVENING">Evening</option>
+                <option value="ANYTIME">{{ 'createJob.anytime' | translate }}</option>
+                <option value="MORNING">{{ 'createJob.morning' | translate }}</option>
+                <option value="AFTERNOON">{{ 'createJob.afternoon' | translate }}</option>
+                <option value="EVENING">{{ 'createJob.evening' | translate }}</option>
               </select>
               @if (fieldError('preferredTime'); as error) {
                 <p id="preferredTime-error" role="alert" class="mt-1.5 text-sm text-red-600">{{ error }}</p>
@@ -226,10 +226,10 @@
 
 <ng-template #photosPanel>
   <section aria-labelledby="photos-title" class="mt-8 border-t border-gray-100 pt-6">
-    <h2 id="photos-title" class="text-xl font-semibold text-gray-900">Photos (optional)</h2>
+    <h2 id="photos-title" class="text-xl font-semibold text-gray-900">{{ 'createJob.photosOptional' | translate }}</h2>
     @if (!createdJob()) {
-      <p id="photos-help" class="mt-2 text-sm text-gray-500">Add up to 10 photos. JPEG, PNG, or WebP, up to 10 MB each.</p>
-      <label for="photos" class="mb-2 mt-4 block text-sm font-medium text-gray-700">Choose photos</label>
+      <p id="photos-help" class="mt-2 text-sm text-gray-500">{{ 'createJob.photosHint' | translate }}</p>
+      <label for="photos" class="mb-2 mt-4 block text-sm font-medium text-gray-700">{{ 'createJob.choosePhotos' | translate }}</label>
       <input id="photos" type="file" multiple accept="image/jpeg,image/png,image/webp"
         (change)="selectPhotos($event)" [disabled]="isSaving() || photos().length >= maxPhotos"
         aria-describedby="photos-help" class="w-full min-w-0 rounded-xl border border-gray-300 p-3 text-sm file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-primary-50 file:px-3 file:py-2 file:font-semibold file:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 disabled:opacity-50" />
@@ -245,9 +245,9 @@
             <img [src]="photo.previewUrl" [alt]="photo.file.name" class="h-28 w-full rounded-lg object-cover sm:h-36" />
             <p class="mt-2 truncate text-xs text-gray-600" [title]="photo.file.name">{{ photo.file.name }}</p>
             @if (photo.status === 'uploaded') {
-              <p class="mt-2 text-sm font-medium text-green-700">Uploaded</p>
+              <p class="mt-2 text-sm font-medium text-green-700">{{ 'createJob.uploaded' | translate }}</p>
             } @else if (photo.status === 'uploading') {
-              <p role="status" class="mt-2 text-sm text-gray-600">Uploading…</p>
+              <p role="status" class="mt-2 text-sm text-gray-600">{{ 'createJob.uploading' | translate }}</p>
             }
             @if (photo.error) {
               <p class="mt-2 break-words text-sm text-red-700">{{ photo.error }}</p>
@@ -255,9 +255,7 @@
             @if (photo.status !== 'uploaded') {
               <button type="button" (click)="removePhoto(photo)" [disabled]="isSaving() || isUploading()"
                 [attr.aria-label]="'Remove ' + photo.file.name"
-                class="mt-2 min-h-11 w-full cursor-pointer rounded-lg px-2 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 disabled:cursor-not-allowed disabled:opacity-50">
-                Remove
-              </button>
+                class="mt-2 min-h-11 w-full cursor-pointer rounded-lg px-2 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 disabled:cursor-not-allowed disabled:opacity-50">{{ 'common.remove' | translate }}</button>
             }
           </li>
         }

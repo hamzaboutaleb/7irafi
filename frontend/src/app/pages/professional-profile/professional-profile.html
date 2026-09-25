@@ -72,8 +72,7 @@
 
         @if (professionalProfile()?.onboardingStatus === 'SUSPENDED') {
           <div class="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-            Your profile is suspended. You may update its information, but ordinary edits cannot
-            reactivate it.
+            {{ 'proProfile.suspended' | translate }}
           </div>
         }
 
@@ -157,9 +156,7 @@
             </div>
 
             @if (categoryCodes.invalid && categoryCodes.touched) {
-              <p id="categories-error" class="mt-2 text-sm font-medium text-red-600" role="alert">
-                Select at least one service category.
-              </p>
+              <p id="categories-error" class="mt-2 text-sm font-medium text-red-600" role="alert">{{ 'proProfile.selectCategory' | translate }}</p>
             }
           </fieldset>
 
