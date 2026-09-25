@@ -13,12 +13,13 @@ import { Footer } from '../../components/footer/footer';
 import { DatePipe } from '@angular/common';
 import { ProfessionalProfile as ProfessionalProfileModel } from '../../types/professional-profile.js';
 import { RouterLink } from "@angular/router";
+import { TranslatePipe } from '../../pipes/translate-pipe.js';
 
 type ProfessionalSectionState = 'loading' | 'none' | 'loaded' | 'error';
 
 @Component({
   selector: 'app-profile',
-  imports: [ReactiveFormsModule, Navbar, Footer, DatePipe, RouterLink, AvatarUpload, NotificationPanel],
+  imports: [ReactiveFormsModule, Navbar, Footer, DatePipe, RouterLink, AvatarUpload, NotificationPanel, TranslatePipe],
   templateUrl: './profile.html',
   styleUrl: './profile.css',
 })
