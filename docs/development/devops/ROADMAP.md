@@ -10,7 +10,7 @@ Board: [README.md](README.md)
 
 | Phase | Tasks | Status | Branch |
 | --- | --- | --- | --- |
-| T0 Infra fixes | T0.1–T0.6 | ✅ Done except T0.2 (blocked, needs job-service owner) | `devops` |
+| T0 Infra fixes | T0.1–T0.6 | ✅ Done (T0.2 by the job-service owner in PR #10) | `devops` |
 | T1 Metrics in services | T1.1–T1.7 | ⏳ Next | — |
 | T2 Request ID + JSON logs | T2.1–T2.8 | Not started | — |
 | T3 Prometheus | T3.1–T3.3 | Not started | — |
@@ -24,22 +24,22 @@ Board: [README.md](README.md)
 
 | # | Raised | For | Issue | Status |
 | --- | --- | --- | --- | --- |
-| B1 | 2026-09-28 | job-service owner | MinIO images cannot be pulled. `quay.io/minio/minio` and `quay.io/minio/mc` return `unauthorized` / `no such manifest` for anonymous pulls, including `latest` and the old pinned release tags. A fresh machine cannot start the stack. The switch to `quay.io` was the owner's decision (`a718349`), so the new image source is theirs to choose. | Open |
+| B1 | 2026-09-28 | job-service owner | MinIO images cannot be pulled. `quay.io/minio/minio` and `quay.io/minio/mc` return `unauthorized` / `no such manifest` for anonymous pulls, including `latest` and the old pinned release tags. A fresh machine cannot start the stack. The switch to `quay.io` was the owner's decision (`696afae`), so the new image source is theirs to choose. | Closed: PR #10 (`c18f35e`) builds `minio` and `mc` from source at pinned release tags |
 | B2 | 2026-09-28 | lead | `AGENTS.md` says Java 25; all `pom.xml` files use 21 (proposal P4). | Open |
 
 ## Log
 
 ### 2026-09-28 — T0 Infra fixes
 
-Branch `devops`, from `main` at `883a55e`.
+Branch `devops`, from `main` at `1b49f47`.
 
-**T0.1 Back up `application_db`** — commit `763a767`
+**T0.1 Back up `application_db`** — commit `727bf20`
 
 - What: `infra/backup/backup.sh` dumps `application_db` too.
 - How: added it to the `DATABASES` list.
 - Why: application-service data was never backed up.
 
-**T0.1b `db-backup` credential defaults** (found during T0) — commit `763a767`
+**T0.1b `db-backup` credential defaults** (found during T0) — commit `727bf20`
 
 - What: `db-backup` uses `${DB_USERNAME:-herafi}` / `${DB_PASSWORD:-herafi}`.
 - How: the same defaults the `postgres` service already has.
@@ -47,13 +47,16 @@ Branch `devops`, from `main` at `883a55e`.
   with an empty user and failed silently every hour. `docker compose config`
   warned about it.
 
-**T0.2 Pin MinIO images** — not done, blocked (B1)
+**T0.2 Pin MinIO images** — done by the job-service owner, PR #10 (`c18f35e`)
 
+- What: `minio` and `minio-init` are built from source by
+  `infra/docker/minio/Dockerfile`, pinned to `RELEASE.2025-09-07T16-13-09Z`
+  (server) and `RELEASE.2025-08-13T08-35-41Z` (`mc`).
 - Why: the move to `quay.io` was deliberate (job-service owner, commit
-  `a718349`), and neither `latest` nor the old tags can be pulled there, so
-  there is no tag to pin until the owner picks a working source.
+  `696afae`), and neither `latest` nor the old tags could be pulled there (B1).
+  The owner picked the new source, so no DevOps change was needed.
 
-**T0.3 MinIO credentials from env** — commit `763a767`
+**T0.3 MinIO credentials from env** — commit `727bf20`
 
 - What: `minio`, `minio-init` (`mc alias set`), and job-service `S3_ACCESS_KEY` /
   `S3_SECRET_KEY` read `MINIO_ROOT_USER` / `MINIO_ROOT_PASSWORD`.
@@ -61,20 +64,20 @@ Branch `devops`, from `main` at `883a55e`.
   variables added to `.env.example`.
 - Why: last secret written literally; follows the team's secret pattern.
 
-**T0.4 Postgres healthcheck** — commit `763a767`
+**T0.4 Postgres healthcheck** — commit `727bf20`
 
 - What: `pg_isready -U $${POSTGRES_USER}`.
 - How: `$$` makes Compose leave the variable for the container's shell.
 - Why: a custom `DB_USERNAME` made the healthcheck fail, blocking every service.
 
-**T0.5 Gateway healthcheck** — commit `763a767`
+**T0.5 Gateway healthcheck** — commit `727bf20`
 
 - What: `api-gateway` checks `/actuator/health` like the other services.
 - How: same `wget … | grep -q UP` command; `/actuator/health` is already public
   in the gateway's `SecurityConfig`.
 - Why: Prometheus (T3) and the demo need to know when the gateway is ready.
 
-**T0.6 README** — commit `e7648df`
+**T0.6 README** — commit `7e76bee`
 
 - What: diagram shows application-service (route, REST calls to job and user,
   Eureka, `application_db`); backup and recovery sections say four databases.
@@ -87,5 +90,14 @@ Branch `devops`, from `main` at `883a55e`.
   healthy with the new healthcheck; four dumps written; restore test on
   `application_db`: 3 rows → restore → 2 rows (the dump's state). Project removed
   with `down -v`.
-- Not run live: the gateway healthcheck (needs the full stack, which can't start
-  until B1 is fixed). The command is the same one the other services use.
+- Not run live: the gateway healthcheck. It needs the full stack, which could not
+  start before B1 was fixed; it can now, so this check is still to do. The command
+  is the same one the other services use.
+
+### 2026-09-28 — Board refresh
+
+- What: commit hashes in this folder updated to the current ones; B1 closed and
+  T0.2 marked done after PR #10; T0 checklist in `00-infra-fixes.md` ticked to
+  match the log above.
+- Why: the old hashes no longer resolve on `main`, and B1 was fixed by the
+  job-service owner.

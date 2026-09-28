@@ -53,7 +53,7 @@ Progress log: [ROADMAP.md](ROADMAP.md)
 ## T0 — Defects in DevOps-owned files → [00-infra-fixes.md](00-infra-fixes.md)
 
 - [x] T0.1 Back up `application_db`
-- [ ] T0.2 Pin MinIO images — **blocked**: quay.io images not pullable, owner decides (ROADMAP B1)
+- [x] T0.2 Pin MinIO images — done by the job-service owner in PR #10 (built from source at pinned release tags)
 - [x] T0.3 Read MinIO credentials from env variables
 - [x] T0.4 Make the Postgres healthcheck use the configured user
 - [x] T0.5 Add a healthcheck to `api-gateway`

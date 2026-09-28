@@ -15,28 +15,28 @@ DATABASES="auth_db user_db job_db"
 
 application-service data is never backed up.
 
-- [ ] Add `application_db` to `DATABASES`.
-- [ ] Restart `db-backup` and confirm an `application_db_*.sql.gz` dump appears:
+- [x] Add `application_db` to `DATABASES`.
+- [x] Restart `db-backup` and confirm an `application_db_*.sql.gz` dump appears:
   `docker compose -f infra/docker/docker-compose.yml exec db-backup ls -lh /backups`
-- [ ] Restore test: insert a row, restore the previous dump, confirm the row is gone.
+- [x] Restore test: insert a row, restore the previous dump, confirm the row is gone.
 
 ## T0.2 Pin MinIO images
 
-The team pinned MinIO in commit `7cd2dcc`, but Compose uses `quay.io/minio/minio`
-and `quay.io/minio/mc` (latest) again, with the pinned tags left in comments.
+The team pinned MinIO in commit `aa05182`, but Compose later used `quay.io/minio/minio`
+and `quay.io/minio/mc` (latest), which could not be pulled (ROADMAP B1).
 
-- [ ] Ask the job-service owner whether the unpinning was on purpose (e.g. the
-  pinned tag was removed from the registry).
-- [ ] If not, pin both images to explicit tags that exist on `quay.io`.
+- [x] Resolved by the job-service owner in PR #10 (`c18f35e`): `infra/docker/minio/Dockerfile`
+  builds both from source, pinned to `RELEASE.2025-09-07T16-13-09Z` (server) and
+  `RELEASE.2025-08-13T08-35-41Z` (`mc`).
 
 ## T0.3 MinIO credentials from env variables
 
 `minio/minio123` is written literally in `minio`, `minio-init`, and `job-service`.
 Every other secret follows the team pattern `${VAR:-dev-default}`.
 
-- [ ] Use `${MINIO_ROOT_USER:-minio}` and `${MINIO_ROOT_PASSWORD:-minio123}` in all
+- [x] Use `${MINIO_ROOT_USER:-minio}` and `${MINIO_ROOT_PASSWORD:-minio123}` in all
   three places, including the `mc alias set` command.
-- [ ] Add both to `.env.example`.
+- [x] Add both to `.env.example`.
 
 Development behaviour is unchanged; production can override the values.
 
@@ -45,7 +45,7 @@ Development behaviour is unchanged; production can override the values.
 The healthcheck runs `pg_isready -U herafi -d auth_db`. It fails if `.env` sets a
 different `DB_USERNAME`.
 
-- [ ] Use `pg_isready -U $${POSTGRES_USER} -d auth_db` (`$$` makes the container's
+- [x] Use `pg_isready -U $${POSTGRES_USER} -d auth_db` (`$$` makes the container's
   own variable be used).
 
 ## T0.5 Gateway healthcheck
@@ -53,13 +53,13 @@ different `DB_USERNAME`.
 `api-gateway` is the only Spring service without a healthcheck. Prometheus and the
 demo depend on it being ready.
 
-- [ ] Add `wget -qO- http://localhost:8080/actuator/health | grep -q UP`, matching
+- [x] Add `wget -qO- http://localhost:8080/actuator/health | grep -q UP`, matching
   the other services.
 
 ## T0.6 Documentation
 
-- [ ] Add application-service and `application_db` to the README mermaid diagram.
-- [ ] README Backups section: list all four databases.
+- [x] Add application-service and `application_db` to the README mermaid diagram.
+- [x] README Backups section: list all four databases.
 
 ## Acceptance criteria
 

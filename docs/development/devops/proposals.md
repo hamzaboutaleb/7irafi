@@ -54,10 +54,10 @@ code (21). Ask the lead whether `AGENTS.md` should be corrected.
 
 Share these; the owners decide.
 
-- job-service runs `mvn spring-boot:run` with `src/` mounted (commit `0375d4c`,
+- job-service runs `mvn spring-boot:run` with `src/` mounted (commit `48a6bfa`,
   "configure Docker for development"). It starts slower than the other services.
 - Postgres `5432`, MinIO `9000`/`9001`, Eureka `8761`, and job-service `8083` are
   published on all interfaces. T1.2 binds Eureka and job-service to `127.0.0.1`
   for metrics privacy; developers keep local access.
 - `README.md` says the stack will not start without `.env`, but Compose has dev
-  defaults for every variable (commit `e4b38db`).
+  defaults for every variable (commit `15142a3`).
