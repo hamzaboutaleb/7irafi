@@ -12,7 +12,7 @@
 #   BACKUP_RETENTION_DAYS     - dumps older than this are deleted
 set -eu
 
-DATABASES="auth_db user_db job_db"
+DATABASES="auth_db user_db job_db application_db"
 BACKUP_DIR="${BACKUP_DIR:-/backups}"
 RETENTION_DAYS="${BACKUP_RETENTION_DAYS:-7}"
 
