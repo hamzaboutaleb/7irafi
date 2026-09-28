@@ -28,22 +28,28 @@ development at `http://localhost:8761`.
 flowchart LR
     B[Browser] --> F[Angular frontend]
     F --> G[API Gateway]
-    G -->|lb://AUTH-SERVICE| A[Auth Service]◊
+    G -->|lb://AUTH-SERVICE| A[Auth Service]
     G -->|lb://USER-SERVICE| U[User Service]
     G -->|lb://JOB-SERVICE| J[Job Service]
+    G -->|lb://APPLICATION-SERVICE| AP[Application Service]
     A -->|load-balanced REST| U
+    AP -->|REST| J
+    AP -->|REST| U
     G -. registers / discovers .-> E[Eureka]
     A -. registers / discovers .-> E
     U -. registers / discovers .-> E
     J -. registers / discovers .-> E
+    AP -. registers / discovers .-> E
     A --> AD[(auth_db)]
     U --> UD[(user_db)]
     J --> JD[(job_db)]
+    AP --> APD[(application_db)]
 ```
 
 The gateway is the public backend entry point. It validates JWTs for protected routes,
 removes client-supplied trusted headers, and forwards requests by logical service name.
-Auth owns credentials and token issuance; User owns profiles; Job owns job listings.
+Auth owns credentials and token issuance; User owns profiles; Job owns job listings;
+Application owns job applications.
 Each data-owning service owns its Flyway-managed schema and does not query another
 service's tables.
 
@@ -112,7 +118,7 @@ be reached during an outage is not a status page.
 ## Backups
 
 `db-backup` runs alongside the stack and dumps every service database (`auth_db`,
-`user_db`, `job_db`) on an interval, into the `postgres-backups` volume. Databases are
+`user_db`, `job_db`, `application_db`) on an interval, into the `postgres-backups` volume. Databases are
 dumped separately because each service owns its own schema and must be restorable
 independently.
 
@@ -167,11 +173,11 @@ procedure is not a recovery procedure.
 
 ### If the database volume is lost entirely
 
-`docker volume rm docker_postgres-data` (or a disk failure) destroys all three databases.
+`docker volume rm docker_postgres-data` (or a disk failure) destroys all four databases.
 Recovery:
 
 1. `docker compose -f infra/docker/docker-compose.yml up -d postgres` — the volume is
-   recreated and `infra/docker/postgres/init/01-create-databases.sql` recreates the three
+   recreated and `infra/docker/postgres/init/01-create-databases.sql` recreates the four
    empty databases.
 2. Restore each database from its most recent dump, as above.
 3. Start the remaining services. Flyway will find the schema already at the dumped version
