@@ -1,0 +1,46 @@
+<app-navbar />
+<main class="min-h-screen bg-gray-50 px-4 py-10 sm:px-6">
+  <section class="mx-auto max-w-3xl">
+    <h1 class="text-3xl font-bold text-gray-900">{{ 'chat.title' | translate }}</h1>
+    <p class="mt-2 text-gray-600">{{ 'chat.subtitle' | translate }}</p>
+
+    @if (loading()) {
+    <p role="status" class="mt-8 text-gray-600">{{ 'common.loading' | translate }}</p>
+    } @else if (error()) {
+    <p role="alert" class="mt-8 rounded-xl bg-red-50 p-4 text-red-700">{{ error() }}</p>
+    <button type="button" (click)="load()" class="mt-4 min-h-11 font-semibold text-primary-700 underline">{{ 'common.retry' | translate }}</button>
+    } @else if (rows().length === 0) {
+    <div class="mt-8 rounded-2xl border border-gray-200 bg-white p-6">
+      <p class="text-gray-700">{{ 'chat.empty' | translate }}</p>
+      <p class="mt-2 text-sm leading-6 text-gray-500">{{ 'chat.emptyHint' | translate }}</p>
+      <a routerLink="/jobs/my" class="mt-4 inline-block font-semibold text-primary-700 underline">{{ 'chat.goToMyJobs' | translate }}</a>
+    </div>
+    } @else {
+    <ul class="mt-8 space-y-3">
+      @for (row of rows(); track row.conversation.id) {
+      <li>
+        <a [routerLink]="['/conversations', row.conversation.id]"
+          class="flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-colors duration-200 hover:border-primary-200 hover:bg-primary-50/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400">
+          <span aria-hidden="true"
+            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary-100 text-lg font-semibold text-primary-700">
+            {{ (row.otherName ?? row.jobTitle).slice(0, 1).toUpperCase() }}
+          </span>
+          <div class="min-w-0 flex-1">
+            <h2 class="truncate font-semibold text-gray-900">{{ row.jobTitle }}</h2>
+            <p class="mt-1 truncate text-sm text-gray-600">
+              @if (row.iAmClient) {
+              {{ 'chat.withApplicant' | translate: { name: row.otherName ?? '' } }}
+              } @else {
+              {{ 'chat.withOwner' | translate }}
+              }
+            </p>
+          </div>
+          <span class="shrink-0 text-xs text-gray-400">{{ row.conversation.createdAt | date: 'mediumDate' }}</span>
+        </a>
+      </li>
+      }
+    </ul>
+    }
+  </section>
+</main>
+<app-footer />

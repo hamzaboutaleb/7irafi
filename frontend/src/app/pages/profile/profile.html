@@ -2,12 +2,12 @@
 <main class="min-h-screen bg-gray-50 px-4 py-10 sm:px-6">
   <div class="mx-auto max-w-2xl">
     <header class="mb-8">
-      <p class="text-sm font-semibold text-primary-600">My profile</p>
+      <p class="text-sm font-semibold text-primary-600">{{ 'profile.eyebrow' | translate }}</p>
 
-      <h1 class="mt-2 text-3xl font-bold text-gray-900">Profile</h1>
+      <h1 class="mt-2 text-3xl font-bold text-gray-900">{{ 'profile.title' | translate }}</h1>
 
       <p class="mt-2 text-gray-600">
-        View your account details and manage your personal information.
+        {{ 'profile.subtitle' | translate }}
       </p>
     </header>
 
@@ -17,7 +17,7 @@
         role="status"
         aria-live="polite"
       >
-        <p class="text-sm text-gray-600">Loading your profile…</p>
+        <p class="text-sm text-gray-600">{{ 'common.loading' | translate }}</p>
       </section>
     } @else {
       @if (errorMessage()) {
@@ -45,15 +45,23 @@
           aria-labelledby="profile-summary-heading"
         >
           <div class="flex min-w-0 items-center gap-4">
-            <div
-              class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xl font-bold uppercase text-primary-700"
-              aria-hidden="true"
-            >
-              {{ currentProfile.firstName.charAt(0) }}{{ currentProfile.lastName.charAt(0) }}
-            </div>
+            @if (currentProfile.avatarUrl) {
+              <img
+                [src]="currentProfile.avatarUrl"
+                alt=""
+                class="h-16 w-16 shrink-0 rounded-full border border-gray-200 object-cover"
+              />
+            } @else {
+              <div
+                class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xl font-bold uppercase text-primary-700"
+                aria-hidden="true"
+              >
+                {{ currentProfile.firstName.charAt(0) }}{{ currentProfile.lastName.charAt(0) }}
+              </div>
+            }
 
             <div class="min-w-0">
-              <p class="text-sm font-semibold text-primary-600">Your account</p>
+              <p class="text-sm font-semibold text-primary-600">{{ 'profile.account' | translate }}</p>
               <h2
                 id="profile-summary-heading"
                 class="mt-1 truncate text-2xl font-bold text-gray-900"
@@ -67,16 +75,20 @@
           <span
             class="inline-flex min-h-11 items-center self-start rounded-full bg-primary-50 px-4 py-2 text-sm font-semibold text-primary-700 sm:self-center"
           >
-            Personal account
+            {{ 'profile.personalAccount' | translate }}
           </span>
         </section>
+
+        <app-notification-panel />
+
+        <app-avatar-upload [profile]="currentProfile" (profileChange)="profile.set($event)" />
 
         <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
           <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h2 class="text-xl font-semibold text-gray-900">Personal information</h2>
+              <h2 class="text-xl font-semibold text-gray-900">{{ 'profile.personalInformation' | translate }}</h2>
 
-              <p class="mt-1 text-sm text-gray-500">Review and manage your account information.</p>
+              <p class="mt-1 text-sm text-gray-500">{{ 'profile.manage' | translate }}</p>
             </div>
 
             @if (!isEditingPersonal()) {
@@ -85,7 +97,7 @@
                 (click)="startEditingPersonal()"
                 class="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl border border-primary-600 px-5 py-2.5 text-sm font-semibold text-primary-700 transition-colors duration-200 hover:bg-primary-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
               >
-                Edit profile
+                {{ 'profile.edit' | translate }}
               </button>
             }
           </div>
@@ -93,7 +105,7 @@
           @if (isEditingPersonal()) {
             <div class="mt-6">
               <label for="email" class="mb-1.5 block text-sm font-medium text-gray-700">
-                Email address
+                {{ 'auth.field.emailAddress' | translate }}
               </label>
 
               <input
@@ -106,7 +118,7 @@
               />
 
               <p id="email-help" class="mt-1.5 text-xs text-gray-500">
-                Your email identifies your account and cannot be changed here.
+                {{ 'profile.emailNote' | translate }}
               </p>
             </div>
 
@@ -114,7 +126,7 @@
               <div class="grid gap-6 sm:grid-cols-2">
                 <div>
                   <label for="firstName" class="mb-1.5 block text-sm font-medium text-gray-700">
-                    First name
+                    {{ 'auth.field.firstName' | translate }}
                   </label>
 
                   <input
@@ -147,7 +159,7 @@
 
                 <div>
                   <label for="lastName" class="mb-1.5 block text-sm font-medium text-gray-700">
-                    Last name
+                    {{ 'auth.field.lastName' | translate }}
                   </label>
 
                   <input
@@ -187,9 +199,7 @@
                   (click)="cancelEditingPersonal()"
                   [disabled]="isSaving()"
                   class="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-700 transition-colors duration-200 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  Cancel
-                </button>
+                >{{ 'common.cancel' | translate }}</button>
 
                 <button
                   type="submit"
@@ -208,35 +218,35 @@
           } @else {
             <dl class="mt-6 grid gap-4 sm:grid-cols-2">
               <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                <dt class="text-sm font-medium text-gray-500">First name</dt>
+                <dt class="text-sm font-medium text-gray-500">{{ 'auth.field.firstName' | translate }}</dt>
                 <dd class="mt-1 text-base font-semibold text-gray-900">
                   {{ currentProfile.firstName }}
                 </dd>
               </div>
 
               <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                <dt class="text-sm font-medium text-gray-500">Last name</dt>
+                <dt class="text-sm font-medium text-gray-500">{{ 'auth.field.lastName' | translate }}</dt>
                 <dd class="mt-1 text-base font-semibold text-gray-900">
                   {{ currentProfile.lastName }}
                 </dd>
               </div>
 
               <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 sm:col-span-2">
-                <dt class="text-sm font-medium text-gray-500">Email address</dt>
+                <dt class="text-sm font-medium text-gray-500">{{ 'auth.field.emailAddress' | translate }}</dt>
                 <dd class="mt-1 break-all text-base font-semibold text-gray-900">
                   {{ currentProfile.email }}
                 </dd>
               </div>
 
               <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                <dt class="text-sm font-medium text-gray-500">Member since</dt>
+                <dt class="text-sm font-medium text-gray-500">{{ 'profile.memberSince' | translate }}</dt>
                 <dd class="mt-1 text-base font-semibold text-gray-900">
                   {{ currentProfile.createdAt | date: 'mediumDate' }}
                 </dd>
               </div>
 
               <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                <dt class="text-sm font-medium text-gray-500">Last updated</dt>
+                <dt class="text-sm font-medium text-gray-500">{{ 'profile.lastUpdated' | translate }}</dt>
                 <dd class="mt-1 text-base font-semibold text-gray-900">
                   {{ currentProfile.updatedAt | date: 'MMM d, y, h:mm a' }}
                 </dd>
@@ -248,7 +258,7 @@
           <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <div class="flex flex-wrap items-center gap-3">
-                <h2 class="text-xl font-semibold text-gray-900">Professional profile</h2>
+                <h2 class="text-xl font-semibold text-gray-900">{{ 'profile.professional' | translate }}</h2>
 
                 @if (professionalProfile(); as pro) {
                   <span
@@ -260,7 +270,7 @@
               </div>
 
               <p class="mt-1 text-sm text-gray-500">
-                The services you offer and the cities where you are available.
+                {{ 'profile.professionalIntro' | translate }}
               </p>
             </div>
 
@@ -269,7 +279,7 @@
                 routerLink="/professional-profile"
                 class="inline-flex min-h-11 items-center justify-center rounded-xl border border-primary-600 px-5 py-2.5 text-sm font-semibold text-primary-700 transition-colors duration-200 hover:bg-primary-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
               >
-                Edit professional profile
+                {{ 'profile.editProfessional' | translate }}
               </a>
             }
           </div>
@@ -277,21 +287,20 @@
           @switch (professionalSection()) {
             @case ('loading') {
               <p role="status" aria-live="polite" class="mt-6 text-sm text-gray-600">
-                Loading your professional profile…
+                {{ 'profile.loadingProfessional' | translate }}
               </p>
             }
             @case ('none') {
               <div class="mt-6 rounded-xl border border-dashed border-gray-300 bg-gray-50 p-6 text-center">
                 <p class="text-sm text-gray-600">
-                  You are not registered as a professional yet. Offer your services to clients in
-                  your city and start receiving job requests.
-                </p>
+                  {{ 'profile.notProfessional' | translate }}
+              </p>
 
                 <a
                   routerLink="/professional-profile"
                   class="mt-4 inline-flex min-h-11 items-center justify-center rounded-xl bg-primary-500 px-5 py-2.5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
                 >
-                  Become a Professional
+                  {{ 'profile.becomeProfessional' | translate }}
                 </a>
               </div>
             }
@@ -299,14 +308,14 @@
               @if (professionalProfile(); as pro) {
                 <dl class="mt-6 grid gap-4 sm:grid-cols-2">
                   <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 sm:col-span-2">
-                    <dt class="text-sm font-medium text-gray-500">Biography</dt>
+                    <dt class="text-sm font-medium text-gray-500">{{ 'profile.biography' | translate }}</dt>
                     <dd class="mt-1 text-base whitespace-pre-line text-gray-900">
                       {{ pro.biography }}
                     </dd>
                   </div>
 
                   <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                    <dt class="text-sm font-medium text-gray-500">Services you provide</dt>
+                    <dt class="text-sm font-medium text-gray-500">{{ 'profile.servicesProvided' | translate }}</dt>
                     <dd class="mt-2">
                       <ul class="flex flex-wrap gap-2">
                         @for (category of pro.categories; track category.code) {
@@ -321,7 +330,7 @@
                   </div>
 
                   <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                    <dt class="text-sm font-medium text-gray-500">Service areas</dt>
+                    <dt class="text-sm font-medium text-gray-500">{{ 'profile.serviceAreas' | translate }}</dt>
                     <dd class="mt-2">
                       <ul class="flex flex-wrap gap-2">
                         @for (city of pro.cities; track city.code) {
@@ -339,7 +348,7 @@
             }
             @case ('error') {
               <p role="alert" class="mt-6 text-sm text-red-700">
-                We could not load your professional profile. Please refresh the page to try again.
+                {{ 'profile.professionalError' | translate }}
               </p>
             }
           }

@@ -26,6 +26,24 @@ export class UserService {
     return this.http.put<ApiSuccess<UserProfile>>('users/me', request);
   }
 
+  /**
+   * Reports progress instead of returning a single response, so the page can
+   * show how far an upload has got. The caller handles both event kinds.
+   */
+  uploadAvatar(file: File) {
+    const body = new FormData();
+    body.append('file', file);
+
+    return this.http.post<ApiSuccess<UserProfile>>('users/me/avatar', body, {
+      reportProgress: true,
+      observe: 'events',
+    });
+  }
+
+  deleteAvatar() {
+    return this.http.delete<void>('users/me/avatar');
+  }
+
   getServiceCategories() {
     return this.http.get<ApiSuccess<ServiceCategory[]>>('users/categories');
   }

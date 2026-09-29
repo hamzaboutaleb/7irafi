@@ -4,24 +4,24 @@
     <!-- Left: text + buttons -->
     <div>
       <h1 class="text-6xl font-bold text-gray-900 leading-tight max-w-lg">
-        Whatever the problem, <span class="bg-gradient-to-r from-primary-500 to-primary-700 bg-clip-text text-transparent">find someone to fix it</span>
+        {{ 'hero.title1' | translate }} <span class="bg-gradient-to-r from-primary-500 to-primary-700 bg-clip-text text-transparent">{{ 'hero.title2' | translate }}</span>
       </h1>
       <p class="mt-6 text-xl text-gray-600">
-        Browse thousands of verified professionals or post your request and let them come to you.
+        {{ 'hero.subtitle' | translate }}
       </p>
       <div class="mt-10 flex gap-4">
         <a routerLink="/professionals" class="bg-primary-500 text-white px-8 py-4 rounded-full font-medium hover:bg-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2">
-          Find a Professional
+          {{ 'hero.findPro' | translate }}
         </a>
         <a routerLink="/jobs/new" class="border border-primary-500 text-primary-500 px-8 py-4 rounded-full font-medium hover:bg-primary-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2">
-          Post a Request
+          {{ 'hero.postRequest' | translate }}
         </a>
       </div>
     </div>
 
     <!-- Right: illustration -->
     <div class="flex items-center justify-center">
-      <img src="hero-illustration.png" alt="Find a professional" class="w-full max-w-lg" />
+      <img src="hero-illustration.png" [attr.alt]="'hero.findPro' | translate" class="w-full max-w-lg" />
     </div>
 
   </div>

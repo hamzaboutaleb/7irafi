@@ -2,7 +2,7 @@ import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, forkJoin, map, of, Subscription, switchMap } from 'rxjs';
 import { UserService } from '../../services/user.js';
 import { PublicProfessionalProfile } from '../../types/professional-profile.js';
@@ -10,12 +10,14 @@ import { Navbar } from '../../components/navbar/navbar.js';
 import { Footer } from '../../components/footer/footer.js';
 import { ApplicationService, applicationError } from '../../services/application.js';
 import { JobService } from '../../services/job.js';
+import { ChatService, chatError } from '../../services/chat.js';
 import { ApplicationPage, JobApplication, applicationStatusLabels } from '../../types/application.js';
 import { JobDetail } from '../../types/job.js';
+import { TranslatePipe } from '../../pipes/translate-pipe.js';
 
 @Component({
   selector: 'app-job-applicants',
-  imports: [DatePipe, RouterLink, Navbar, Footer],
+  imports: [DatePipe, RouterLink, Navbar, Footer, TranslatePipe],
   templateUrl: './job-applicants.html',
 })
 export class JobApplicants implements OnInit {
@@ -23,6 +25,8 @@ export class JobApplicants implements OnInit {
   private readonly users = inject(UserService);
   private readonly jobsService = inject(JobService);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly chat = inject(ChatService);
   private readonly destroyRef = inject(DestroyRef);
   private jobId = '';
   private request?: Subscription;
@@ -31,6 +35,7 @@ export class JobApplicants implements OnInit {
   readonly result = signal<ApplicationPage | null>(null);
   readonly loading = signal(false);
   readonly accepting = signal<string | null>(null);
+  readonly opening = signal<string | null>(null);
   readonly retryApplication = signal<JobApplication | null>(null);
   readonly error = signal<string | null>(null);
   readonly notice = signal<string | null>(null);
@@ -82,6 +87,26 @@ export class JobApplicants implements OnInit {
       error: (error: HttpErrorResponse) => {
         this.error.set(applicationError(error, 'Unable to load applicants. Please try again.'));
         this.loading.set(false);
+      },
+    });
+  }
+
+  /**
+   * Opens (or reopens) the conversation for this application. Chat starts at
+   * application time, so negotiating before accepting is possible.
+   */
+  message(application: JobApplication): void {
+    if (this.opening()) return;
+    this.opening.set(application.id);
+    this.notice.set(null);
+    this.chat.open(application.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (conversation) => {
+        this.opening.set(null);
+        void this.router.navigate(['/conversations', conversation.id]);
+      },
+      error: (error: HttpErrorResponse) => {
+        this.opening.set(null);
+        this.notice.set(chatError(error, 'Unable to open the conversation. Please try again.'));
       },
     });
   }

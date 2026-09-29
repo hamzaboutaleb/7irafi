@@ -4,10 +4,11 @@ import { UserService } from '../../services/user.js';
 import { UserProfile } from '../../types/user.js';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ApiError } from '../../types/api.js';
+import { TranslatePipe } from '../../pipes/translate-pipe.js';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [],
+  imports: [TranslatePipe],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })

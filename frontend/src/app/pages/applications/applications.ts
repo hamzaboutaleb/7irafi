@@ -12,6 +12,7 @@ import { ApplicationService, applicationError } from '../../services/application
 import { JobService } from '../../services/job.js';
 import { JobApplication, applicationStatusLabels } from '../../types/application.js';
 import { JobListItem, JobResponse } from '../../types/job.js';
+import { TranslatePipe } from '../../pipes/translate-pipe.js';
 
 interface ApplicationRow extends JobApplication {
   job: JobListItem | null;
@@ -21,7 +22,7 @@ interface ApplicationRow extends JobApplication {
 
 @Component({
   selector: 'app-applications',
-  imports: [DatePipe, RouterLink, Navbar, Footer, JobDetailsModal, JobCard],
+  imports: [DatePipe, RouterLink, Navbar, Footer, JobDetailsModal, JobCard, TranslatePipe],
   templateUrl: './applications.html',
 })
 export class Applications implements OnInit {

@@ -5,6 +5,8 @@ export interface UserProfile {
   lastName: string;
   createdAt: string;
   updatedAt: string;
+  /** Signed link that expires; null when no avatar has been uploaded. */
+  avatarUrl: string | null;
 }
 
 export interface UpdateUserProfileRequest {

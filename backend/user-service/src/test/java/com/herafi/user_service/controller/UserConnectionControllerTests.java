@@ -32,6 +32,7 @@ import com.herafi.user_service.entity.UserProfile;
 import com.herafi.user_service.exception.ConnectionNotFoundException;
 import com.herafi.user_service.exception.NotAProfessionalException;
 import com.herafi.user_service.exception.SelfConnectionException;
+import com.herafi.user_service.service.AvatarService;
 import com.herafi.user_service.service.UserConnectionService;
 
 @ActiveProfiles("test")
@@ -45,6 +46,10 @@ class UserConnectionControllerTests {
 
     @MockitoBean
     private UserConnectionService userConnectionService;
+
+    // The controller resolves avatar links through it; storage is not part of these tests.
+    @MockitoBean
+    private AvatarService avatarService;
 
     @Test
     void listsTheCallersNetworkAsCards() throws Exception {

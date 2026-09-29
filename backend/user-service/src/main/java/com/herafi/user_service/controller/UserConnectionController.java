@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.herafi.user_service.dto.ApiResponse;
 import com.herafi.user_service.dto.ProfessionalCardResponse;
 import com.herafi.user_service.entity.ProfessionalProfile;
+import com.herafi.user_service.service.AvatarService;
 import com.herafi.user_service.service.UserConnectionService;
 
 /**
@@ -31,12 +32,15 @@ import com.herafi.user_service.service.UserConnectionService;
 public class UserConnectionController {
 
     private final UserConnectionService userConnectionService;
+    private final AvatarService avatarService;
     private final Duration onlineThreshold;
 
     public UserConnectionController(
             UserConnectionService userConnectionService,
+            AvatarService avatarService,
             @Value("${users.presence.online-threshold}") Duration onlineThreshold) {
         this.userConnectionService = userConnectionService;
+        this.avatarService = avatarService;
         this.onlineThreshold = onlineThreshold;
     }
 
@@ -51,7 +55,8 @@ public class UserConnectionController {
         Instant onlineCutoff = Instant.now().minus(onlineThreshold);
 
         List<ProfessionalCardResponse> cards = profiles.stream()
-                .map(profile -> ProfessionalCardResponse.from(profile, onlineCutoff))
+                .map(profile -> ProfessionalCardResponse.from(
+                        profile, onlineCutoff, avatarService.urlFor(profile.getUserProfile())))
                 .toList();
 
         return ApiResponse.success(cards);

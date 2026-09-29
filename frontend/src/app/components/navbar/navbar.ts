@@ -1,10 +1,14 @@
 import { Component, ElementRef, HostListener, inject, signal, viewChild } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../services/auth';
+import { TranslatePipe } from '../../pipes/translate-pipe.js';
+import { LanguageSwitcher } from '../language-switcher/language-switcher.js';
+import { ChatService } from '../../services/chat.js';
+import { NotificationService } from '../../services/notification.js';
 
 @Component({
   selector: 'app-navbar',
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, TranslatePipe, LanguageSwitcher],
   templateUrl: './navbar.html',
   styleUrl: './navbar.css',
 })
@@ -23,13 +27,22 @@ export class Navbar {
     this.jobsToggle()?.nativeElement.focus();
   }
   private authService = inject(AuthService);
+  private chat = inject(ChatService);
+  private notifications = inject(NotificationService);
   private router = inject(Router);
+
+  /** Unread notifications, shown as a red count on the Profile link. */
+  readonly unread = this.notifications.unread;
 
   get isAuthenticated(): boolean {
     return this.authService.getToken() !== null;
   }
 
   logout() {
+    // Close the socket first: it is authenticated as this user, and must not
+    // stay open for whoever signs in next in this tab.
+    this.chat.disconnect();
+    this.notifications.disconnect();
     this.authService.logout();
     this.router.navigate(['/']);
   }

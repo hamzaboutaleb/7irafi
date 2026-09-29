@@ -9,6 +9,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import com.herafi.user_service.dto.ApiErrorResponse;
 import com.herafi.user_service.dto.ApiErrorResponse.FieldValidationError;
@@ -64,6 +65,22 @@ public class GlobalExceptionHandler {
                                 .body(ApiErrorResponse.of(
                                                 "MISSING_USER_IDENTITY",
                                                 "Authenticated user identity is missing"));
+        }
+
+        @ExceptionHandler(InvalidAvatarException.class)
+        public ResponseEntity<ApiErrorResponse> handleInvalidAvatar(InvalidAvatarException exception) {
+                return ResponseEntity
+                                .status(HttpStatus.BAD_REQUEST)
+                                .body(ApiErrorResponse.of(exception.getCode(), exception.getMessage()));
+        }
+
+        // Spring rejects an oversized upload before the controller runs, so the
+        // size rule has to be answered here as well as in AvatarService.
+        @ExceptionHandler(MaxUploadSizeExceededException.class)
+        public ResponseEntity<ApiErrorResponse> handleUploadTooLarge(MaxUploadSizeExceededException exception) {
+                return ResponseEntity
+                                .status(HttpStatus.BAD_REQUEST)
+                                .body(ApiErrorResponse.of("AVATAR_TOO_LARGE", "The image is too large"));
         }
 
         @ExceptionHandler(ProfessionalProfileNotFoundException.class)

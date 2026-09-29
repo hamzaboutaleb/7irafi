@@ -31,6 +31,7 @@ import com.herafi.user_service.entity.ProfessionalProfile;
 import com.herafi.user_service.entity.ServiceCategory;
 import com.herafi.user_service.entity.ServiceCity;
 import com.herafi.user_service.entity.UserProfile;
+import com.herafi.user_service.service.AvatarService;
 import com.herafi.user_service.service.ProfessionalProfileService;
 
 @ActiveProfiles("test")
@@ -44,6 +45,10 @@ class ProfessionalDirectoryControllerTests {
 
     @MockitoBean
     private ProfessionalProfileService professionalProfileService;
+
+    // The controller resolves avatar links through it; storage is not part of these tests.
+    @MockitoBean
+    private AvatarService avatarService;
 
     @Test
     void returnsMappedProfessionalCardsAndPaginationMetadata() throws Exception {

@@ -1,0 +1,62 @@
+<section class="mb-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8"
+  aria-labelledby="avatar-heading">
+  <h2 id="avatar-heading" class="text-xl font-semibold text-gray-900">{{ 'profile.picture' | translate }}</h2>
+  <p class="mt-1 text-sm text-gray-500">{{ 'profile.picture.rules' | translate: { size: maxMegabytes } }}</p>
+
+  <div class="mt-6 flex flex-col gap-6 sm:flex-row sm:items-center">
+    <!-- The preview of a picked file wins over the saved picture, so you see what you are about to upload. -->
+    @if (preview() || profile().avatarUrl) {
+    <img [src]="preview() ?? profile().avatarUrl" alt="Your profile picture"
+      class="h-24 w-24 shrink-0 rounded-full border border-gray-200 object-cover" />
+    } @else {
+    <span aria-hidden="true"
+      class="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-primary-100 text-2xl font-bold uppercase text-primary-700">
+      {{ initials }}
+    </span>
+    }
+
+    <div class="min-w-0 flex-1">
+      <div class="flex flex-wrap items-center gap-3">
+        <label
+          class="inline-flex min-h-11 cursor-pointer items-center rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 focus-within:ring-2 focus-within:ring-primary-400">
+          <input type="file" [accept]="accept" (change)="pick($event)" [disabled]="uploading()" class="sr-only" />
+          {{ (preview() ? 'profile.picture.chooseAnother' : 'profile.picture.choose') | translate }}
+        </label>
+
+        @if (preview()) {
+        <button type="button" (click)="upload()" [disabled]="uploading()"
+          class="min-h-11 rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 disabled:cursor-not-allowed disabled:opacity-50">
+          {{ (uploading() ? 'profile.picture.uploading' : 'profile.picture.upload') | translate }}
+        </button>
+        <button type="button" (click)="cancel()" [disabled]="uploading()"
+          class="min-h-11 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-600 underline disabled:opacity-50">
+          {{ 'common.cancel' | translate }}
+        </button>
+        } @else if (profile().avatarUrl) {
+        <button type="button" (click)="remove()" [disabled]="removing()"
+          class="min-h-11 rounded-xl border border-red-200 px-4 py-2.5 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50">
+          {{ (removing() ? 'profile.picture.removing' : 'profile.picture.remove') | translate }}
+        </button>
+        }
+      </div>
+
+      @if (uploading()) {
+      <div class="mt-4">
+        <div class="h-2 w-full overflow-hidden rounded-full bg-gray-100" role="progressbar"
+          [attr.aria-valuenow]="progress()" aria-valuemin="0" aria-valuemax="100" [attr.aria-label]="'profile.uploadProgress' | translate">
+          <div class="h-full rounded-full bg-primary-600 transition-[width] duration-150"
+            [style.width.%]="progress()"></div>
+        </div>
+        <p class="mt-1 text-xs text-gray-500">{{ progress() }}%</p>
+      </div>
+      }
+
+      @if (error()) {
+      <p role="alert" class="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">{{ error() }}</p>
+      }
+      @if (notice()) {
+      <p role="status" class="mt-4 rounded-xl bg-green-50 p-3 text-sm text-green-700">{{ notice() }}</p>
+      }
+    </div>
+  </div>
+</section>

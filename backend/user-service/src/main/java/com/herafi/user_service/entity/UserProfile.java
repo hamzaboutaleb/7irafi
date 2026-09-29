@@ -41,6 +41,12 @@ public class UserProfile {
 
     private Instant lastSeenAt;
 
+    /** Object storage key, not a URL: URLs are signed per request and expire. */
+    @Column(length = 200)
+    private String avatarKey;
+
+    private Instant avatarUpdatedAt;
+
     @PrePersist
     void onCreate() {
         Instant now = Instant.now();

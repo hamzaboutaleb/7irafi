@@ -5,18 +5,18 @@
   >
     <img src="logo.svg" alt="7irafy" class="h-14 brightness-0 invert mb-8" />
     <h2 class="text-white text-4xl font-bold text-center max-w-xs leading-snug">
-      Whatever the problem, find someone to fix it
+      {{ 'auth.sideTitle' | translate }}
     </h2>
     <p class="text-primary-100 text-base text-center max-w-xs">
-      Browse thousands of verified professionals or post your request.
+      {{ 'auth.sideBody' | translate }}
     </p>
   </div>
 
   <!-- Right: form side -->
   <div class="flex items-center justify-center p-12">
     <div class="w-full max-w-sm">
-      <h1 class="text-3xl font-bold text-gray-900">Create an account</h1>
-      <p class="text-gray-500 mt-2">Join thousands of professionals today</p>
+      <h1 class="text-3xl font-bold text-gray-900">{{ 'auth.register.heading' | translate }}</h1>
+      <p class="text-gray-500 mt-2">{{ 'auth.register.hint' | translate }}</p>
 
       <form [formGroup]="form" class="mt-8" (ngSubmit)="register()">
         @if (errorMessage()) {
@@ -27,54 +27,50 @@
 
         <div class="mt-8 grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1.5">First name</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ 'auth.field.firstName' | translate }}</label>
             <input
               type="text"
               formControlName="firstName"
-              placeholder="John"
+              [attr.placeholder]="'auth.field.firstName' | translate"
               class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
             />
             @if (firstName.invalid && (firstName.dirty || firstName.touched)) {
               @if (firstName.errors?.['required']) {
-                <div class="text-red-500 text-xs mt-1">First name is required.</div>
+                <div class="text-red-500 text-xs mt-1">{{ 'auth.error.firstNameRequired' | translate }}</div>
               }
               @if (firstName.errors?.['maxlength']) {
                 <div class="text-red-500 text-xs mt-1">
-                  First name must be at most
-                  {{ firstName.errors?.['maxlength'].requiredLength }} characters long.
+                {{ 'auth.error.maxLength' | translate: { length: firstName.errors?.['maxlength'].requiredLength } }}
                 </div>
               }
               @if (firstName.errors?.['minlength']) {
                 <div class="text-red-500 text-xs mt-1">
-                  First name must be at least
-                  {{ firstName.errors?.['minlength'].requiredLength }} characters long.
+                {{ 'auth.error.minLength' | translate: { length: firstName.errors?.['minlength'].requiredLength } }}
                 </div>
               }
             }
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1.5">Last name</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ 'auth.field.lastName' | translate }}</label>
             <input
               type="text"
               formControlName="lastName"
-              placeholder="Doe"
+              [attr.placeholder]="'auth.field.lastName' | translate"
               class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
             />
             @if (lastName.invalid && (lastName.dirty || lastName.touched)) {
               @if (lastName.errors?.['required']) {
-                <div class="text-red-500 text-xs mt-1">Last name is required.</div>
+                <div class="text-red-500 text-xs mt-1">{{ 'auth.error.lastNameRequired' | translate }}</div>
               }
               @if (lastName.errors?.['minlength']) {
                 <div class="text-red-500 text-xs mt-1">
-                  Last name must be at least
-                  {{ lastName.errors?.['minlength'].requiredLength }} characters long.
+                {{ 'auth.error.minLength' | translate: { length: lastName.errors?.['minlength'].requiredLength } }}
                 </div>
               }
               @if (lastName.errors?.['maxlength']) {
                 <div class="text-red-500 text-xs mt-1">
-                  Last name must be at most
-                  {{ lastName.errors?.['maxlength'].requiredLength }} characters long.
+                {{ 'auth.error.maxLength' | translate: { length: lastName.errors?.['maxlength'].requiredLength } }}
                 </div>
               }
             }
@@ -82,31 +78,30 @@
         </div>
 
         <div class="mt-5">
-          <label class="block text-sm font-medium text-gray-700 mb-1.5">Email address</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ 'auth.field.emailAddress' | translate }}</label>
           <input
             type="email"
             formControlName="email"
-            placeholder="you@example.com"
+            [attr.placeholder]="'auth.field.emailAddress' | translate"
             class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
           />
           @if (email.invalid && (email.dirty || email.touched)) {
             @if (email.errors?.['required']) {
-              <div class="text-red-500 text-xs mt-1">Email is required.</div>
+              <div class="text-red-500 text-xs mt-1">{{ 'auth.error.emailRequired' | translate }}</div>
             }
             @if (email.errors?.['email']) {
-              <div class="text-red-500 text-xs mt-1">Please enter a valid email address.</div>
+              <div class="text-red-500 text-xs mt-1">{{ 'auth.error.emailInvalid' | translate }}</div>
             }
             @if (email.errors?.['maxlength']) {
               <div class="text-red-500 text-xs mt-1">
-                Email must be at most {{ email.errors?.['maxlength'].requiredLength }} characters
-                long.
+                {{ 'auth.error.maxLength' | translate: { length: email.errors?.['maxlength'].requiredLength } }}
               </div>
             }
           }
         </div>
 
         <div class="mt-5">
-          <label class="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ 'auth.field.password' | translate }}</label>
           <input
             type="password"
             formControlName="password"
@@ -115,18 +110,16 @@
           />
           @if (password.invalid && (password.dirty || password.touched)) {
             @if (password.errors?.['required']) {
-              <div class="text-red-500 text-xs mt-1">Password is required.</div>
+              <div class="text-red-500 text-xs mt-1">{{ 'auth.error.passwordRequired' | translate }}</div>
             }
             @if (password.errors?.['minlength']) {
               <div class="text-red-500 text-xs mt-1">
-                Password must be at least
-                {{ password.errors?.['minlength'].requiredLength }} characters long.
+                {{ 'auth.error.minLength' | translate: { length: password.errors?.['minlength'].requiredLength } }}
               </div>
             }
             @if (password.errors?.['maxlength']) {
               <div class="text-red-500 text-xs mt-1">
-                Password must be at most
-                {{ password.errors?.['maxlength'].requiredLength }} characters long.
+                {{ 'auth.error.maxLength' | translate: { length: password.errors?.['maxlength'].requiredLength } }}
               </div>
             }
           }
@@ -135,14 +128,14 @@
         <button
           class="w-full mt-8 bg-gradient-to-r from-primary-500 to-primary-700 hover:from-primary-600 hover:to-primary-800 text-white text-sm font-medium py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-sm shadow-primary-200 cursor-pointer"
         >
-          Create account
+          {{ 'auth.register.submit' | translate }}
         </button>
       </form>
 
       <p class="text-center text-sm text-gray-500 mt-6">
-        Already have an account?
+        {{ 'auth.register.hasAccount' | translate }}
         <a routerLink="/login" class="text-primary-600 font-medium hover:text-primary-700"
-          >Sign in</a
+          >{{ 'auth.login.submit' | translate }}</a
         >
       </p>
     </div>

@@ -53,4 +53,24 @@ public class GatewayRoutesConfig {
                 .filter(lb("APPLICATION-SERVICE"))
                 .build();
     }
+
+    @Bean
+    RouterFunction<ServerResponse> chatServiceRoute(
+            @Value("${gateway.shared-secret}") String gatewaySharedSecret) {
+        return route("chat-service")
+                .route(path("/conversations/**"), http())
+                .before(addAuthenticatedIdentity(gatewaySharedSecret))
+                .filter(lb("CHAT-SERVICE"))
+                .build();
+    }
+
+    @Bean
+    RouterFunction<ServerResponse> notificationServiceRoute(
+            @Value("${gateway.shared-secret}") String gatewaySharedSecret) {
+        return route("notification-service")
+                .route(path("/notifications/**"), http())
+                .before(addAuthenticatedIdentity(gatewaySharedSecret))
+                .filter(lb("NOTIFICATION-SERVICE"))
+                .build();
+    }
 }

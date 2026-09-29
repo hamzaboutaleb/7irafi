@@ -3,7 +3,7 @@
 <main class="min-h-screen bg-gray-50 px-4 py-10 sm:px-6">
   <section class="mx-auto max-w-5xl">
     <header class="mb-7">
-      <p class="mt-2 text-gray-600">Find work that matches your skills.</p>
+      <p class="mt-2 text-gray-600">{{ 'jobs.subtitle' | translate }}</p>
     </header>
 
     <div class="mb-6 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
@@ -13,19 +13,19 @@
         <ng-container *ngTemplateOutlet="filterFields; context: { mobile: false }" />
       </div>
       @if (optionsError()) {
-        <p class="mt-3 text-sm text-red-700">Some filter options could not load.
-          <button type="button" class="underline" (click)="loadOptions()">Retry</button>
+        <p class="mt-3 text-sm text-red-700">{{ 'jobs.filtersPartial' | translate }}
+          <button type="button" class="underline" (click)="loadOptions()">{{ 'common.retry' | translate }}</button>
         </p>
       }
       @if (chips().length) {
-        <div class="mt-4 flex flex-wrap items-center gap-2" aria-label="Active filters">
+        <div class="mt-4 flex flex-wrap items-center gap-2" aria-label="{{ 'jobs.activeFilters' | translate }}">
           @for (chip of chips(); track chip.key) {
             <button type="button" class="rounded-full bg-primary-50 px-3 py-1.5 text-sm font-medium text-primary-700 hover:bg-primary-100 focus-visible:outline-2"
               [attr.aria-label]="'Remove filter: ' + chip.label" (click)="removeFilter(chip.key)">
               {{ chip.label | titlecase }} <span aria-hidden="true" class="ml-2">×</span>
             </button>
           }
-          <button type="button" class="px-2 py-1.5 text-sm font-medium text-gray-600 underline" (click)="clearFilters()">Clear all</button>
+          <button type="button" class="px-2 py-1.5 text-sm font-medium text-gray-600 underline" (click)="clearFilters()">{{ 'common.clearAll' | translate }}</button>
         </div>
       }
     </div>
@@ -36,11 +36,11 @@
           <span class="font-semibold text-gray-900">{{ totalJobs() }}</span> {{ totalJobs() === 1 ? 'job' : 'jobs' }} found
         }
       </p>
-      <label class="flex items-center gap-2 text-sm text-gray-600">Sort by
+      <label class="flex items-center gap-2 text-sm text-gray-600">{{ 'jobs.sortBy' | translate }}
         <select class="filter-control !w-auto" [ngModel]="sort()" (ngModelChange)="changeSort($event)">
-          <option value="createdAt,desc">Newest</option>
-          <option value="budget,desc">Budget: high to low</option>
-          <option value="budget,asc">Budget: low to high</option>
+          <option value="createdAt,desc">{{ 'jobs.newest' | translate }}</option>
+          <option value="budget,desc">{{ 'jobs.budgetHigh' | translate }}</option>
+          <option value="budget,asc">{{ 'jobs.budgetLow' | translate }}</option>
         </select>
       </label>
     </div>
@@ -55,13 +55,13 @@
         }
       </div>
     } @else if (errorMessage()) {
-      <p class="rounded-lg bg-red-50 p-4 text-sm text-red-700">{{ errorMessage() }} <button type="button" class="ml-2 underline" (click)="loadJobs()">Try again</button></p>
+      <p class="rounded-lg bg-red-50 p-4 text-sm text-red-700">{{ errorMessage() }} <button type="button" class="ml-2 underline" (click)="loadJobs()">{{ 'common.retry' | translate }}</button></p>
     } @else if (jobs().length === 0) {
       <div class="rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-16 text-center">
-        <h2 class="text-lg font-semibold text-gray-900">No jobs found</h2>
+        <h2 class="text-lg font-semibold text-gray-900">{{ 'jobs.none' | translate }}</h2>
         <p class="mt-2 text-sm text-gray-600">@if (chips().length) { Try a different city, trade, or wider budget. } @else { Check back soon for new opportunities. }</p>
         @if (chips().length) {
-          <button type="button" class="filter-button mt-5" (click)="clearFilters()">Clear filters</button>
+          <button type="button" class="filter-button mt-5" (click)="clearFilters()">{{ 'directory.clearFilters' | translate }}</button>
         }
       </div>
     } @else {
@@ -75,15 +75,13 @@
     }
 
     @if (!isLoading() && !errorMessage() && totalPages() > 0) {
-      <nav aria-label="Jobs pagination" class="mt-8 flex flex-wrap items-center justify-center gap-4">
+      <nav [attr.aria-label]="'jobs.pagination' | translate" class="mt-8 flex flex-wrap items-center justify-center gap-4">
         <button
           type="button"
           (click)="changePage(currentPage() - 1)"
           [disabled]="isLoading() || currentPage() === 0"
           class="cursor-pointer rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-primary-600"
-        >
-          Previous
-        </button>
+        >{{ 'common.previous' | translate }}</button>
 
         <span class="text-sm text-gray-600" aria-live="polite">
           Page {{ currentPage() + 1 }} of {{ totalPages() }}
@@ -94,9 +92,7 @@
           (click)="changePage(currentPage() + 1)"
           [disabled]="isLoading() || currentPage() >= totalPages() - 1"
           class="cursor-pointer rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-primary-600"
-        >
-          Next
-        </button>
+        >{{ 'common.next' | translate }}</button>
       </nav>
     }
   </section>
@@ -118,46 +114,44 @@
 
 <ng-template #filterFields let-mobile="mobile">
   <div class="grid grid-cols-1 gap-4 md:grid-cols-[1fr_1fr_1.5fr_auto] md:items-end">
-    <label class="filter-label">Trade
-      <select class="filter-control" [ngModel]="draft().skill" (ngModelChange)="updateFilter('skill', $event, mobile)">
-        <option value="">All trades</option>
+    <label class="filter-label">{{ 'jobs.trade' | translate }}<select class="filter-control" [ngModel]="draft().skill" (ngModelChange)="updateFilter('skill', $event, mobile)">
+        <option value="">{{ 'jobs.allTrades' | translate }}</option>
         @for (skill of skills(); track skill) { <option [value]="skill">{{ skill | titlecase }}</option> }
       </select>
     </label>
-    <label class="filter-label">City
-      <select class="filter-control" [ngModel]="draft().city" (ngModelChange)="updateFilter('city', $event, mobile)">
-        <option value="">All cities</option>
+    <label class="filter-label">{{ 'job.city' | translate }}<select class="filter-control" [ngModel]="draft().city" (ngModelChange)="updateFilter('city', $event, mobile)">
+        <option value="">{{ 'directory.allCities' | translate }}</option>
         @for (city of cities(); track city) { <option [value]="city">{{ city }}</option> }
       </select>
     </label>
     <fieldset>
-      <legend class="filter-label mb-2">Budget (MAD)</legend>
+      <legend class="filter-label mb-2">{{ 'jobs.budgetMad' | translate }}</legend>
       <div class="flex items-center gap-2">
-        <input type="number" min="0" class="filter-control min-w-0" placeholder="Min" aria-label="Minimum budget in MAD"
+        <input type="number" min="0" class="filter-control min-w-0" [attr.placeholder]="'jobs.min' | translate" [attr.aria-label]="'jobs.minBudget' | translate"
           [attr.aria-invalid]="budgetError() ? true : null" [attr.aria-describedby]="budgetError() ? (mobile ? 'mobile-budget-error' : 'budget-error') : null"
           [ngModel]="draft().minBudget" (ngModelChange)="updateFilter('minBudget', $event, true)" (change)="!mobile && applyFilters()" />
         <span class="text-gray-400" aria-hidden="true">–</span>
-        <input type="number" min="0" class="filter-control min-w-0" placeholder="Max" aria-label="Maximum budget in MAD"
+        <input type="number" min="0" class="filter-control min-w-0" [attr.placeholder]="'jobs.max' | translate" [attr.aria-label]="'jobs.maxBudget' | translate"
           [attr.aria-invalid]="budgetError() ? true : null" [attr.aria-describedby]="budgetError() ? (mobile ? 'mobile-budget-error' : 'budget-error') : null"
           [ngModel]="draft().maxBudget" (ngModelChange)="updateFilter('maxBudget', $event, true)" (change)="!mobile && applyFilters()" />
       </div>
     </fieldset>
     @if (!mobile) {
-      <button type="button" class="filter-button" [attr.aria-expanded]="moreFilters()" aria-controls="extra-filters" (click)="moreFilters.set(!moreFilters())">More filters <span aria-hidden="true">{{ moreFilters() ? '−' : '+' }}</span></button>
+      <button type="button" class="filter-button" [attr.aria-expanded]="moreFilters()" aria-controls="extra-filters" (click)="moreFilters.set(!moreFilters())">{{ 'jobs.moreFilters' | translate }} <span aria-hidden="true">{{ moreFilters() ? '−' : '+' }}</span></button>
     }
   </div>
   @if (budgetError()) { <p [id]="mobile ? 'mobile-budget-error' : 'budget-error'" class="mt-3 text-sm text-red-700" role="alert">{{ budgetError() }}</p> }
   @if (mobile || moreFilters()) {
     <div [id]="mobile ? 'mobile-extra-filters' : 'extra-filters'" class="mt-4 grid grid-cols-1 gap-4 border-t border-gray-100 pt-4 md:grid-cols-2">
-      <label class="filter-label">Estimated duration
+      <label class="filter-label">{{ 'jobs.duration' | translate }}
         <select class="filter-control" [ngModel]="draft().duration" (ngModelChange)="updateFilter('duration', $event, mobile)">
-          <option value="">Any duration</option>
+          <option value="">{{ 'jobs.anyDuration' | translate }}</option>
           @for (duration of durations; track duration.value) { <option [value]="duration.value">{{ duration.label }}</option> }
         </select>
       </label>
-      <label class="filter-label">Preferred time
+      <label class="filter-label">{{ 'jobs.preferredTime' | translate }}
         <select class="filter-control" [ngModel]="draft().preferredTime" (ngModelChange)="updateFilter('preferredTime', $event, mobile)">
-          <option value="">Any time</option>
+          <option value="">{{ 'jobs.anyTime' | translate }}</option>
           @for (time of times; track time) { <option [value]="time">{{ time | titlecase }}</option> }
         </select>
       </label>
@@ -167,14 +161,14 @@
 
 <dialog #filterDialog class="filter-sheet" aria-labelledby="filter-heading" (cancel)="closeFilters()">
   <div class="flex items-center justify-between border-b border-gray-100 p-5">
-    <h2 id="filter-heading" class="text-xl font-semibold text-gray-900">Filter jobs</h2>
-    <button type="button" class="filter-button" aria-label="Close filters" (click)="closeFilters()">×</button>
+    <h2 id="filter-heading" class="text-xl font-semibold text-gray-900">{{ 'jobs.filter' | translate }}</h2>
+    <button type="button" class="filter-button" [attr.aria-label]="'jobs.closeFilters' | translate" (click)="closeFilters()">×</button>
   </div>
   <div class="overflow-y-auto p-5">
     <ng-container *ngTemplateOutlet="filterFields; context: { mobile: true }" />
   </div>
   <div class="flex gap-3 border-t border-gray-100 bg-white p-5">
-    <button type="button" class="filter-button" (click)="clearFilters(true)">Reset</button>
-    <button type="button" class="flex-1 rounded-xl bg-primary-600 px-5 py-3 font-semibold text-white hover:bg-primary-700 focus-visible:outline-2 focus-visible:outline-offset-2" (click)="showResults()">Show results</button>
+    <button type="button" class="filter-button" (click)="clearFilters(true)">{{ 'common.reset' | translate }}</button>
+    <button type="button" class="flex-1 rounded-xl bg-primary-600 px-5 py-3 font-semibold text-white hover:bg-primary-700 focus-visible:outline-2 focus-visible:outline-offset-2" (click)="showResults()">{{ 'jobs.showResults' | translate }}</button>
   </div>
 </dialog>

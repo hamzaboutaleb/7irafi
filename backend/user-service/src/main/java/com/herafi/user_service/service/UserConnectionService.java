@@ -16,6 +16,7 @@ import com.herafi.user_service.exception.ConnectionNotFoundException;
 import com.herafi.user_service.exception.NotAProfessionalException;
 import com.herafi.user_service.exception.SelfConnectionException;
 import com.herafi.user_service.repository.ProfessionalProfileRepository;
+import com.herafi.user_service.client.NotificationClient;
 import com.herafi.user_service.repository.UserConnectionRepository;
 
 /**
@@ -29,12 +30,15 @@ public class UserConnectionService {
 
     private final UserConnectionRepository userConnectionRepository;
     private final ProfessionalProfileRepository professionalProfileRepository;
+    private final NotificationClient notificationClient;
 
     public UserConnectionService(
             UserConnectionRepository userConnectionRepository,
-            ProfessionalProfileRepository professionalProfileRepository) {
+            ProfessionalProfileRepository professionalProfileRepository,
+            NotificationClient notificationClient) {
         this.userConnectionRepository = userConnectionRepository;
         this.professionalProfileRepository = professionalProfileRepository;
+        this.notificationClient = notificationClient;
     }
 
     @Transactional
@@ -63,6 +67,15 @@ public class UserConnectionService {
         connection.setCreatedAt(Instant.now());
 
         userConnectionRepository.save(connection);
+
+        // Only on a genuinely new row: a double-click returns above, so nobody
+        // gets told twice that the same person saved them.
+        notificationClient.notify(
+                targetId,
+                "NETWORK_CONNECTION_ADDED",
+                "Someone saved your profile",
+                "A client added you to their network of professionals.",
+                "/professionals");
     }
 
     @Transactional

@@ -13,6 +13,7 @@ import { JobService } from '../../services/job.js';
 import { EstimatedDuration, JobListItem, PreferredTime } from '../../types/job.js';
 import { JobPostingResult } from '../../services/job-posting-result.js';
 import { PostingStatusModal } from '../../components/posting-status-modal/posting-status-modal.js';
+import { TranslatePipe } from '../../pipes/translate-pipe.js';
 
 interface JobFilters {
   skill: string;
@@ -29,7 +30,7 @@ const emptyFilters = (): JobFilters => ({
 
 @Component({
   selector: 'app-job',
-  imports: [FormsModule, NgTemplateOutlet, TitleCasePipe, Navbar, Footer, JobCard, JobDetailsModal, PostingStatusModal],
+  imports: [FormsModule, NgTemplateOutlet, TitleCasePipe, Navbar, Footer, JobCard, JobDetailsModal, PostingStatusModal, TranslatePipe],
   templateUrl: './job.html',
   styleUrl: './job.css',
 })
