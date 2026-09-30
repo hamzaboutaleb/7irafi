@@ -4,11 +4,11 @@ import java.math.BigDecimal;
 
 import org.springframework.data.jpa.domain.Specification;
 
+import com.herafi.job_service.dto.JobFilter;
 import com.herafi.job_service.entity.EstimatedDuration;
 import com.herafi.job_service.entity.Job;
 import com.herafi.job_service.entity.JobStatus;
 import com.herafi.job_service.entity.PreferredTime;
-import com.herafi.job_service.dto.JobFilter;
 
 public class JobSpecification {
 
@@ -25,7 +25,8 @@ public class JobSpecification {
     }
 
     public static Specification<Job> hasStatus(JobStatus status) {
-        return (root, query, cb) -> status == null ? null : cb.equal(root.get("status"), status);
+        JobStatus effectiveStatus = status == null ? JobStatus.OPEN : status;
+        return (root, query, cb) -> cb.equal(root.get("status"), effectiveStatus);
     }
 
     public static Specification<Job> minBudget(BigDecimal min) {

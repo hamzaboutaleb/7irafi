@@ -223,7 +223,7 @@ export const ar: Record<keyof typeof en, string> = {
   'myJobs.delete': 'حذف العمل',
   'myJobs.viewApplicants': 'عرض المترشحين',
   'myJobs.cancel': 'إلغاء العمل',
-  'myJobs.assignedNote': 'الأعمال المسندة يمكن إكمالها أو إلغاؤها. التعديل والحذف غير متاحين ما دام هناك حرفي مسند.',
+  'myJobs.assignedNote': 'الأعمال المسندة يمكن إكمالها. التعديل والإلغاء والحذف غير متاحين ما دام هناك حرفي مسند.',
   'myJobs.editIntro': 'حدّث عنوان عملك أو وصفه أو مكانه.',
   'job.title': 'العنوان',
   'job.description': 'الوصف',

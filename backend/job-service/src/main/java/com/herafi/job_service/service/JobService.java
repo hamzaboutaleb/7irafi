@@ -106,7 +106,13 @@ public class JobService {
 
         Specification<Job> specification = JobSpecification.filter(filter);
 
-        String[] parts = sort.split(",");
+        if (sort == null || sort.isBlank()) {
+            throw new InvalidSortException("Sort must be field or field,asc|desc");
+        }
+        String[] parts = sort.split(",", -1);
+        if (parts.length > 2) {
+            throw new InvalidSortException("Sort must be field or field,asc|desc");
+        }
 
         String field = parts[0].trim();
 
@@ -128,7 +134,7 @@ public class JobService {
             direction = Sort.Direction.ASC;
         }
 
-        Sort sorting = Sort.by(direction, field);
+        Sort sorting = Sort.by(direction, field).and(Sort.by(Sort.Direction.ASC, "id"));
 
         Pageable pageable = PageRequest.of(
                 page,
@@ -236,9 +242,9 @@ public class JobService {
                     "You are not allowed to cancel this job");
         }
 
-        if (job.getStatus() != JobStatus.OPEN && job.getStatus() != JobStatus.ASSIGNED) {
+        if (job.getStatus() != JobStatus.OPEN) {
             throw new JobStateConflictException(
-                    "Only open or assigned jobs can be cancelled");
+                    "Only open jobs can be cancelled");
         }
 
         job.setStatus(JobStatus.CANCELLED);

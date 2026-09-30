@@ -271,7 +271,18 @@ Supported sorting is limited to:
 createdAt, budget, title
 ```
 
-The default is `createdAt,desc`. Page size is limited to 20 by the controller.
+Omitting `sort` defaults to `createdAt,desc`. An explicit sort must be either
+`field` (ascending) or `field,direction`, where direction is `asc` or `desc`
+(case-insensitive). Surrounding whitespace is trimmed; field names are case-sensitive.
+Blank values, missing fields or directions, extra comma-separated tokens, and
+unsupported fields or directions return HTTP 400 with error code `INVALID_SORT`.
+For example, `sort=,`, `sort=budget,`, and `sort=budget,desc,extra` are invalid.
+Page size is limited to 20 by the controller.
+Every search appends `id,asc` after the requested sort to break ties deterministically.
+Budget bounds are optional, inclusive, and must be between `0` and `99999999.99`,
+with at most two decimal places (matching the stored budget precision).
+When both are supplied, `minBudget` must not exceed `maxBudget`.
+Invalid bounds return HTTP 400 with code `VALIDATION_ERROR` and field errors.
 Search always excludes soft-deleted jobs and returns `JobListResponse`.
 
 `JobListResponse` excludes `addressLine` and includes nullable `thumbnailUrl`.

@@ -58,12 +58,12 @@ public class JobController {
 
     @GetMapping
     public PageResponse<JobListResponse> getJobs(
-            JobFilter filter,
-            @RequestParam(defaultValue = "createdAt,desc") String sort,
+            @Valid JobFilter filter,
+            @RequestParam(required = false) String sort,
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(20) int size) {
 
-        return jobService.getJobs(filter, sort, page, size);
+        return jobService.getJobs(filter, sort == null ? "createdAt,desc" : sort, page, size);
     }
 
     @GetMapping("/{id}")
