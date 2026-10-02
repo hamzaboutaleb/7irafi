@@ -25,8 +25,8 @@ services:
     container_name: db-backup
     environment:
       PGHOST: postgres
-      PGUSER: ${DB_USERNAME}
-      PGPASSWORD: ${DB_PASSWORD}
+      PGUSER: ${DB_USERNAME:-herafi}
+      PGPASSWORD: ${DB_PASSWORD:-herafi}
       BACKUP_DIR: /backups
       BACKUP_INTERVAL_SECONDS: ${BACKUP_INTERVAL_SECONDS:-3600}
       BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-7}
