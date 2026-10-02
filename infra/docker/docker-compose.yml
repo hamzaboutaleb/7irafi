@@ -284,6 +284,11 @@ services:
         condition: service_healthy
       discovery-service:
         condition: service_healthy
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q UP" ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
 
   frontend:
     container_name: frontend-dev
