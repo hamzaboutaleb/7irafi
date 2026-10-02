@@ -112,9 +112,9 @@ be reached during an outage is not a status page.
 ## Backups
 
 `db-backup` runs alongside the stack and dumps every service database (`auth_db`,
-`user_db`, `job_db`) on an interval, into the `postgres-backups` volume. Databases are
-dumped separately because each service owns its own schema and must be restorable
-independently.
+`user_db`, `job_db`, `application_db`, `chat_db`, `notification_db`) on an interval, into
+the `postgres-backups` volume. Databases are dumped separately because each service owns
+its own schema and must be restorable independently.
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
@@ -167,11 +167,11 @@ procedure is not a recovery procedure.
 
 ### If the database volume is lost entirely
 
-`docker volume rm docker_postgres-data` (or a disk failure) destroys all three databases.
+`docker volume rm docker_postgres-data` (or a disk failure) destroys all six databases.
 Recovery:
 
 1. `docker compose -f infra/docker/docker-compose.yml up -d postgres` — the volume is
-   recreated and `infra/docker/postgres/init/01-create-databases.sql` recreates the three
+   recreated and `infra/docker/postgres/init/01-create-databases.sql` recreates the six
    empty databases.
 2. Restore each database from its most recent dump, as above.
 3. Start the remaining services. Flyway will find the schema already at the dumped version
