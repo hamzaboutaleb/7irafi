@@ -34,6 +34,7 @@ export class JobDetailsModal implements OnInit, AfterViewInit, OnDestroy {
   private readonly destroyRef = inject(DestroyRef);
   private readonly document = inject(DOCUMENT);
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('dialog');
+  private readonly imageDialog = viewChild.required<ElementRef<HTMLDialogElement>>('imageDialog');
   private readonly applications = inject(ApplicationService);
   private readonly users = inject(UserService);
   readonly currentUserId = signal<string | null>(null);
@@ -76,6 +77,7 @@ export class JobDetailsModal implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.imageDialog().nativeElement.close();
     this.dialog().nativeElement.close();
     this.document.body.style.overflow = this.previousOverflow;
   }
@@ -135,6 +137,17 @@ export class JobDetailsModal implements OnInit, AfterViewInit, OnDestroy {
         if (error.status === 409 || error.status === 404) this.loadDetails();
       },
     });
+  }
+
+  openImage(): void {
+    if (!this.job()?.images[this.selectedImage()]?.url) return;
+    this.imageDialog().nativeElement.showModal();
+  }
+
+  changeImage(direction: number): void {
+    const count = this.job()?.images.length ?? 0;
+    if (count < 2) return;
+    this.selectedImage.update((index) => (index + direction + count) % count);
   }
 
   onImageError(event: Event): void {
