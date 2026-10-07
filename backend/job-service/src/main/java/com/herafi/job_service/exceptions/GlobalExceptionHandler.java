@@ -15,6 +15,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.validation.method.ParameterErrors;
 
 import jakarta.persistence.OptimisticLockException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -236,13 +237,21 @@ public class GlobalExceptionHandler {
 			HandlerMethodValidationException exception,
 			HttpServletRequest request) {
 
+		List<ApiErrorResponse.FieldError> fieldErrors = exception.getParameterValidationResults()
+				.stream()
+				.filter(ParameterErrors.class::isInstance)
+				.map(ParameterErrors.class::cast)
+				.flatMap(errors -> errors.getFieldErrors().stream())
+				.map(error -> new ApiErrorResponse.FieldError(error.getField(), error.getDefaultMessage()))
+				.toList();
+
 		ApiErrorResponse response = new ApiErrorResponse(
 				Instant.now(),
 				HttpStatus.BAD_REQUEST.value(),
-				"INVALID_PAGINATION",
-				"Invalid pagination parameters",
+				fieldErrors.isEmpty() ? "INVALID_PAGINATION" : "VALIDATION_ERROR",
+				fieldErrors.isEmpty() ? "Invalid pagination parameters" : "Request validation failed",
 				request.getRequestURI(),
-				null);
+				fieldErrors.isEmpty() ? null : fieldErrors);
 
 		return ResponseEntity
 				.status(HttpStatus.BAD_REQUEST)

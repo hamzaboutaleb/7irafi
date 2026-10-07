@@ -223,7 +223,7 @@ export const fr: Record<keyof typeof en, string> = {
   'myJobs.delete': 'Supprimer la mission',
   'myJobs.viewApplicants': 'Voir les candidats',
   'myJobs.cancel': 'Annuler la mission',
-  'myJobs.assignedNote': "Les missions attribuées peuvent être terminées ou annulées. La modification et la suppression sont indisponibles tant qu'un artisan est assigné.",
+  'myJobs.assignedNote': 'Les missions attribuées peuvent être terminées. La modification, l’annulation et la suppression sont indisponibles tant qu’un artisan est assigné.',
   'myJobs.editIntro': 'Mettez à jour le titre, la description ou l’adresse de votre mission.',
   'job.title': 'Titre',
   'job.description': 'Description',

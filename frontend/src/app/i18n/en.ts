@@ -226,7 +226,7 @@ export const en = {
   'myJobs.delete': 'Delete job',
   'myJobs.viewApplicants': 'View applicants',
   'myJobs.cancel': 'Cancel job',
-  'myJobs.assignedNote': 'Assigned jobs can be completed or cancelled. Editing and deletion are unavailable while a worker is assigned.',
+  'myJobs.assignedNote': 'Assigned jobs can be completed. Editing, cancellation, and deletion are unavailable while a worker is assigned.',
   'myJobs.editIntro': 'Update your job’s title, description, or address.',
   'job.title': 'Title',
   'job.description': 'Description',
