@@ -45,11 +45,17 @@ public class RequestIdFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } finally {
             if (!request.getRequestURI().startsWith("/actuator")) {
-                log.info("{} {} {} {}ms",
-                        request.getMethod(),
-                        request.getRequestURI(),
-                        response.getStatus(),
-                        System.currentTimeMillis() - start);
+                long durationMs = System.currentTimeMillis() - start;
+                log.atInfo()
+                        .addKeyValue("http.method", request.getMethod())
+                        .addKeyValue("http.path", request.getRequestURI())
+                        .addKeyValue("http.status", response.getStatus())
+                        .addKeyValue("duration_ms", durationMs)
+                        .log("{} {} {} {}ms",
+                                request.getMethod(),
+                                request.getRequestURI(),
+                                response.getStatus(),
+                                durationMs);
             }
             MDC.remove(MDC_KEY);
         }
