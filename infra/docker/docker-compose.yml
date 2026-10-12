@@ -545,6 +545,7 @@ services:
       ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:-7irafi-development-elastic}
       KIBANA_SYSTEM_PASSWORD: ${KIBANA_SYSTEM_PASSWORD:-7irafi-development-kibana}
       LOGSTASH_ES_PASSWORD: ${LOGSTASH_ES_PASSWORD:-7irafi-development-logstash}
+      LOG_RETENTION_DAYS: ${LOG_RETENTION_DAYS:-7}
     volumes:
       - ./elasticsearch:/scripts:ro
     entrypoint: ["/bin/sh", "/scripts/setup.sh"]
