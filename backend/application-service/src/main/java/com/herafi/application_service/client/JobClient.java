@@ -14,15 +14,20 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 
+import com.herafi.application_service.config.RequestIdInterceptor;
 import com.herafi.application_service.exceptions.ApplicationException;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Component
+@Slf4j
 public class JobClient {
 
     private final RestClient client;
 
     public JobClient(@Value("${services.job.url}") String baseUrl,
-            @Value("${service.security.internal-api-key}") String internalApiKey) {
+            @Value("${service.security.internal-api-key}") String internalApiKey,
+            RequestIdInterceptor requestIdInterceptor) {
         var httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(3)).build();
         var factory = new JdkClientHttpRequestFactory(httpClient);
         factory.setReadTimeout(Duration.ofSeconds(5));
@@ -30,6 +35,7 @@ public class JobClient {
                 .baseUrl(baseUrl)
                 .requestFactory(factory)
                 .defaultHeader("X-Internal-Api-Key", internalApiKey)
+                .requestInterceptor(requestIdInterceptor)
                 .build();
     }
 
@@ -77,6 +83,7 @@ public class JobClient {
     }
 
     private ApplicationException unavailable() {
+        log.atError().addKeyValue("event", "internal_call_failed").log("Job service call failed");
         return new ApplicationException(HttpStatus.SERVICE_UNAVAILABLE,
                 "JOB_SERVICE_UNAVAILABLE", "Unable to confirm the job operation. Please retry.");
     }

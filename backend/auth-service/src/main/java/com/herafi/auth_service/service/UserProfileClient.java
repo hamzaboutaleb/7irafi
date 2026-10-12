@@ -8,7 +8,10 @@ import org.springframework.web.client.RestClientException;
 import com.herafi.auth_service.dto.CreateUserProfileRequest;
 import com.herafi.auth_service.exception.UserServiceUnavailableException;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Service
+@Slf4j
 public class UserProfileClient {
     private final RestClient restClient;
     private final String internalApiKey;
@@ -32,6 +35,8 @@ public class UserProfileClient {
                     .toBodilessEntity();
         } catch (RestClientException exception)
         {
+            log.atError().addKeyValue("event", "internal_call_failed")
+                    .log("User service call failed during profile creation");
             throw new UserServiceUnavailableException(exception);
         }
     }

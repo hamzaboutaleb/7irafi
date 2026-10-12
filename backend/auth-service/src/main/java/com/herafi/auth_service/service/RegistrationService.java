@@ -12,9 +12,13 @@ import com.herafi.auth_service.dto.RegisterRequest;
 import com.herafi.auth_service.entity.Role;
 import com.herafi.auth_service.entity.UserCredential;
 import com.herafi.auth_service.exception.EmailAlreadyInUseException;
+import com.herafi.auth_service.exception.UserServiceUnavailableException;
 import com.herafi.auth_service.repository.UserCredentialRepository;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Service
+@Slf4j
 public class RegistrationService {
 
     private final UserCredentialRepository repository;
@@ -46,11 +50,17 @@ public class RegistrationService {
 
         UserCredential savedCredential = repository.saveAndFlush(credential);
 
-        userProfileClient.createProfile(new CreateUserProfileRequest(
-                savedCredential.getId(),
-                savedCredential.getEmail(),
-                request.firstName().trim(),
-                request.lastName().trim()));
+        try {
+            userProfileClient.createProfile(new CreateUserProfileRequest(
+                    savedCredential.getId(),
+                    savedCredential.getEmail(),
+                    request.firstName().trim(),
+                    request.lastName().trim()));
+        } catch (UserServiceUnavailableException exception) {
+            log.atWarn().addKeyValue("event", "registration_failed")
+                    .log("Registration failed, user profile creation failed");
+            throw exception;
+        }
 
         return savedCredential;
     }
