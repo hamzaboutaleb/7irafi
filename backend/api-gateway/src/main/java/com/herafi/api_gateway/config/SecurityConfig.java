@@ -9,6 +9,11 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -33,10 +38,28 @@ public class SecurityConfig {
                                                                 "/v3/api-docs/**")
                                                 .permitAll()
                                                 .requestMatchers("/users/**", "/jobs/**", "/applications/**",
-                                                                "/conversations/**", "/notifications/**")
+                                                                "/conversations/**", "/notifications/**",
+                                                                "/actuator/prometheus")
                                                 .authenticated())
+                                .httpBasic(Customizer.withDefaults())
                                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                                 .build();
+        }
+
+        @Bean
+        UserDetailsService metricsUserDetailsService(
+                        @Value("${metrics.username:prometheus}") String username,
+                        @Value("${metrics.password:7irafi-development-metrics}") String password) {
+                return new InMemoryUserDetailsManager(
+                                User.withUsername(username)
+                                                .password(passwordEncoder().encode(password))
+                                                .roles("METRICS")
+                                                .build());
+        }
+
+        @Bean
+        PasswordEncoder passwordEncoder() {
+                return new BCryptPasswordEncoder();
         }
 
         @Bean

@@ -21,6 +21,9 @@ import com.herafi.application_service.entity.JobApplication;
 import com.herafi.application_service.exceptions.ApplicationException;
 import com.herafi.application_service.repository.JobApplicationRepository;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -31,6 +34,7 @@ public class JobApplicationService {
     private final JobClient jobClient;
     private final UserClient userClient;
     private final NotificationClient notificationClient;
+    private final MeterRegistry meterRegistry;
 
     public ApplicationResponse apply(UUID jobId, UUID applicantId) {
         userClient.requireActiveWorker(applicantId);
@@ -62,6 +66,10 @@ public class JobApplicationService {
             }
             throw exception;
         }
+        Counter.builder("herafi.applications.submitted")
+                .description("Job applications submitted")
+                .register(meterRegistry)
+                .increment();
         // The client is told someone applied; a failure here must not undo an
         // application that was stored successfully.
         notificationClient.notify(
@@ -105,6 +113,11 @@ public class JobApplicationService {
                         "Only open jobs can accept an applicant");
             }
             job = jobClient.assignWorker(application.getJobId(), application.getApplicantId());
+
+            Counter.builder("herafi.applications.accepted")
+                    .description("Job applications accepted")
+                    .register(meterRegistry)
+                    .increment();
 
             notificationClient.notify(
                     application.getApplicantId(),

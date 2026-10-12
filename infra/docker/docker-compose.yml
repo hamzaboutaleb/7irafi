@@ -45,6 +45,7 @@ services:
       dockerfile: Dockerfile
     environment:
       SERVER_PORT: 8081
+      APP_ENVIRONMENT: ${APP_ENVIRONMENT:-dev}
       DB_URL: jdbc:postgresql://postgres:5432/auth_db
       DB_USERNAME: ${DB_USERNAME:-herafi}
       DB_PASSWORD: ${DB_PASSWORD:-herafi}
@@ -71,6 +72,7 @@ services:
     environment:
       DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka/
       SERVER_PORT: 8082
+      APP_ENVIRONMENT: ${APP_ENVIRONMENT:-dev}
       DB_URL: jdbc:postgresql://postgres:5432/user_db
       DB_USERNAME: ${DB_USERNAME:-herafi}
       DB_PASSWORD: ${DB_PASSWORD:-herafi}
@@ -102,6 +104,7 @@ services:
     environment:
       DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka/
       SERVER_PORT: 8086
+      APP_ENVIRONMENT: ${APP_ENVIRONMENT:-dev}
       DB_URL: jdbc:postgresql://postgres:5432/notification_db
       DB_USERNAME: ${DB_USERNAME:-herafi}
       DB_PASSWORD: ${DB_PASSWORD:-herafi}
@@ -110,7 +113,7 @@ services:
       INTERNAL_API_KEY: ${INTERNAL_API_KEY:-7irafi-development-internal-key}
       JWT_SECRET: ${JWT_SECRET:-7irafi-development-jwt-secret-change-me-2026}
     ports:
-      - "8086:8086"
+      - "127.0.0.1:8086:8086"
     depends_on:
       postgres:
         condition: service_healthy
@@ -129,6 +132,7 @@ services:
     environment:
       DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka/
       SERVER_PORT: 8085
+      APP_ENVIRONMENT: ${APP_ENVIRONMENT:-dev}
       DB_URL: jdbc:postgresql://postgres:5432/chat_db
       DB_USERNAME: ${DB_USERNAME:-herafi}
       DB_PASSWORD: ${DB_PASSWORD:-herafi}
@@ -137,7 +141,7 @@ services:
       INTERNAL_API_KEY: ${INTERNAL_API_KEY:-7irafi-development-internal-key}
       JWT_SECRET: ${JWT_SECRET:-7irafi-development-jwt-secret-change-me-2026}
     ports:
-      - "8085:8085"
+      - "127.0.0.1:8085:8085"
     depends_on:
       postgres: 
         condition: service_healthy
@@ -157,6 +161,7 @@ services:
       dockerfile: Dockerfile
     environment:
       SERVER_PORT: 8083
+      APP_ENVIRONMENT: ${APP_ENVIRONMENT:-dev}
       DB_URL: jdbc:postgresql://postgres:5432/job_db
       DB_USERNAME: ${DB_USERNAME:-herafi}
       DB_PASSWORD: ${DB_PASSWORD:-herafi}
@@ -168,7 +173,7 @@ services:
       S3_SECRET_KEY: minio123
       INTERNAL_API_KEY: ${INTERNAL_API_KEY:-7irafi-development-internal-key}
     ports:
-      - "8083:8083"
+      - "127.0.0.1:8083:8083"
     volumes:
       - ../../backend/job-service/src:/app/src
       - job-maven-cache:/root/.m2
@@ -199,6 +204,7 @@ services:
       dockerfile: Dockerfile
     environment:
       SERVER_PORT: 8084
+      APP_ENVIRONMENT: ${APP_ENVIRONMENT:-dev}
       DB_URL: jdbc:postgresql://postgres:5432/application_db
       DB_USERNAME: ${DB_USERNAME:-herafi}
       DB_PASSWORD: ${DB_PASSWORD:-herafi}
@@ -266,11 +272,14 @@ services:
       dockerfile: Dockerfile
     environment:
       SERVER_PORT: 8080
+      APP_ENVIRONMENT: ${APP_ENVIRONMENT:-dev}
       DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka/
       JWT_SECRET: ${JWT_SECRET:-7irafi-development-jwt-secret-change-me-2026}
       JWT_ISSUER: 7irafi-auth-service
       GATEWAY_SHARED_SECRET: ${GATEWAY_SHARED_SECRET:-7irafi-development-gateway-key}
       FRONTEND_ORIGIN: http://localhost:4200
+      METRICS_USERNAME: ${METRICS_USERNAME:-prometheus}
+      METRICS_PASSWORD: ${METRICS_PASSWORD:-7irafi-development-metrics}
     ports:
       - "8080:8080"
     depends_on:
@@ -304,13 +313,14 @@ services:
       dockerfile: Dockerfile
     environment:
       SERVER_PORT: 8761
+      APP_ENVIRONMENT: ${APP_ENVIRONMENT:-dev}
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8761/actuator/health | grep -q UP"]
       interval: 5s
       timeout: 5s
       retries: 20
     ports:
-      - "8761:8761"
+      - "127.0.0.1:8761:8761"
 
 volumes:
   postgres-data:
