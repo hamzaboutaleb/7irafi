@@ -91,7 +91,7 @@ public class JobService {
 
         Job savedJob = jobRepository.save(job);
 
-        Counter.builder("herafi.jobs.created")
+        Counter.builder("herafi.jobs.posted")
                 .description("Jobs successfully created")
                 .register(meterRegistry)
                 .increment();

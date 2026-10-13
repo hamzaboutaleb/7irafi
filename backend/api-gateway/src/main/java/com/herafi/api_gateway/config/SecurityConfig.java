@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -22,7 +23,23 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 public class SecurityConfig {
 
+        // HTTP basic is limited to the scrape endpoint, so every other route
+        // keeps answering 401 with a Bearer challenge.
         @Bean
+        @Order(1)
+        SecurityFilterChain metricsFilterChain(HttpSecurity http) throws Exception {
+                return http
+                                .securityMatcher("/actuator/prometheus")
+                                .csrf(csrf -> csrf.disable())
+                                .sessionManagement(session -> session
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                .authorizeHttpRequests(auth -> auth.anyRequest().hasRole("METRICS"))
+                                .httpBasic(Customizer.withDefaults())
+                                .build();
+        }
+
+        @Bean
+        @Order(2)
         SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
                 return http
                                 .csrf(csrf -> csrf.disable())
@@ -38,10 +55,8 @@ public class SecurityConfig {
                                                                 "/v3/api-docs/**")
                                                 .permitAll()
                                                 .requestMatchers("/users/**", "/jobs/**", "/applications/**",
-                                                                "/conversations/**", "/notifications/**",
-                                                                "/actuator/prometheus")
+                                                                "/conversations/**", "/notifications/**")
                                                 .authenticated())
-                                .httpBasic(Customizer.withDefaults())
                                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                                 .build();
         }

@@ -57,7 +57,7 @@ class JobServiceMetricsTests {
 
         service.create(UUID.randomUUID(), request);
 
-        assertThat(registry.counter("herafi.jobs.created").count()).isEqualTo(1.0);
+        assertThat(registry.counter("herafi.jobs.posted").count()).isEqualTo(1.0);
     }
 
     @Test

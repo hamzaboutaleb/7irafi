@@ -11,8 +11,13 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+// src/test/resources/application.properties replaces the main file in tests,
+// so the endpoint exposure and the application tag are set here.
 @ActiveProfiles("test")
-@SpringBootTest
+@SpringBootTest(properties = {
+        "management.endpoints.web.exposure.include=health,prometheus",
+        "management.metrics.tags.application=auth-service",
+})
 @AutoConfigureMockMvc
 class PrometheusEndpointTests {
 
