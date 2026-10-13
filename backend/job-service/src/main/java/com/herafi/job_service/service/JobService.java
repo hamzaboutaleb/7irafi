@@ -49,6 +49,9 @@ import com.herafi.job_service.repository.JobRepository;
 import com.herafi.job_service.repository.SkillRepository;
 import com.herafi.job_service.specification.JobSpecification;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -66,6 +69,7 @@ public class JobService {
     private final SkillRepository skillRepository;
     private final CityRepository cityRepository;
     private final JobImageProperties imageProperties;
+    private final MeterRegistry meterRegistry;
 
     public Job create(UUID clientId, CreateJobRequest request) {
         validateReferences(request);
@@ -85,7 +89,14 @@ public class JobService {
             job.setPreferredTime(request.preferredTime());
         }
 
-        return jobRepository.save(job);
+        Job savedJob = jobRepository.save(job);
+
+        Counter.builder("herafi.jobs.posted")
+                .description("Jobs successfully created")
+                .register(meterRegistry)
+                .increment();
+
+        return savedJob;
     }
 
     private void validateReferences(CreateJobRequest request) {
@@ -357,6 +368,10 @@ public class JobService {
                     file.getSize(),
                     contentType);
         } catch (IOException e) {
+            Counter.builder("herafi.job.image.upload.failures")
+                    .description("Job image upload failures")
+                    .register(meterRegistry)
+                    .increment();
             throw new InvalidImageException("Failed to read image");
         }
 
