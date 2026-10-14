@@ -40,7 +40,7 @@ public class RatingService {
         rating.setJobId(request.jobId());
         rating.setRaterId(raterId);
         rating.setRateeId(request.rateeId());
-        rating.setScore(request.score());
+        rating.setScore(request.score().shortValue());
         rating.setComment(request.comment());
 
         Rating saved = repository.save(rating);

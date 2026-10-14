@@ -21,7 +21,7 @@ public record RatingResponse(
                 rating.getJobId(),
                 rating.getRaterId(),
                 rating.getRateeId(),
-                rating.getScore(),
+                rating.getScore() != null ? rating.getScore().intValue() : null,
                 rating.getComment(),
                 rating.getCreatedAt(),
                 raterName);

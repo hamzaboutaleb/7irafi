@@ -33,7 +33,7 @@ public class Rating {
     private UUID rateeId;
 
     @Column(nullable = false)
-    private Integer score;
+    private Short score;
 
     @Column(columnDefinition = "TEXT")
     private String comment;
