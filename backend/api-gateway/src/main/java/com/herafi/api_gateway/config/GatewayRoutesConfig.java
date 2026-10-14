@@ -73,4 +73,14 @@ public class GatewayRoutesConfig {
                 .filter(lb("NOTIFICATION-SERVICE"))
                 .build();
     }
+
+    @Bean
+    RouterFunction<ServerResponse> ratingServiceRoute(
+            @Value("${gateway.shared-secret}") String gatewaySharedSecret) {
+        return route("rating-service")
+                .route(path("/ratings/**"), http())
+                .before(addAuthenticatedIdentity(gatewaySharedSecret))
+                .filter(lb("RATING-SERVICE"))
+                .build();
+    }
 }

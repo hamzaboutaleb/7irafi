@@ -241,6 +241,38 @@ services:
       timeout: 5s
       retries: 20
 
+  rating-service:
+    build:
+      context: ../../backend/rating-service
+      dockerfile: Dockerfile
+    environment:
+      SERVER_PORT: 8087
+      DB_URL: jdbc:postgresql://postgres:5432/rating_db
+      DB_USERNAME: ${DB_USERNAME:-herafi}
+      DB_PASSWORD: ${DB_PASSWORD:-herafi}
+      SHOW_SQL: "true"
+      DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka/
+      GATEWAY_SHARED_SECRET: ${GATEWAY_SHARED_SECRET:-7irafi-development-gateway-key}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:-7irafi-development-internal-key}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+      job-service:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://localhost:8087/actuator/health | grep -q UP",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
   minio:
     # image: local/minio-community:RELEASE.2025-09-07T16-13-09Z
     build:
@@ -308,6 +340,8 @@ services:
       job-service:
         condition: service_healthy
       application-service:
+        condition: service_healthy
+      rating-service:
         condition: service_healthy
       discovery-service:
         condition: service_healthy
