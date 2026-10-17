@@ -8,6 +8,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponseWrapper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +43,7 @@ public class RequestIdFilter extends OncePerRequestFilter {
 
         long start = System.currentTimeMillis();
         try {
-            filterChain.doFilter(request, response);
+            filterChain.doFilter(request, new SingleRequestIdResponse(response));
         } finally {
             if (!request.getRequestURI().startsWith("/actuator")) {
                 long durationMs = System.currentTimeMillis() - start;
@@ -58,6 +59,32 @@ public class RequestIdFilter extends OncePerRequestFilter {
                                 durationMs);
             }
             MDC.remove(MDC_KEY);
+        }
+    }
+
+    /**
+     * Keeps the id set above as the only X-Request-Id. Downstream services echo
+     * the id they receive, and the proxy adds their response headers next to
+     * ours, so a forwarded response would otherwise carry it twice.
+     */
+    private static final class SingleRequestIdResponse extends HttpServletResponseWrapper {
+
+        SingleRequestIdResponse(HttpServletResponse response) {
+            super(response);
+        }
+
+        @Override
+        public void setHeader(String name, String value) {
+            if (!HEADER.equalsIgnoreCase(name)) {
+                super.setHeader(name, value);
+            }
+        }
+
+        @Override
+        public void addHeader(String name, String value) {
+            if (!HEADER.equalsIgnoreCase(name)) {
+                super.addHeader(name, value);
+            }
         }
     }
 }

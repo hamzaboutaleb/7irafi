@@ -373,7 +373,8 @@ public class JobService {
                     .description("Job image upload failures")
                     .register(meterRegistry)
                     .increment();
-            log.atError().addKeyValue("event", "image_upload_failed").log("Image upload failed for job {}", jobId);
+            log.atError().addKeyValue("event", "image_upload_failed").setCause(e)
+                    .log("Image upload failed for job {}", jobId);
             throw new InvalidImageException("Failed to read image");
         }
 

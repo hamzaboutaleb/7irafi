@@ -39,7 +39,7 @@ public class UserClient {
             result = client.get().uri("/internal/users/{id}/worker-eligibility", userId)
                     .retrieve().body(WorkerEligibility.class);
         } catch (RestClientException exception) {
-            throw unavailable();
+            throw unavailable(exception);
         }
         if (result == null || !userId.equals(result.userId()) || result.eligible() == null) {
             throw unavailable();
@@ -51,7 +51,12 @@ public class UserClient {
     }
 
     private ApplicationException unavailable() {
-        log.atError().addKeyValue("event", "internal_call_failed").log("User service call failed");
+        return unavailable(null);
+    }
+
+    private ApplicationException unavailable(RestClientException cause) {
+        log.atError().addKeyValue("event", "internal_call_failed").setCause(cause)
+                .log("User service call failed");
         return new ApplicationException(HttpStatus.SERVICE_UNAVAILABLE, "USER_SERVICE_UNAVAILABLE",
                 "Unable to verify worker eligibility. Please retry.");
     }

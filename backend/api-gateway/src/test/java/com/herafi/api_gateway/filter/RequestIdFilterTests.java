@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -54,5 +55,19 @@ class RequestIdFilterTests {
         assertThat(id).isNotEqualTo("bad id!!");
         assertThat(id).matches("[A-Za-z0-9-]{1,64}");
         assertThat(MDC.get("requestId")).isNull();
+    }
+
+    @Test
+    void keepsASingleIdWhenTheProxiedResponseEchoesOne() throws Exception {
+        RequestIdFilter filter = new RequestIdFilter();
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/auth/login");
+        request.addHeader("X-Request-Id", "request-123");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        // The proxy copies the downstream response headers with addHeader.
+        filter.doFilter(request, response, (req, res) ->
+                ((HttpServletResponse) res).addHeader("x-request-id", "downstream-copy"));
+
+        assertThat(response.getHeaders("X-Request-Id")).containsExactly("request-123");
     }
 }

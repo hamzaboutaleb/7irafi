@@ -51,9 +51,9 @@ public class JobClient {
             if (exception.getStatusCode().value() == 404) {
                 throw new ApplicationException(HttpStatus.NOT_FOUND, "JOB_NOT_FOUND", "Job not found");
             }
-            throw unavailable();
+            throw unavailable(exception);
         } catch (RestClientException exception) {
-            throw unavailable();
+            throw unavailable(exception);
         }
     }
 
@@ -76,14 +76,19 @@ public class JobClient {
                 throw new ApplicationException(HttpStatus.CONFLICT, "JOB_STATE_CONFLICT",
                         "Job can no longer be assigned. Refresh and retry.");
             }
-            throw unavailable();
+            throw unavailable(exception);
         } catch (RestClientException exception) {
-            throw unavailable();
+            throw unavailable(exception);
         }
     }
 
     private ApplicationException unavailable() {
-        log.atError().addKeyValue("event", "internal_call_failed").log("Job service call failed");
+        return unavailable(null);
+    }
+
+    private ApplicationException unavailable(RestClientException cause) {
+        log.atError().addKeyValue("event", "internal_call_failed").setCause(cause)
+                .log("Job service call failed");
         return new ApplicationException(HttpStatus.SERVICE_UNAVAILABLE,
                 "JOB_SERVICE_UNAVAILABLE", "Unable to confirm the job operation. Please retry.");
     }

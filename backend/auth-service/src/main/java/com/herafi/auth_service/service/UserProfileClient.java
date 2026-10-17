@@ -35,7 +35,7 @@ public class UserProfileClient {
                     .toBodilessEntity();
         } catch (RestClientException exception)
         {
-            log.atError().addKeyValue("event", "internal_call_failed")
+            log.atError().addKeyValue("event", "internal_call_failed").setCause(exception)
                     .log("User service call failed during profile creation");
             throw new UserServiceUnavailableException(exception);
         }

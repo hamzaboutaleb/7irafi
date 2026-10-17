@@ -57,7 +57,7 @@ public class RegistrationService {
                     request.firstName().trim(),
                     request.lastName().trim()));
         } catch (UserServiceUnavailableException exception) {
-            log.atWarn().addKeyValue("event", "registration_failed")
+            log.atWarn().addKeyValue("event", "registration_failed").setCause(exception)
                     .log("Registration failed, user profile creation failed");
             throw exception;
         }
