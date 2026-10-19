@@ -51,7 +51,36 @@ export class RatingFormComponent implements OnInit {
   }
 
   onSubmit(): void {
-    // TODO: implement
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    this.submitting = true;
+    const raterId = this.auth.currentUserId();
+    if (!raterId) {
+      this.submitting = false;
+      return;
+    }
+
+    this.ratingService
+      .createRating({
+        jobId: this.jobId,
+        rateeId: this.rateeId,
+        score: this.form.value.score,
+        comment: this.form.value.comment || undefined,
+      })
+      .subscribe({
+        next: (response) => {
+          this.submitting = false;
+          this.form.reset({ score: 0, comment: '' });
+          this.submitted.emit(response);
+        },
+        error: (error) => {
+          this.submitting = false;
+          console.error('Rating submission failed:', error);
+        },
+      });
   }
 
   onCancel(): void {
