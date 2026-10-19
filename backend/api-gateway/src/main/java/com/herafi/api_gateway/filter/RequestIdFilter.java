@@ -42,24 +42,40 @@ public class RequestIdFilter extends OncePerRequestFilter {
         response.setHeader(HEADER, requestId);
 
         long start = System.currentTimeMillis();
+        boolean failed = false;
         try {
             filterChain.doFilter(request, new SingleRequestIdResponse(response));
+        } catch (Throwable exception) {
+            failed = true;
+            throw exception;
         } finally {
             if (!request.getRequestURI().startsWith("/actuator")) {
                 long durationMs = System.currentTimeMillis() - start;
+                int status = loggedStatus(response, failed);
                 log.atInfo()
                         .addKeyValue("http.method", request.getMethod())
                         .addKeyValue("http.path", request.getRequestURI())
-                        .addKeyValue("http.status", response.getStatus())
+                        .addKeyValue("http.status", status)
                         .addKeyValue("duration_ms", durationMs)
                         .log("{} {} {} {}ms",
                                 request.getMethod(),
                                 request.getRequestURI(),
-                                response.getStatus(),
+                                status,
                                 durationMs);
             }
             MDC.remove(MDC_KEY);
         }
+    }
+
+    /**
+     * An exception that escapes the chain becomes a 500 only after this filter
+     * returns, so the response would still report 200 here. If the response was
+     * already sent, its status is what the client got.
+     */
+    private static int loggedStatus(HttpServletResponse response, boolean failed) {
+        return failed && !response.isCommitted()
+                ? HttpServletResponse.SC_INTERNAL_SERVER_ERROR
+                : response.getStatus();
     }
 
     /**
