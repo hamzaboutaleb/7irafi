@@ -61,3 +61,48 @@
   font-size: 0.875rem;
   color: var(--text-secondary, #4b5563);
 }
+
+.distribution {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 300px;
+  margin-top: 0.5rem;
+}
+
+.dist-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.8125rem;
+}
+
+.dist-label {
+  width: 2.5rem;
+  font-weight: 500;
+  color: var(--text-secondary, #4b5563);
+  text-align: right;
+}
+
+.dist-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--surface-hover, #f3f4f6);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.dist-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #fbbf24, #f59e0b);
+  border-radius: 4px;
+  transition: width 0.4s ease-out;
+}
+
+.dist-count {
+  width: 3rem;
+  text-align: right;
+  color: var(--text-muted, #9ca3af);
+  font-variant-numeric: tabular-nums;
+}

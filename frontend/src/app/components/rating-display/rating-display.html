@@ -8,4 +8,18 @@
     </div>
     <div class="review-count">{{ totalRatings }} {{ totalRatings === 1 ? 'review' : 'reviews' }}</div>
   </div>
+
+  @if (showDistribution && totalRatings > 0 && !compact) {
+    <div class="distribution" role="img" aria-label="Rating distribution">
+      @for (level of levels; track level) {
+        <div class="dist-row">
+          <span class="dist-label">{{ level }}★</span>
+          <div class="dist-bar" aria-hidden="true">
+            <div class="dist-fill" [style.width.%]="getPercentage(level)"></div>
+          </div>
+          <span class="dist-count">{{ getCount(level) }}</span>
+        </div>
+      }
+    </div>
+  }
 </div>
