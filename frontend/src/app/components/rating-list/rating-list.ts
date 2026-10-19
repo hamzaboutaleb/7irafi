@@ -10,6 +10,9 @@ import { Subject, takeUntil } from 'rxjs';
   imports: [CommonModule, LucideAngularModule],
   templateUrl: './rating-list.html',
   styleUrl: './rating-list.css',
+  animations: [
+    // animations would go here if using Angular animations module
+  ],
 })
 export class RatingListComponent implements OnInit, OnDestroy {
   @Input() userId!: string;
@@ -19,6 +22,7 @@ export class RatingListComponent implements OnInit, OnDestroy {
   ratings: RatingResponse[] = [];
   pagination = { page: 0, size: 10, totalElements: 0, totalPages: 0 };
   loading = false;
+  error: string | null = null;
   readonly Star = Star;
   private destroy$ = new Subject<void>();
 
@@ -35,6 +39,7 @@ export class RatingListComponent implements OnInit, OnDestroy {
 
   loadRatings(): void {
     this.loading = true;
+    this.error = null;
     const request$ = this.type === 'received'
       ? this.ratingService.getReceivedByUserId(this.userId, this.pagination.page, this.pagination.size)
       : this.ratingService.getGivenByUserId(this.userId, this.pagination.page, this.pagination.size);
@@ -50,8 +55,10 @@ export class RatingListComponent implements OnInit, OnDestroy {
         };
         this.loading = false;
       },
-      error: () => {
+      error: (err) => {
+        this.error = 'Failed to load ratings. Please try again.';
         this.loading = false;
+        console.error('Rating list load error:', err);
       },
     });
   }
@@ -69,5 +76,9 @@ export class RatingListComponent implements OnInit, OnDestroy {
 
   goToNext(): void {
     this.onPageChange(this.pagination.page + 1);
+  }
+
+  retry(): void {
+    this.loadRatings();
   }
 }

@@ -1,8 +1,14 @@
 <div class="rating-list">
-  @if (loading) {
+  @if (loading && ratings.length === 0) {
     <div class="loading" role="status" aria-live="polite">
       <div class="spinner"></div>
       <span>Loading ratings...</span>
+    </div>
+  } @else if (error) {
+    <div class="error-state" role="alert">
+      <lucide-icon [img]="Star" class="error-icon"></lucide-icon>
+      <p>{{ error }}</p>
+      <button class="btn btn-primary" (click)="retry()">Try Again</button>
     </div>
   } @else if (ratings.length === 0) {
     <div class="empty" role="status">
