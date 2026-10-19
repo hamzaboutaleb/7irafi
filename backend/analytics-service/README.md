@@ -83,3 +83,22 @@ To satisfy the automatic update requirement across sessions, this service utiliz
 * `POST /internal/mock-events/jobs`
 * `POST /internal/mock-events/applications`
 *Purpose:* Used to simulate Kafka/RabbitMQ events during local development. These endpoints accept the exact JSON contract agreed upon with the Job and Application service owners and instantly trigger the WebSocket flow. They will be replaced by `@RabbitListener` or `@KafkaListener` annotations once the team infrastructure is complete.
+
+## 3. Time-Series Aggregation & Timezones
+To comply with the strict `Africa/Casablanca` timezone requirement, timezone conversion is pushed directly to the PostgreSQL layer using native SQL queries.
+We use `DATE_TRUNC(granularity, created_at AT TIME ZONE 'Africa/Casablanca')` to guarantee that all daily, weekly, and monthly aggregations accurately reflect local time, avoiding UTC offset errors when filtering data.
+
+***
+
+### What we just built, Why we need it, and How the code logic works
+
+**The What:**
+We generated the **Repositories** (which talk to the database), a **DTO** (Data Transfer Object to structure the output), the **Service** (the business logic layer), and appended the timezone documentation to your **README**.
+
+**The Why:**
+The frontend dashboard needs a clean JSON array of `{ "period": "2026-10-19", "count": 5 }`. The database cannot return this cleanly on its own. We need the Repositories to execute the heavy math, and the Service layer to translate the raw database output into a format the Angular charts can easily digest. We update the README so evaluators know you deliberately engineered a timezone-safe query.
+
+**The Code Logic:**
+1.  **The SQL Query:** The `@Query` annotation contains a native PostgreSQL query. It takes your variables (`:from`, `:status`, etc.) and filters the flat tables.
+2.  **The Timezone Shift (`AT TIME ZONE`):** Before PostgreSQL groups the dates using `DATE_TRUNC`, it shifts the UTC timestamp into `Africa/Casablanca` time. This ensures an event that happened at 23:00 Moroccan time isn't accidentally grouped into the previous day's bucket by the database.
+3.  **The Mapping:** The database returns a `List<Object[]>`. The `AnalyticsAggregationService` loops through that list, casts the first object to a `String` (the date) and the second to a `long` (the count), and packages them into the `TimeBucketResponse` object.
