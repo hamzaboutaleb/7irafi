@@ -8,16 +8,23 @@
           class="star-btn"
           [class.filled]="star <= (hoverScore || form.value.score || 0)"
           [class.hover]="hoverScore > 0 && star <= hoverScore && star > (form.value.score || 0)"
+          [class.focused]="focusedStar === star && focusedStar !== form.value.score"
           (click)="selectScore(star)"
           (mouseenter)="onStarHover(star)"
+          (focus)="onStarFocus(star)"
+          (blur)="onStarBlur()"
           [attr.aria-label]="'Rate ' + star + ' out of 5'"
-          [attr.aria-checked]="star === form.value.score">
+          [attr.aria-checked]="star === form.value.score"
+          tabindex="0">
           <lucide-icon [img]="Star" class="star-icon"></lucide-icon>
         </button>
       }
     </div>
     @if (form.value.score > 0) {
       <div class="score-text">{{ form.value.score }} out of 5</div>
+    }
+    @if (form.get('score')?.invalid && form.get('score')?.touched) {
+      <small class="error">Please select a rating</small>
     }
   </div>
 

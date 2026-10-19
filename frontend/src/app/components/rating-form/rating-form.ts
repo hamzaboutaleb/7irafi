@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LucideAngularModule, Star } from '@lucide/angular';
@@ -21,6 +21,7 @@ export class RatingFormComponent implements OnInit {
   form: FormGroup;
   submitting = false;
   hoverScore = 0;
+  focusedStar = 0;
   readonly stars = [1, 2, 3, 4, 5];
   readonly Star = Star;
 
@@ -40,6 +41,7 @@ export class RatingFormComponent implements OnInit {
   selectScore(score: number): void {
     this.form.patchValue({ score });
     this.hoverScore = 0;
+    this.focusedStar = score;
   }
 
   onStarHover(score: number): void {
@@ -48,6 +50,41 @@ export class RatingFormComponent implements OnInit {
 
   onStarLeave(): void {
     this.hoverScore = 0;
+  }
+
+  @HostListener('keydown.arrow-left', ['$event'])
+  @HostListener('keydown.arrow-right', ['$event'])
+  onArrowKey(event: KeyboardEvent): void {
+    const currentScore = this.form.value.score || this.focusedStar || 0;
+    let newScore = currentScore;
+    
+    if (event.key === 'ArrowRight') {
+      newScore = Math.min(5, currentScore + 1);
+    } else if (event.key === 'ArrowLeft') {
+      newScore = Math.max(1, currentScore - 1);
+    }
+    
+    if (newScore !== currentScore) {
+      event.preventDefault();
+      this.selectScore(newScore);
+    }
+  }
+
+  @HostListener('keydown.enter', ['$event'])
+  @HostListener('keydown.space', ['$event'])
+  onEnterOrSpace(event: KeyboardEvent): void {
+    if (this.focusedStar > 0 && this.focusedStar !== this.form.value.score) {
+      event.preventDefault();
+      this.selectScore(this.focusedStar);
+    }
+  }
+
+  onStarFocus(score: number): void {
+    this.focusedStar = score;
+  }
+
+  onStarBlur(): void {
+    this.focusedStar = this.form.value.score || 0;
   }
 
   onSubmit(): void {
@@ -74,6 +111,7 @@ export class RatingFormComponent implements OnInit {
         next: (response) => {
           this.submitting = false;
           this.form.reset({ score: 0, comment: '' });
+          this.focusedStar = 0;
           this.submitted.emit(response);
         },
         error: (error) => {

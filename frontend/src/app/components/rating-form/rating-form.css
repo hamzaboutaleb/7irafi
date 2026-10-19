@@ -50,6 +50,11 @@
   outline-offset: 2px;
 }
 
+.star-btn.focused {
+  transform: scale(1.05);
+  background: var(--primary-light, rgba(37, 99, 235, 0.1));
+}
+
 .star-icon {
   width: 28px;
   height: 28px;
@@ -67,11 +72,21 @@
   fill: currentColor;
 }
 
+.star-btn.focused .star-icon {
+  color: #fbbf24;
+  fill: currentColor;
+}
+
 .score-text {
   margin-top: 0.5rem;
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--text-secondary, #4b5563);
+}
+
+.error {
+  font-size: 0.75rem;
+  color: var(--error-color, #dc2626);
 }
 
 .form-textarea {
@@ -92,11 +107,6 @@
   outline: none;
   border-color: var(--primary-color, #2563eb);
   box-shadow: 0 0 0 3px var(--primary-light, rgba(37, 99, 235, 0.1));
-}
-
-.error {
-  font-size: 0.75rem;
-  color: var(--error-color, #dc2626);
 }
 
 .form-actions {
