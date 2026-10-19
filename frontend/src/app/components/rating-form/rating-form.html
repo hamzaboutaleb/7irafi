@@ -1,13 +1,24 @@
 <form [formGroup]="form" (ngSubmit)="onSubmit()" class="rating-form">
   <div class="form-group">
     <label class="form-label">Your Rating</label>
-    <div class="score-display">
-      @if (form.value.score > 0) {
-        <span class="score-value">{{ form.value.score }} / 5</span>
-      } @else {
-        <span class="score-placeholder">Select a rating</span>
+    <div class="star-rating" role="radiogroup" aria-label="Select rating" (mouseleave)="onStarLeave()">
+      @for (star of stars; track star) {
+        <button
+          type="button"
+          class="star-btn"
+          [class.filled]="star <= (hoverScore || form.value.score || 0)"
+          [class.hover]="hoverScore > 0 && star <= hoverScore && star > (form.value.score || 0)"
+          (click)="selectScore(star)"
+          (mouseenter)="onStarHover(star)"
+          [attr.aria-label]="'Rate ' + star + ' out of 5'"
+          [attr.aria-checked]="star === form.value.score">
+          <lucide-icon [img]="Star" class="star-icon"></lucide-icon>
+        </button>
       }
     </div>
+    @if (form.value.score > 0) {
+      <div class="score-text">{{ form.value.score }} out of 5</div>
+    }
   </div>
 
   <div class="form-group">

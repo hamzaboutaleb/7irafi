@@ -20,21 +20,58 @@
   color: var(--text-primary, #1f2937);
 }
 
-.score-display {
-  padding: 0.75rem 1rem;
+.star-rating {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.25rem;
+}
+
+.star-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 0.375rem;
+  transition: transform 0.15s, background-color 0.15s;
+}
+
+.star-btn:hover {
+  transform: scale(1.1);
   background: var(--surface-hover, #f9fafb);
-  border-radius: 0.5rem;
-  border: 1px solid var(--border-color, #e5e7eb);
 }
 
-.score-value {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--primary-color, #2563eb);
+.star-btn:focus-visible {
+  outline: 2px solid var(--primary-color, #2563eb);
+  outline-offset: 2px;
 }
 
-.score-placeholder {
-  color: var(--text-muted, #9ca3af);
+.star-icon {
+  width: 28px;
+  height: 28px;
+  color: var(--border-color, #e5e7eb);
+  transition: color 0.2s, transform 0.15s;
+}
+
+.star-btn.filled .star-icon {
+  color: #fbbf24;
+  fill: currentColor;
+}
+
+.star-btn.hover .star-icon {
+  color: #fde047;
+  fill: currentColor;
+}
+
+.score-text {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary, #4b5563);
 }
 
 .form-textarea {

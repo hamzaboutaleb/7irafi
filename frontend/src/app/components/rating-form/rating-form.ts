@@ -1,13 +1,14 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { LucideAngularModule, Star } from '@lucide/angular';
 import { RatingService, RatingResponse } from '../../services/rating.js';
 import { AuthService } from '../../services/auth.js';
 
 @Component({
   selector: 'app-rating-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
   templateUrl: './rating-form.html',
   styleUrl: './rating-form.css',
 })
@@ -19,6 +20,9 @@ export class RatingFormComponent implements OnInit {
 
   form: FormGroup;
   submitting = false;
+  hoverScore = 0;
+  readonly stars = [1, 2, 3, 4, 5];
+  readonly Star = Star;
 
   constructor(
     private fb: FormBuilder,
@@ -35,6 +39,15 @@ export class RatingFormComponent implements OnInit {
 
   selectScore(score: number): void {
     this.form.patchValue({ score });
+    this.hoverScore = 0;
+  }
+
+  onStarHover(score: number): void {
+    this.hoverScore = score;
+  }
+
+  onStarLeave(): void {
+    this.hoverScore = 0;
   }
 
   onSubmit(): void {
