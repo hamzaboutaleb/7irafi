@@ -1,0 +1,62 @@
+<div class="rating-list">
+  @if (loading) {
+    <div class="loading" role="status" aria-live="polite">
+      <div class="spinner"></div>
+      <span>Loading ratings...</span>
+    </div>
+  } @else if (ratings.length === 0) {
+    <div class="empty" role="status">
+      <lucide-icon [img]="Star" class="empty-icon"></lucide-icon>
+      <p>No ratings {{ type === 'received' ? 'received' : 'given' }} yet</p>
+    </div>
+  } @else {
+    <div class="ratings">
+      @for (rating of ratings; track rating.id) {
+        <article class="rating-card">
+          <header class="card-header">
+            <div class="rater-info">
+              <span class="rater-name">{{ rating.raterName }}</span>
+              <time class="rating-date">{{ rating.createdAt | date:'mediumDate' }}</time>
+            </div>
+            <div class="stars" role="img" [attr.aria-label]="rating.score + ' out of 5'">
+              @for (star of [1,2,3,4,5]; track star) {
+                <lucide-icon [img]="Star" [class.filled]="star <= rating.score"></lucide-icon>
+              }
+            </div>
+          </header>
+          @if (rating.comment) {
+            <p class="rating-comment">{{ rating.comment }}</p>
+          }
+          <footer class="card-footer">
+            <span class="verified-badge">
+              <lucide-icon [img]="Star" class="badge-icon"></lucide-icon>
+              Verified job
+            </span>
+          </footer>
+        </article>
+      }
+    </div>
+
+    @if (pagination.totalPages > 1) {
+      <nav class="pagination" aria-label="Rating pages">
+        <button
+          class="page-btn"
+          (click)="goToPrevious()"
+          [disabled]="pagination.page === 0"
+          aria-label="Previous page">
+          <lucide-icon [img]="Star" class="page-icon"></lucide-icon>
+        </button>
+        <span class="page-info" aria-current="page">
+          Page {{ pagination.page + 1 }} of {{ pagination.totalPages }}
+        </span>
+        <button
+          class="page-btn"
+          (click)="goToNext()"
+          [disabled]="pagination.page === pagination.totalPages - 1"
+          aria-label="Next page">
+          <lucide-icon [img]="Star" class="page-icon"></lucide-icon>
+        </button>
+      </nav>
+    }
+  }
+</div>
