@@ -11,7 +11,7 @@ import { UserRatingSummary } from '../../services/rating.js';
   styleUrl: './rating-display.css',
 })
 export class RatingDisplayComponent {
-  @Input() summary!: UserRatingSummary | null;
+  @Input() summary: UserRatingSummary | null = null;
   @Input() showDistribution = true;
   @Input() compact = false;
   readonly Star = Star;
@@ -36,5 +36,18 @@ export class RatingDisplayComponent {
   getPercentage(level: number): number {
     if (!this.totalRatings) return 0;
     return (this.getCount(level) / this.totalRatings) * 100;
+  }
+
+  getAriaLabel(): string {
+    if (this.totalRatings === 0) {
+      return 'No ratings yet';
+    }
+    return `Average rating ${this.averageScore.toFixed(1)} out of 5, based on ${this.totalRatings} reviews`;
+  }
+
+  getDistributionAriaLabel(): string {
+    if (this.totalRatings === 0) return '';
+    const parts = this.levels.map(l => `${this.getCount(l)} ${l}-star`);
+    return `Rating breakdown: ${parts.join(', ')}`;
   }
 }
