@@ -1,0 +1,11 @@
+<div class="rating-display" [class.compact]="compact">
+  <div class="overall-score">
+    <div class="big-score">{{ averageScore.toFixed(1) }}</div>
+    <div class="stars" role="img" aria-label="Average rating: {{ averageScore.toFixed(1) }} out of 5">
+      @for (star of [1,2,3,4,5]; track star) {
+        <lucide-icon [img]="Star" [class.filled]="star <= roundedAvg"></lucide-icon>
+      }
+    </div>
+    <div class="review-count">{{ totalRatings }} {{ totalRatings === 1 ? 'review' : 'reviews' }}</div>
+  </div>
+</div>
