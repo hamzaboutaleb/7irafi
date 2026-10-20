@@ -32,7 +32,6 @@ export class CreateJob implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
   private readonly postingResult = inject(JobPostingResult);
-  private redirecting = false;
 
   readonly skills = signal<string[]>([]);
   readonly cities = signal<string[]>([]);
@@ -45,6 +44,11 @@ export class CreateJob implements OnInit {
   readonly photos = signal<JobPhoto[]>([]);
   readonly photoErrors = signal<string[]>([]);
   readonly isUploading = signal(false);
+  readonly isRedirecting = signal(false);
+  readonly isPosting = computed(() => this.isSaving() || this.isUploading() || this.isRedirecting());
+  readonly uploadedPhotoCount = computed(() =>
+    this.photos().filter((photo) => photo.status === 'uploaded').length,
+  );
   readonly failedPhotos = computed(() => this.photos().filter((photo) => photo.status === 'failed'));
   readonly maxPhotos = 10;
   readonly maxPhotoBytes = 10 * 1024 * 1024;
@@ -56,7 +60,7 @@ export class CreateJob implements OnInit {
   }
 
   private hasUnfinishedWork(): boolean {
-    if (this.redirecting) return false;
+    if (this.isRedirecting()) return false;
     return this.isSaving() || this.isUploading() || this.failedPhotos().length > 0 ||
       (!this.createdJob() && (this.form.dirty || this.photos().length > 0));
   }
@@ -148,13 +152,13 @@ export class CreateJob implements OnInit {
         file: photo.file, error: photo.error ?? 'Photo upload failed.',
       })),
     });
-    this.redirecting = true;
+    this.isRedirecting.set(true);
     try {
       if (await this.router.navigate(['/jobs'])) return;
     } catch {
       // Preserve the posted job and retry files when navigation cannot complete.
     }
-    this.redirecting = false;
+    this.isRedirecting.set(false);
     this.errorMessage.set('Your job was posted. Open the jobs page to see its status.');
     this.showFailure.set(true);
   }
