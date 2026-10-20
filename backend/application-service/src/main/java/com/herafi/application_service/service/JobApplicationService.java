@@ -25,9 +25,11 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class JobApplicationService {
 
     private final JobApplicationRepository repository;
@@ -70,6 +72,8 @@ public class JobApplicationService {
                 .description("Job applications submitted")
                 .register(meterRegistry)
                 .increment();
+        log.atInfo().addKeyValue("event", "application_submitted")
+                .log("Application submitted applicationId={}", application.getId());
         // The client is told someone applied; a failure here must not undo an
         // application that was stored successfully.
         notificationClient.notify(
@@ -118,6 +122,8 @@ public class JobApplicationService {
                     .description("Job applications accepted")
                     .register(meterRegistry)
                     .increment();
+            log.atInfo().addKeyValue("event", "application_accepted")
+                    .log("Application accepted applicationId={}", applicationId);
 
             notificationClient.notify(
                     application.getApplicantId(),

@@ -11,19 +11,26 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
+import com.herafi.application_service.config.RequestIdInterceptor;
 import com.herafi.application_service.exceptions.ApplicationException;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Component
+@Slf4j
 public class UserClient {
     private final RestClient client;
 
     public UserClient(@Value("${services.user.url}") String baseUrl,
-            @Value("${service.security.internal-api-key}") String internalApiKey) {
+            @Value("${service.security.internal-api-key}") String internalApiKey,
+            RequestIdInterceptor requestIdInterceptor) {
         var httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(3)).build();
         var factory = new JdkClientHttpRequestFactory(httpClient);
         factory.setReadTimeout(Duration.ofSeconds(5));
         client = RestClient.builder().baseUrl(baseUrl).requestFactory(factory)
-                .defaultHeader("X-Internal-Api-Key", internalApiKey).build();
+                .defaultHeader("X-Internal-Api-Key", internalApiKey)
+                .requestInterceptor(requestIdInterceptor)
+                .build();
     }
 
     public void requireActiveWorker(UUID userId) {
@@ -32,7 +39,7 @@ public class UserClient {
             result = client.get().uri("/internal/users/{id}/worker-eligibility", userId)
                     .retrieve().body(WorkerEligibility.class);
         } catch (RestClientException exception) {
-            throw unavailable();
+            throw unavailable(exception);
         }
         if (result == null || !userId.equals(result.userId()) || result.eligible() == null) {
             throw unavailable();
@@ -44,6 +51,12 @@ public class UserClient {
     }
 
     private ApplicationException unavailable() {
+        return unavailable(null);
+    }
+
+    private ApplicationException unavailable(RestClientException cause) {
+        log.atError().addKeyValue("event", "internal_call_failed").setCause(cause)
+                .log("User service call failed");
         return new ApplicationException(HttpStatus.SERVICE_UNAVAILABLE, "USER_SERVICE_UNAVAILABLE",
                 "Unable to verify worker eligibility. Please retry.");
     }

@@ -2,6 +2,7 @@ package com.herafi.api_gateway.filter;
 
 import java.util.function.Function;
 
+import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,13 +16,17 @@ public final class GatewayIdentityFilter {
     private static final String USER_ROLE = "X-User-Role";
     private static final String GATEWAY_KEY = "X-Gateway-Key";
     private static final String INTERNAL_API_KEY = "X-Internal-Api-Key";
+    private static final String REQUEST_ID = "X-Request-Id";
 
     private GatewayIdentityFilter() {
     }
 
     public static Function<ServerRequest, ServerRequest> removeInternalHeaders() {
         return request -> ServerRequest.from(request)
-                .headers(GatewayIdentityFilter::removeTrustedHeaders)
+                .headers(headers -> {
+                    removeTrustedHeaders(headers);
+                    addRequestId(headers);
+                })
                 .build();
     }
 
@@ -46,6 +51,7 @@ public final class GatewayIdentityFilter {
                         headers.set(USER_EMAIL, email);
                         headers.set(USER_ROLE, role);
                         headers.set(GATEWAY_KEY, gatewaySharedSecret);
+                        addRequestId(headers);
                     })
                     .build();
         };
@@ -57,5 +63,12 @@ public final class GatewayIdentityFilter {
         headers.remove(USER_ROLE);
         headers.remove(GATEWAY_KEY);
         headers.remove(INTERNAL_API_KEY);
+    }
+
+    private static void addRequestId(HttpHeaders headers) {
+        String requestId = MDC.get("requestId");
+        if (requestId != null) {
+            headers.set(REQUEST_ID, requestId);
+        }
     }
 }

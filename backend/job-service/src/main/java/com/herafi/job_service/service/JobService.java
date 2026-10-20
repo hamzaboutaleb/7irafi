@@ -95,6 +95,7 @@ public class JobService {
                 .description("Jobs successfully created")
                 .register(meterRegistry)
                 .increment();
+        log.atInfo().addKeyValue("event", "job_created").log("Job created jobId={}", savedJob.getId());
 
         return savedJob;
     }
@@ -372,6 +373,8 @@ public class JobService {
                     .description("Job image upload failures")
                     .register(meterRegistry)
                     .increment();
+            log.atError().addKeyValue("event", "image_upload_failed").setCause(e)
+                    .log("Image upload failed for job {}", jobId);
             throw new InvalidImageException("Failed to read image");
         }
 
