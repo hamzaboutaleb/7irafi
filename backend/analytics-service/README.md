@@ -1,140 +1,99 @@
-# Analytics Service Documentation
+# Analytics Service
 
-**Service Owner:** Yasser Khoussi (7irafi)
-**Module Target:** Advanced Analytics Dashboard (Data and Analytics - Major)
+**Service Owner:** Yasser Khoussi (7irafi)  
+**Module Target:** Advanced Analytics Dashboard (Data and Analytics)  
 
-## 1. Architectural Overview & Technical Choices
+---
 
-This microservice implements the **CQRS (Command Query Responsibility Segregation)** and **Event-Driven** architectural patterns to fulfill the Advanced Analytics Dashboard requirements without compromising the performance of the core transactional services.
+## 1. Architecture & Design Patterns
 
-**Why this architecture was chosen:**
+This microservice implements **CQRS (Command Query Responsibility Segregation)** and **Event-Driven Architecture** to power the Advanced Analytics Dashboard. 
 
-* **Database Isolation:** Microservices must own their data. Directly querying the `job-service` or `application-service` PostgreSQL databases for heavy analytics violates service boundaries and degrades online transaction processing (OLTP) performance.
-* **Read-Optimized (OLAP) Data:** The dashboard requires filtering thousands of records by date, skill, city, and status instantly. By consuming events, this service builds a "flat" database schema explicitly optimized for these read-heavy queries.
+*   **Database Isolation:** Analytics queries bypass the core transactional databases (`job-service`, `application-service`) to prevent OLTP performance degradation.
+*   **Read-Optimized (OLAP):** Data is flattened and denormalized via asynchronous event consumption, creating an optimized schema for heavy time-series filtering.
+*   **Timezone Enforcement:** Time-series aggregations utilize native PostgreSQL `DATE_TRUNC` with `AT TIME ZONE 'Africa/Casablanca'` to strictly enforce reporting timezone compliance at the database level.
 
+---
 
-* **Real-Time Responsiveness:** Because this service natively listens for asynchronous data changes via a message broker, it acts as the perfect trigger for the WebSocket invalidation messages required to meet the 5-second visible update target.
+## 2. Messaging Infrastructure (Apache Kafka)
 
+The service acts as a downstream consumer for core platform events to build its materialized views. Serialized via Spring Kafka `JsonDeserializer`.
 
+| Topic | Trigger | Target Action |
+| :--- | :--- | :--- |
+| `job-events` | `JOB_CREATED` | Inserts/Updates records in `analytics_jobs` |
+| `application-events` | `APP_SUBMITTED` | Inserts/Updates records in `analytics_applications` |
 
-## 2. Database Schema
+---
 
-The database uses flat tables specifically designed for time-series aggregation and filtering. Foreign keys and relational constraints are intentionally omitted to maximize read speed.
+## 3. Database Schema & Migrations
 
-### Table: `analytics_jobs`
+Database state and migrations are managed via **Flyway**. To prevent ledger conflicts with other microservices in local development, this service utilizes an isolated ledger (`flyway_schema_history_analytics`) with `baseline-on-migrate: true`.
 
-Stores denormalized job data for the "My posted jobs" view.
+### 3.1 `analytics_jobs`
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| `job_id` | UUID | Primary Key |
+| `client_id` | UUID | Indexed |
+| `status` | VARCHAR | Indexed |
+| `skill` | VARCHAR | Indexed |
+| `city` | VARCHAR | Indexed |
+| `created_at` | TIMESTAMPTZ | Indexed |
 
-* `job_id` (UUID, Primary Key)
-* `client_id` (UUID, Indexed)
-* `status` (VARCHAR, Indexed)
-* `skill` (VARCHAR, Indexed)
-* `city` (VARCHAR, Indexed)
-* `created_at` (TIMESTAMPTZ, Indexed)
+### 3.2 `analytics_applications`
+| Column | Type | Attributes |
+| :--- | :--- | :--- |
+| `application_id` | UUID | Primary Key |
+| `job_id` | UUID | Foreign Reference |
+| `applicant_id` | UUID | Indexed |
+| `status` | VARCHAR | Derived Status, Indexed |
+| `job_skill` | VARCHAR | Indexed |
+| `job_city` | VARCHAR | Indexed |
+| `submitted_at` | TIMESTAMPTZ | Indexed |
 
-### Table: `analytics_applications`
+---
 
-Stores denormalized application data for the "My applications" view.
+## 4. API & Real-Time Sync
 
-* `application_id` (UUID, Primary Key)
-* `job_id` (UUID)
-* `applicant_id` (UUID, Indexed)
-* `job_skill` (VARCHAR, Indexed)
-* `job_city` (VARCHAR, Indexed)
-* `status` (VARCHAR, Indexed) - *Derived status (e.g., ACCEPTED, REJECTED, PENDING)*
+### 4.1 REST Endpoints
+*   `GET /analytics/my/jobs` - Aggregated metrics, activity buckets, status distribution, and paginated records for the authenticated client.
+*   `GET /analytics/my/applications` - Aggregated metrics, activity buckets, status distribution, and paginated records for the authenticated applicant.
+*   *Query Parameters:* `from`, `to`, `granularity` (day/week/month), `status`, `skill`, `city`, `page`, `size`.
 
-* `submitted_at` (TIMESTAMPTZ, Indexed)
+### 4.2 WebSocket Invalidation (STOMP)
+To achieve sub-5-second dashboard updates across active sessions:
+*   **Connection:** `/ws/analytics`
+*   **Destination:** `/queue/analytics-{userId}`
+*   **Flow:** Kafka Consumer processes event -> DB persists data -> Service broadcasts invalidation payload (`eventId`, `resource`, `occurredAt`) -> Frontend seamlessly refetches HTTP aggregates.
 
-*Note: Time-series aggregations explicitly utilize PostgreSQL's `DATE_TRUNC` combined with `AT TIME ZONE 'Africa/Casablanca'` to strictly enforce the reporting timezone requirement*.
+---
 
-## 3. Real-Time Invalidation
+## 5. Testing Strategy
 
-To satisfy the automatic update requirement across sessions, this service utilizes Spring WebSockets with STOMP.
+The test suite validates the asynchronous, event-driven flow using isolated integration environments.
 
-* **Connection Endpoint:** `/ws/analytics`
-* **Private Destination:** `/queue/analytics-{userId}`
-* **Flow:**
-1. The message broker (or internal mock API) delivers a data change event to the service.
-2. The service saves the flat data to PostgreSQL.
-3. The service immediately publishes an invalidation payload (containing `eventId`, `resource`, and `occurredAt`) to the user's specific WebSocket destination.
+*   **Frameworks:** `@SpringBootTest`, `@EmbeddedKafka`
+*   **Execution:** Test lifecycles manage dedicated Kafka consumer states and enforce transactional database teardowns (`repository.deleteAll()`) to guarantee strict state isolation across asynchronous runs.
 
+```bash
+# Execute integration test suite
+mvn test -Dtest=AnalyticsEventListenerTest
+```
 
-4. The frontend receives the payload and seamlessly refetches the HTTP aggregates.
-
-
-
-
-
-## 4. API Endpoints
-
-### Frontend Read APIs
-
-* `GET /analytics/my/jobs` - Returns the aggregated metrics, time-series activity buckets, status distribution, and paginated records for the caller's jobs.
-
-
-* `GET /analytics/my/applications` - Returns the aggregated metrics, time-series activity buckets, status distribution, and paginated records for the caller's applications.
-
-
-
-**Query Parameters:** `from`, `to`, `granularity` (day|week|month), `status` (optional), `skill` (optional), `city` (optional), `page`, `size`.
-
-### Internal Event API (Development / Mocking)
-
-* `POST /internal/mock-events/jobs`
-* `POST /internal/mock-events/applications`
-*Purpose:* Used to simulate Kafka/RabbitMQ events during local development. These endpoints accept the exact JSON contract agreed upon with the Job and Application service owners and instantly trigger the WebSocket flow. They will be replaced by `@RabbitListener` or `@KafkaListener` annotations once the team infrastructure is complete.
-
-## 3. Time-Series Aggregation & Timezones
-To comply with the strict `Africa/Casablanca` timezone requirement, timezone conversion is pushed directly to the PostgreSQL layer using native SQL queries.
-We use `DATE_TRUNC(granularity, created_at AT TIME ZONE 'Africa/Casablanca')` to guarantee that all daily, weekly, and monthly aggregations accurately reflect local time, avoiding UTC offset errors when filtering data.
-
-
-## 4. System Architecture Diagram
-
-This diagram illustrates how the Event-Driven CQRS architecture handles data flow without violating microservice database boundaries.
+## 6. System Architecture Diagram
 
 ```mermaid
-flowchart TD
-    %% Define User & Gateway
-    User((Frontend Client))
-    Gateway[API Gateway]
-
-    %% External Services (Producers)
-    subgraph Producers [OLTP Services]
-        JobSvc[Job Service]
-        AppSvc[Application Service]
-        JobDB[(Job DB)]
-        AppDB[(Application DB)]
-        
-        JobSvc --> JobDB
-        AppSvc --> AppDB
-    end
-
-    %% Message Broker
-    Broker{{Message Broker<br/>Kafka / RabbitMQ}}
-
-    %% Analytics Service (Consumer & API)
-    subgraph AnalyticsSvc [Analytics Service - CQRS]
-        Controller[Analytics Controller]
-        Service[Aggregation Service]
-        Repo[Spring Data Repositories]
-        Listener[Event Listener]
-        
-        Controller --> Service
-        Service --> Repo
-        Listener --> Repo
-    end
-
-    %% Analytics DB
-    AnalyticsDB[(Analytics DB<br/>Flat & Read-Optimized)]
-    Repo --> AnalyticsDB
-
-    %% The Flow
-    User -- "1. GET /analytics/my/* (JWT)" --> Gateway
-    Gateway -- "2. Forwards with X-User-Id" --> Controller
-
-    JobSvc -- "3. Publishes JOB_CREATED" --> Broker
-    AppSvc -- "3. Publishes APP_SUBMITTED" --> Broker
-    Broker -- "4. Consumes Events asynchronously" --> Listener
-
-***
+flowchart LR
+    Browser[Browser] --> Gateway[API Gateway]
+    Gateway -->|GET /analytics/*| Controller[Analytics Controller]
+    
+    JobSvc[Job Service] -->|job-events| Kafka{{Apache Kafka}}
+    AppSvc[Application Service] -->|application-events| Kafka
+    
+    Kafka -.->|Async Consume| Listener[Kafka Listener]
+    
+    Listener --> Service[Aggregation Service]
+    Controller --> Service
+    Service --> Repo[Spring Data Repositories]
+    Repo --> DB[(Analytics DB)]
+```
