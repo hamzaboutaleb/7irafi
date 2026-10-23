@@ -1,5 +1,6 @@
 package com.herafi.application_service.repository;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -15,4 +16,6 @@ public interface JobApplicationRepository extends JpaRepository<JobApplication, 
     Page<JobApplication> findByApplicantId(UUID applicantId, Pageable pageable);
 
     Page<JobApplication> findByJobId(UUID jobId, Pageable pageable);
+
+    List<JobApplication> findAllByJobId(UUID jobId);
 }

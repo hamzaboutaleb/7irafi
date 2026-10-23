@@ -98,6 +98,8 @@ class JobOutboxIntegrationTests {
     void creationCommitsTwoPendingJsonObjectsWithThePublicAndInternalContracts() {
         Job job = createJob();
 
+        assertThat(jobService.getSummary(job.getId()).skill()).isEqualTo("PLUMBING");
+        assertThat(jobService.getSummary(job.getId()).city()).isEqualTo("CASABLANCA");
         assertThat(jobs.count()).isEqualTo(1);
         assertThat(events.count()).isEqualTo(2);
         assertPair(job, 0L, JobAnalyticsEvent.Type.JOB_CREATED, JobStatus.OPEN, null);
@@ -114,7 +116,9 @@ class JobOutboxIntegrationTests {
     void assignmentAndCompletionCaptureFlushedVersionsAndPreserveEarlierSnapshots() {
         Job created = createJob();
 
-        jobService.assignWorker(created.getId(), workerId);
+        var assignedSummary = jobService.assignWorker(created.getId(), workerId);
+        assertThat(assignedSummary.skill()).isEqualTo("PLUMBING");
+        assertThat(assignedSummary.city()).isEqualTo("CASABLANCA");
         Job completed = jobService.complete(created.getId(), clientId);
 
         assertThat(events.count()).isEqualTo(6);
@@ -165,8 +169,10 @@ class JobOutboxIntegrationTests {
         Job job = createJob();
         jobService.assignWorker(job.getId(), workerId);
 
-        jobService.assignWorker(job.getId(), workerId);
+        var repeated = jobService.assignWorker(job.getId(), workerId);
 
+        assertThat(repeated.skill()).isEqualTo("PLUMBING");
+        assertThat(repeated.city()).isEqualTo("CASABLANCA");
         assertThat(events.count()).isEqualTo(4);
         assertThat(jobs.findById(job.getId()).orElseThrow().getVersion()).isEqualTo(1L);
     }

@@ -44,38 +44,44 @@ acknowledgements, idempotence, and timeouts use Kafka's defaults.
 
 Application-service's consumer configuration uses the `application-service-jobs`
 group. A new group starts from the earliest retained events so it can catch up.
-Deserializers and listener offset handling use Spring's defaults. The actual
-lifecycle handler, deduplication, and application outbox are subsequent
-implementation steps.
+Deserializers and listener offset handling use Spring's defaults. Its lifecycle
+listener commits the database transaction before the listener returns. The error
+handler retries failed messages indefinitely, including invalid payloads, so
+records are not discarded after a temporary database outage. An invalid message
+blocks its partition until resolved. Processed event IDs and per-job versions
+prevent duplicate or stale snapshots from repeating derived transitions.
 
 Service startup does not depend on Kafka health. Topic provisioning belongs to
 Compose, and job mutations continue to write their local outbox during a broker
 outage.
 
-## Job outbox delivery
+## Outbox delivery
 
-Job-service polls committed outbox rows every second and sends up to 100 successful
-deliveries per poll. Each delivery has its own database transaction. PostgreSQL
+Both services poll their own committed outbox rows every second and send up to
+100 successful deliveries per poll. Each delivery has its own database transaction. PostgreSQL
 `FOR UPDATE SKIP LOCKED` lets service instances work on different rows without
 claiming the same row concurrently. The row lock stays held while waiting for the
 Kafka producer result; Kafka's default metadata and delivery timeouts still apply.
 This uses a database connection during a send, including during broker outages.
 
-Messages use the saved destination and JSON payload, with `jobId` as their Kafka
-key. A row is marked published only after Kafka acknowledges it. Failed sends
-record their error and retry after 1, 2, 4, 8, 16, 32, then at most 60 seconds.
+Messages use the saved destination and JSON payload, with `jobId` as the job-service
+key and `applicationId` as the application-service key. A row is marked published
+only after Kafka acknowledges it. Failed sends record their error and retry after
+1, 2, 4, 8, 16, 32, then at most 60 seconds.
 A failure ends the current poll. An older pending version blocks newer versions
-of the same job and destination, including while waiting for its retry; other
-jobs and destinations remain eligible. Gaps between job versions are allowed.
+of the same entity and destination, including while waiting for its retry; other
+entities and destinations remain eligible. Version gaps are allowed.
 
 Delivery is at least once: if Kafka acknowledges a message but the database commit
 fails or the process crashes, the same event can be sent again. Retries preserve
 the original `eventId` and payload. Consumers must deduplicate by `eventId`;
 Kafka producer idempotence alone does not deduplicate an outbox replay.
 
-The publisher is enabled by default. `jobs.outbox.enabled=false` pauses it without
-stopping outbox writes, and `jobs.outbox.poll-interval-ms` overrides the default
-1000 ms polling delay. The one-second poll supports the five-second dashboard
+The publishers are enabled by default. `jobs.outbox.enabled=false` or
+`applications.outbox.enabled=false` pauses the respective publisher without stopping
+outbox writes. Their corresponding `poll-interval-ms` properties override the default
+1000 ms polling delay. `applications.lifecycle.enabled=false` pauses the lifecycle
+listener. The one-second poll supports the five-second dashboard
 target during normal operation; broker outages and backlogs delay delivery.
 
 ## Publisher tests
@@ -104,6 +110,9 @@ KAFKA_TEST_BOOTSTRAP_SERVERS=localhost:9094 \
 
 The PostgreSQL datasource options above can also be used with this Kafka test.
 These tests clear the outbox in their test database; use a dedicated test database.
+
+Application-service transaction tests and the disposable-broker Kafka test are
+documented in its [README](../../../backend/application-service/README.md#verify).
 
 References: [Apache's Docker examples](https://github.com/apache/kafka/tree/4.2.2/docker/examples),
 [Spring Kafka setup](https://docs.spring.io/spring-kafka/reference/quick-tour.html).

@@ -60,8 +60,9 @@ Source root: [src/main/java/com/herafi/application_service](src/main/java/com/he
 
 Controllers bind trusted user UUIDs and validate bodies/pagination. The service decides ownership,
 application uniqueness, acceptance, and status projection. Clients validate dependency response
-IDs and required fields before exposing them to business logic. Repository methods own local
-database transactions; the service does not wrap HTTP calls and writes in a distributed transaction.
+IDs and required fields before exposing them to business logic. `ApplicationSubmissionService`
+owns the local application/outbox transaction after HTTP checks. `JobLifecycleEventHandler`
+owns the inbox, outcome, and outbox transaction. Neither transaction spans a remote HTTP call.
 
 ## 4. Public API
 
@@ -96,7 +97,8 @@ The applicant is the gateway-provided `X-User-Id`; the client cannot select a di
 1. `UserClient` calls `/internal/users/{id}/worker-eligibility` and requires an active professional.
 2. `JobClient` reads `/internal/jobs/{id}/summary`.
 3. Reject an application to the caller's own job (`403`) or a non-open job (`409`).
-4. Reject an existing `(jobId, applicantId)` pair, then save and flush the application.
+4. Lock the local per-job lifecycle row, reject a processed closure or duplicate pair, then
+   save the application with skill/city and its submitted outbox event in one transaction.
 5. Return the new record with status `PENDING`.
 
 A database unique constraint also rejects concurrent duplicate submissions. Eligibility and job
@@ -137,7 +139,8 @@ Load the application and current job summary, then require the caller to be the 
 same applicant already owns an `ASSIGNED` or `COMPLETED` assignment, return the derived accepted
 response. Otherwise require an `OPEN` job and call `PATCH /internal/jobs/{id}/assign` with the
 applicant's UUID. Job-service handles the state transition and concurrent assignment conflicts.
-Acceptance does not update a status field in application-service's database.
+Acceptance does not directly update application-service's analytics outcome; the committed
+job lifecycle event drives that update asynchronously.
 
 Application statuses are calculated from current job data:
 
@@ -165,8 +168,8 @@ flowchart TD
     Missing[JOB_NOT_FOUND in my applications] --> Closed
 ```
 
-These are read-time projections. There is no persisted application status column or independent
-application state machine.
+These HTTP labels are read-time projections. A separate `analyticsStatus` records the last
+analytics outcome emitted, without making application-service authoritative for job assignment.
 
 ## 8. Job Assignment and Internal Integration
 
@@ -195,15 +198,17 @@ connection timeouts, and five-second read timeouts. Eureka registration makes th
 discoverable by the gateway; these outbound clients do not use Eureka load balancing.
 
 Malformed or unavailable dependency responses become `503`. Job-client `404` responses become
-`JOB_NOT_FOUND`, and assignment `409` responses become `JOB_STATE_CONFLICT`. There is no explicit
-retry, circuit breaker, message broker, or distributed transaction in this implementation.
+`JOB_NOT_FOUND`, and assignment `409` responses become `JOB_STATE_CONFLICT`. HTTP clients have
+no explicit retry or circuit breaker. Kafka delivers job lifecycle events and application
+analytics asynchronously through local inbox/outbox transactions.
 
 The internal chat-context endpoint reads an existing application, resolves its current job,
 and returns participant UUIDs and status. No chat service or message entity is implemented here.
 
 ## 9. Persistence Model
 
-`JobApplication` is the only local JPA entity. External entities below show logical references
+`JobApplication` holds applications; local outbox, lifecycle state, and processed-event entities
+support analytics delivery. External entities below show logical references
 to other databases; dashed relationships are API-level associations, not local foreign keys.
 `JOB_APPLICATIONS` belongs to `application_db`; the external projections show only related IDs.
 
@@ -243,9 +248,14 @@ is disabled.
 | Migration | Change |
 | --- | --- |
 | `V1__create_job_applications.sql` | Application table, pair uniqueness, and applicant/job listing indexes. |
+| `V2__retain_application_analytics_metadata.sql` | Job skill/city snapshots, last analytics outcome, and optimistic version. |
+| `V3__create_outbox_events.sql` | Durable JSONB analytics events and per-application delivery order. |
+| `V4__track_job_lifecycle_consumption.sql` | Per-job serialization/version state and processed event IDs. |
 
 `@PrePersist` supplies a UUID when absent and sets `createdAt`. Job/applicant IDs and creation
-time are marked non-updatable. Status is derived from job-service and is never stored here.
+time are marked non-updatable. HTTP status is derived from job-service; skill/city snapshots,
+the last analytics outcome, and an optimistic version are stored locally by migrations V2–V4.
+See the [analytics processing and transaction details](README.md#analytics-events).
 
 ## 10. Error Boundary
 

@@ -305,7 +305,7 @@ public class JobService {
         return new JobSummaryResponse(
                 job.getId(),
                 job.getClientId(),
-                job.getStatus(), job.getAssignedWorkerId());
+                job.getStatus(), job.getAssignedWorkerId(), job.getSkill(), job.getCity());
     }
 
     @Transactional
@@ -317,7 +317,7 @@ public class JobService {
             return new JobSummaryResponse(
                     job.getId(),
                     job.getClientId(),
-                    job.getStatus(), job.getAssignedWorkerId());
+                    job.getStatus(), job.getAssignedWorkerId(), job.getSkill(), job.getCity());
         }
 
         if (job.getStatus() != JobStatus.OPEN) {
@@ -332,7 +332,7 @@ public class JobService {
         return new JobSummaryResponse(
                 job.getId(),
                 job.getClientId(),
-                job.getStatus(), job.getAssignedWorkerId());
+                job.getStatus(), job.getAssignedWorkerId(), job.getSkill(), job.getCity());
     }
 
     @Transactional
