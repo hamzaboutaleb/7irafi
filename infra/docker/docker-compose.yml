@@ -397,6 +397,57 @@ services:
       timeout: 5s
       retries: 20
 
+  grafana:
+    container_name: grafana-dev
+    image: grafana/grafana:11.1.0
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-7irafi-development-grafana}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  node-exporter:
+    container_name: node-exporter-dev
+    image: prom/node-exporter:v1.8.2
+    # No rslave, --path.rootfs or pid: host: Docker Desktop refuses rslave on / and
+    # binds / to the WSL distro, not the Docker VM, so rootfs and pid: host made
+    # node-exporter stat the wrong paths. Every mount is now read where it is.
+    volumes:
+      - /:/host:ro
+    ports:
+      - "127.0.0.1:9100:9100"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9100/metrics >/dev/null || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  alertmanager:
+    container_name: alertmanager-dev
+    image: prom/alertmanager:v0.27.0
+    volumes:
+      - ./alertmanager:/etc/alertmanager:ro
+    ports:
+      - "127.0.0.1:9093:9093"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9093/-/healthy || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
 volumes:
   kafka-data:
   postgres-data:
@@ -404,3 +455,4 @@ volumes:
   job-maven-cache:
   minio_data:
   prometheus-data:
+  grafana-data:
