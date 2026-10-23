@@ -65,9 +65,9 @@ communication, and a single responsibility for each service.
 | Independent data ownership | `auth_db`, `user_db`, and `job_db` have separate Flyway migrations. No cross-service table access is used. |
 | Runtime discovery and load balancing | Gateway, Auth, User, and Job register in Eureka. User Service can run as multiple replicas and is selected by Spring Cloud LoadBalancer. |
 
-Kafka is deliberately **not** part of this claim: the subject accepts REST *or* message
-queues, and the implemented registration flow is REST-based. Kafka remains a later
-learning milestone, not a prerequisite for these two points.
+The implemented registration flow is REST-based. Kafka infrastructure for analytics
+is tracked separately from this claim; message queues are not a prerequisite for
+these two points.
 
 The claim still has to be demonstrated live to an evaluator; documentation alone never
 earns module points. Follow the [microservices evaluation guide](docs/architecture/loosely-coupled-microservices-major.md)
@@ -91,9 +91,14 @@ for the exact evidence and demo sequence. The supporting architecture notes cove
 ## Kafka foundation
 
 Local development now includes a single-node KRaft Kafka broker with separate internal
-and host listeners. No application service produces or consumes events yet; the first
-useful integration is Job lifecycle events consumed by the future Notification Service.
-See the [Kafka foundation and event contract](docs/architecture/kafka.md).
+and host listeners, persistent storage, and automatic creation of `analytics.events`
+and `jobs.lifecycle`. Both job-service and application-service have their Kafka client
+connections configured. Both services publish analytics events through their own
+database outboxes with retries and ordering per entity. Application-service consumes
+job lifecycle events to derive accepted/rejected analytics outcomes, with duplicate
+event detection and job version checks.
+See the [local Kafka setup](infra/docker/kafka/README.md) for startup and inspection
+commands.
 
 ## Service status
 

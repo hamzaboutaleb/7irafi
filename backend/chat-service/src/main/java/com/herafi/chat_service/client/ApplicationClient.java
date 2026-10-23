@@ -2,6 +2,8 @@ package com.herafi.chat_service.client;
 
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -19,6 +21,8 @@ import com.herafi.chat_service.exception.ChatException;
  */
 @Component
 public class ApplicationClient {
+
+    private static final Logger log = LoggerFactory.getLogger(ApplicationClient.class);
 
     private final RestClient client;
 
@@ -44,10 +48,10 @@ public class ApplicationClient {
                         "Application not found");
             }
 
-            throw unavailable();
+            throw unavailable(exception);
         } catch (RestClientException exception) {
             // Timeout, connection refused, no instance registered in Eureka.
-            throw unavailable();
+            throw unavailable(exception);
         }
 
         // A mangled answer must not become a conversation: better to fail than to
@@ -64,6 +68,12 @@ public class ApplicationClient {
     }
 
     private ChatException unavailable() {
+        return unavailable(null);
+    }
+
+    private ChatException unavailable(RestClientException cause) {
+        log.atError().addKeyValue("event", "internal_call_failed").setCause(cause)
+                .log("Application service call failed");
         return new ChatException(HttpStatus.SERVICE_UNAVAILABLE, "APPLICATION_SERVICE_UNAVAILABLE",
                 "Unable to reach the application service. Please retry.");
     }

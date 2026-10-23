@@ -4,12 +4,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import org.hibernate.exception.ConstraintViolationException;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.herafi.application_service.client.JobClient;
 import com.herafi.application_service.client.NotificationClient;
@@ -25,9 +25,11 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class JobApplicationService {
 
     private final JobApplicationRepository repository;
@@ -35,6 +37,7 @@ public class JobApplicationService {
     private final UserClient userClient;
     private final NotificationClient notificationClient;
     private final MeterRegistry meterRegistry;
+    private final ApplicationSubmissionService submissionService;
 
     public ApplicationResponse apply(UUID jobId, UUID applicantId) {
         userClient.requireActiveWorker(applicantId);
@@ -47,37 +50,18 @@ public class JobApplicationService {
             throw new ApplicationException(HttpStatus.CONFLICT, "JOB_NOT_OPEN",
                     "Applications are only allowed for open jobs");
         }
-        if (repository.existsByJobIdAndApplicantId(jobId, applicantId)) {
-            throw duplicate();
-        }
-
-        JobApplication application = new JobApplication();
-        application.setJobId(jobId);
-        application.setApplicantId(applicantId);
-        try {
-            application = repository.saveAndFlush(application);
-        } catch (DataIntegrityViolationException exception) {
-            // The database constraint also protects concurrent submissions.
-            for (Throwable cause = exception; cause != null; cause = cause.getCause()) {
-                if (cause instanceof ConstraintViolationException violation
-                        && "uq_job_applications_job_applicant".equals(violation.getConstraintName())) {
-                    throw duplicate();
-                }
-            }
-            throw exception;
-        }
-        Counter.builder("herafi.applications.submitted")
-                .description("Job applications submitted")
-                .register(meterRegistry)
-                .increment();
-        // The client is told someone applied; a failure here must not undo an
-        // application that was stored successfully.
-        notificationClient.notify(
-                job.clientId(),
-                "APPLICATION_RECEIVED",
-                "New application",
-                "A professional applied to your job.",
-                "/jobs/" + jobId + "/applicants");
+        JobApplication application = submissionService.submit(job, applicantId);
+        afterCommit(() -> {
+            Counter.builder("herafi.applications.submitted")
+                    .description("Job applications submitted")
+                    .register(meterRegistry)
+                    .increment();
+            log.atInfo().addKeyValue("event", "application_submitted")
+                    .log("Application submitted applicationId={}", application.getId());
+            notificationClient.notify(
+                    job.clientId(), "APPLICATION_RECEIVED", "New application",
+                    "A professional applied to your job.", "/jobs/" + jobId + "/applicants");
+        });
 
         return new ApplicationResponse(application.getId(), jobId, applicantId,
                 application.getCreatedAt(), "PENDING");
@@ -118,6 +102,8 @@ public class JobApplicationService {
                     .description("Job applications accepted")
                     .register(meterRegistry)
                     .increment();
+            log.atInfo().addKeyValue("event", "application_accepted")
+                    .log("Application accepted applicationId={}", applicationId);
 
             notificationClient.notify(
                     application.getApplicantId(),
@@ -187,8 +173,16 @@ public class JobApplicationService {
         };
     }
 
-    private ApplicationException duplicate() {
-        return new ApplicationException(HttpStatus.CONFLICT, "DUPLICATE_APPLICATION",
-                "You have already applied to this job");
+    private void afterCommit(Runnable action) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    action.run();
+                }
+            });
+        } else {
+            action.run();
+        }
     }
 }

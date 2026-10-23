@@ -1,4 +1,44 @@
 services:
+  kafka:
+    image: apache/kafka:4.2.2
+    hostname: kafka
+    environment:
+      CLUSTER_ID: ${KAFKA_CLUSTER_ID:-N9P9HhaYSV2XFLVzfjHqWQ}
+      KAFKA_NODE_ID: "1"
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENERS: INTERNAL://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:${KAFKA_PORT:-9094}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+    ports:
+      - "127.0.0.1:${KAFKA_PORT:-9094}:9094"
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 20s
+    restart: unless-stopped
+
+  kafka-init:
+    image: apache/kafka:4.2.2
+    environment:
+      KAFKA_TOPIC_PARTITIONS: ${KAFKA_TOPIC_PARTITIONS:-3}
+    volumes:
+      - ./kafka/init-topics.sh:/opt/kafka/init-topics.sh:ro
+    entrypoint: ["/bin/sh", "/opt/kafka/init-topics.sh"]
+    depends_on:
+      kafka:
+        condition: service_healthy
+    restart: "no"
+
   postgres:
     container_name: postgres-dev
     image: postgres:17-alpine
@@ -49,7 +89,7 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/auth_db
       DB_USERNAME: ${DB_USERNAME:-herafi}
       DB_PASSWORD: ${DB_PASSWORD:-herafi}
-      SHOW_SQL: "true"
+      SQL_LOG_LEVEL: debug
       DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka/
       INTERNAL_API_KEY: ${INTERNAL_API_KEY:-7irafi-development-internal-key}
       JWT_SECRET: ${JWT_SECRET:-7irafi-development-jwt-secret-change-me-2026}
@@ -76,7 +116,7 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/user_db
       DB_USERNAME: ${DB_USERNAME:-herafi}
       DB_PASSWORD: ${DB_PASSWORD:-herafi}
-      SHOW_SQL: "true"
+      SQL_LOG_LEVEL: debug
       GATEWAY_SHARED_SECRET: ${GATEWAY_SHARED_SECRET:-7irafi-development-gateway-key}
       INTERNAL_API_KEY: ${INTERNAL_API_KEY:-7irafi-development-internal-key}
       S3_BUCKET: avatars
@@ -108,7 +148,7 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/notification_db
       DB_USERNAME: ${DB_USERNAME:-herafi}
       DB_PASSWORD: ${DB_PASSWORD:-herafi}
-      SHOW_SQL: "true"
+      SQL_LOG_LEVEL: debug
       GATEWAY_SHARED_SECRET: ${GATEWAY_SHARED_SECRET:-7irafi-development-gateway-key}
       INTERNAL_API_KEY: ${INTERNAL_API_KEY:-7irafi-development-internal-key}
       JWT_SECRET: ${JWT_SECRET:-7irafi-development-jwt-secret-change-me-2026}
@@ -136,7 +176,7 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/chat_db
       DB_USERNAME: ${DB_USERNAME:-herafi}
       DB_PASSWORD: ${DB_PASSWORD:-herafi}
-      SHOW_SQL: "true"
+      SQL_LOG_LEVEL: debug
       GATEWAY_SHARED_SECRET: ${GATEWAY_SHARED_SECRET:-7irafi-development-gateway-key}
       INTERNAL_API_KEY: ${INTERNAL_API_KEY:-7irafi-development-internal-key}
       JWT_SECRET: ${JWT_SECRET:-7irafi-development-jwt-secret-change-me-2026}
@@ -166,6 +206,7 @@ services:
       DB_USERNAME: ${DB_USERNAME:-herafi}
       DB_PASSWORD: ${DB_PASSWORD:-herafi}
       SHOW_SQL: "true"
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka/
       GATEWAY_SHARED_SECRET: ${GATEWAY_SHARED_SECRET:-7irafi-development-gateway-key}
       S3_BUCKET: jobs
@@ -208,6 +249,7 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/application_db
       DB_USERNAME: ${DB_USERNAME:-herafi}
       DB_PASSWORD: ${DB_PASSWORD:-herafi}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka/
       GATEWAY_SHARED_SECRET: ${GATEWAY_SHARED_SECRET:-7irafi-development-gateway-key}
       INTERNAL_API_KEY: ${INTERNAL_API_KEY:-7irafi-development-internal-key}
@@ -327,8 +369,90 @@ services:
     ports:
       - "127.0.0.1:8761:8761"
 
+  prometheus:
+    container_name: prometheus-dev
+    image: prom/prometheus:v2.53.1
+    entrypoint: ["/bin/sh", "/etc/prometheus/entrypoint.sh"]
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=${PROMETHEUS_RETENTION:-15d}
+      - --web.enable-lifecycle
+    environment:
+      METRICS_USERNAME: ${METRICS_USERNAME:-prometheus}
+      METRICS_PASSWORD: ${METRICS_PASSWORD:-7irafi-development-metrics}
+    volumes:
+      - ./prometheus:/etc/prometheus:ro
+      - prometheus-data:/prometheus
+    # In-memory dir for the scrape credentials; the image runs as nobody and
+    # cannot create /run/secrets itself. mode=1777 keeps it writable after a
+    # restart (without it the entrypoint fails with Permission denied).
+    tmpfs:
+      - /run/secrets:mode=1777
+    ports:
+      - "127.0.0.1:9090:9090"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9090/-/healthy || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  grafana:
+    container_name: grafana-dev
+    image: grafana/grafana:11.1.0
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-7irafi-development-grafana}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  node-exporter:
+    container_name: node-exporter-dev
+    image: prom/node-exporter:v1.8.2
+    # No rslave, --path.rootfs or pid: host: Docker Desktop refuses rslave on / and
+    # binds / to the WSL distro, not the Docker VM, so rootfs and pid: host made
+    # node-exporter stat the wrong paths. Every mount is now read where it is.
+    volumes:
+      - /:/host:ro
+    ports:
+      - "127.0.0.1:9100:9100"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9100/metrics >/dev/null || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  alertmanager:
+    container_name: alertmanager-dev
+    image: prom/alertmanager:v0.27.0
+    volumes:
+      - ./alertmanager:/etc/alertmanager:ro
+    ports:
+      - "127.0.0.1:9093:9093"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9093/-/healthy || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
 volumes:
+  kafka-data:
   postgres-data:
   postgres-backups:
   job-maven-cache:
   minio_data:
+  prometheus-data:
+  grafana-data:

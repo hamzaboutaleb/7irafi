@@ -1,6 +1,6 @@
 # Application service
 
-Initial scaffold for job applications. Runs on port `8084`, registers with Eureka
+Owns job applications and their analytics events. Runs on port `8084`, registers with Eureka
 as `application-service`, and owns `application_db` in the shared PostgreSQL
 instance. Uses the same Java 21 / Spring Boot stack as job-service.
 
@@ -37,7 +37,8 @@ checks the internal job summary before saving: missing job → `404`, own job �
 submissions. Applying does not assign a worker or change the job state.
 
 `PENDING` reflects the open job observed when applying; a job may close concurrently.
-No application status is stored. The personal list derives current status from job-service.
+HTTP statuses are derived from job-service. A separate stored analytics outcome
+tracks which application events have already been emitted.
 
 ## Chat context (internal)
 
@@ -59,7 +60,9 @@ or missing jobs. Job-service failures return `503`, not a false closed status.
 
 Deploy the updated user-service for the worker eligibility endpoint.
 Deploy the updated job-service as well: its internal summary and assignment
-responses now include nullable `assignedWorkerId`. No database migration is needed.
+responses include `assignedWorkerId`, `skill`, and `city`. Deploy job-service before
+the updated application-service; missing skill/city is treated as an invalid summary.
+Application-service applies its new Flyway migrations on startup.
 
 ## Job applicants (owner only)
 
@@ -80,11 +83,46 @@ no request body returns `200` with the accepted application. Use the application
 ID returned by the applicant list, not the job ID or worker ID.
 
 The service checks ownership and asks job-service to perform `OPEN → ASSIGNED`.
-It never writes job state or stores a separate acceptance status. Repeating the
+It never writes job state directly. Repeating the
 request for the selected worker on an assigned or completed job returns success.
 Other non-open states and competing assignments return `409`; missing resources
 return `404`, non-owners `403`, and job-service failures or timeouts `503`.
 After a timeout, retry the same request: assignment may already have succeeded.
+
+## Analytics events
+
+Application-service keeps its own PostgreSQL `outbox_events` table. A new
+application retains job skill/city from the internal summary and records
+`APPLICATION_SUBMITTED` in the same local transaction. HTTP dependency checks
+run before that transaction. Submission metrics and notifications run after commit.
+
+The Kafka listener consumes `jobs.lifecycle` and atomically records the processed
+event ID, latest job version, derived analytics outcome, and new outbox events:
+
+- Assignment accepts the selected applicant and rejects other pending applicants.
+- Cancellation rejects pending applicants. Completion preserves resolved outcomes.
+- Duplicate event IDs and equal/older job versions do not repeat transitions.
+- Deletion records the job snapshot without adding a new application transition.
+
+A per-job database lock serializes incoming lifecycle events with new application
+inserts. If closure was already processed, an application using a stale open HTTP
+summary is rejected. If insertion wins the lock, the later lifecycle handler sees
+and resolves the committed application.
+
+Existing applications keep unknown skill/city as null until a lifecycle snapshot
+supplies it; the migration preserves their IDs and timestamps. Historical submitted
+events are not generated. No database belonging to another service is queried.
+
+The publisher polls every second, using the application ID as the Kafka key and
+sending the stored JSON to `analytics.events`. It marks delivery only after a
+broker acknowledgement, retries failures with delays capped at 60 seconds, and
+blocks later versions of the same application while an older event is pending.
+Delivery is at least once: analytics consumers must deduplicate by `eventId`.
+
+`applications.outbox.enabled=true` and `applications.lifecycle.enabled=true` enable
+the publisher and listener. Tests disable both unless explicitly checking Kafka.
+Listener failures retry indefinitely, keeping failed records pending rather than
+discarding them; an invalid message blocks its partition until resolved.
 
 ## Run
 
@@ -123,7 +161,29 @@ Defaults are for development only.
 mvn test
 ```
 
-Tests run the Flyway migration against H2 in PostgreSQL mode, check duplicate
-applicants, and verify gateway-key protection and health-path access. Worker eligibility tests also cover active/ineligible applicants, upstream errors,
-invalid responses, and connection failures. They do not require a running
-PostgreSQL, user-service, or Eureka instance.
+Regular tests use H2 and cover outbox transactions, derived transitions, duplicate
+and stale lifecycle events, retries, ordering, and concurrent submissions/closures.
+The internal HTTP client tests verify skill/city response handling. They do not
+require a running PostgreSQL, Kafka, user-service, or Eureka instance.
+
+Run against a disposable PostgreSQL database to validate Flyway and real row locks:
+
+```sh
+mvn -Dspring.datasource.url=jdbc:postgresql://localhost:5432/application_events_test \
+  -Dspring.datasource.driver-class-name=org.postgresql.Driver \
+  -Dspring.datasource.username=herafi -Dspring.datasource.password=herafi \
+  -Dspring.flyway.enabled=true -Dspring.jpa.hibernate.ddl-auto=validate test
+```
+
+The optional Kafka test starts the actual listener and scheduled publisher, tests
+assignment and cancellation, replays duplicate/stale events, and retries a failed
+database write. Point it at a disposable broker: it creates and writes synthetic
+messages to `jobs.lifecycle` and `analytics.events`.
+
+```sh
+APPLICATION_KAFKA_TEST_BOOTSTRAP_SERVERS=localhost:19094 \
+  mvn -Dtest=ApplicationKafkaIntegrationTests test
+```
+
+The PostgreSQL options above can be added to this command. Integration tests clear
+application/outbox data in their test database; use a dedicated test database.

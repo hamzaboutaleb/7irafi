@@ -45,7 +45,8 @@ class JobServiceMetricsTests {
                 skillRepository,
                 cityRepository,
                 new JobImageProperties(),
-                registry);
+                registry,
+                mock(OutboxEventWriter.class));
 
         when(skillRepository.existsByCodeAndActiveTrue("PLUMBING")).thenReturn(true);
         when(cityRepository.existsByCodeAndActiveTrue("CASABLANCA")).thenReturn(true);
@@ -74,7 +75,8 @@ class JobServiceMetricsTests {
                 mock(SkillRepository.class),
                 mock(CityRepository.class),
                 new JobImageProperties(),
-                registry);
+                registry,
+                mock(OutboxEventWriter.class));
 
         UUID clientId = UUID.randomUUID();
 

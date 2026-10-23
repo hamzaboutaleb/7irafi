@@ -8,7 +8,9 @@ public record JobSummaryResponse (
     UUID id,
     UUID clientId,
     JobStatus status,
-    UUID assignedWorkerId
+    UUID assignedWorkerId,
+    String skill,
+    String city
 ) {
 
 }

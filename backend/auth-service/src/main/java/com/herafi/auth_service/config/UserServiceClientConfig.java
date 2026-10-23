@@ -21,8 +21,11 @@ public class UserServiceClientConfig {
     }
 
     @Bean
-    RestClient userServiceRestClient(@LoadBalanced RestClient.Builder builder) {
+    RestClient userServiceRestClient(
+            @LoadBalanced RestClient.Builder builder,
+            RequestIdInterceptor requestIdInterceptor) {
         return builder.baseUrl("http://USER-SERVICE")
+                .requestInterceptor(requestIdInterceptor)
                 .build();
     }
 

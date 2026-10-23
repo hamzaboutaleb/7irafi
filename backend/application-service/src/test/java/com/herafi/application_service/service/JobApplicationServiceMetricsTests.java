@@ -26,18 +26,19 @@ class JobApplicationServiceMetricsTests {
         JobClient jobClient = mock(JobClient.class);
         UserClient userClient = mock(UserClient.class);
         NotificationClient notificationClient = mock(NotificationClient.class);
+        ApplicationSubmissionService submissionService = mock(ApplicationSubmissionService.class);
 
         JobApplicationService service = new JobApplicationService(
-                repository, jobClient, userClient, notificationClient, registry);
+                repository, jobClient, userClient, notificationClient, registry, submissionService);
 
         UUID jobId = UUID.randomUUID();
         UUID applicantId = UUID.randomUUID();
         UUID clientId = UUID.randomUUID();
 
         when(jobClient.getSummary(jobId))
-                .thenReturn(new JobClient.JobSummary(jobId, clientId, "OPEN", null));
-        when(repository.existsByJobIdAndApplicantId(jobId, applicantId)).thenReturn(false);
-        when(repository.saveAndFlush(any(JobApplication.class))).thenReturn(new JobApplication());
+                .thenReturn(new JobClient.JobSummary(jobId, clientId, "OPEN", null, "PLUMBING", "CASABLANCA"));
+        when(submissionService.submit(any(JobClient.JobSummary.class), any(UUID.class)))
+                .thenReturn(new JobApplication());
 
         service.apply(jobId, applicantId);
 
@@ -51,9 +52,10 @@ class JobApplicationServiceMetricsTests {
         JobClient jobClient = mock(JobClient.class);
         UserClient userClient = mock(UserClient.class);
         NotificationClient notificationClient = mock(NotificationClient.class);
+        ApplicationSubmissionService submissionService = mock(ApplicationSubmissionService.class);
 
         JobApplicationService service = new JobApplicationService(
-                repository, jobClient, userClient, notificationClient, registry);
+                repository, jobClient, userClient, notificationClient, registry, submissionService);
 
         UUID applicationId = UUID.randomUUID();
         UUID jobId = UUID.randomUUID();
@@ -66,9 +68,9 @@ class JobApplicationServiceMetricsTests {
 
         when(repository.findById(applicationId)).thenReturn(Optional.of(application));
         when(jobClient.getSummary(jobId))
-                .thenReturn(new JobClient.JobSummary(jobId, clientId, "OPEN", null));
+                .thenReturn(new JobClient.JobSummary(jobId, clientId, "OPEN", null, "PLUMBING", "CASABLANCA"));
         when(jobClient.assignWorker(jobId, applicantId))
-                .thenReturn(new JobClient.JobSummary(jobId, clientId, "ASSIGNED", applicantId));
+                .thenReturn(new JobClient.JobSummary(jobId, clientId, "ASSIGNED", applicantId, "PLUMBING", "CASABLANCA"));
 
         service.accept(applicationId, clientId);
 
