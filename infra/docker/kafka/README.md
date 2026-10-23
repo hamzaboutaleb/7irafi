@@ -50,8 +50,60 @@ implementation steps.
 
 Service startup does not depend on Kafka health. Topic provisioning belongs to
 Compose, and job mutations continue to write their local outbox during a broker
-outage. The scheduled job outbox publisher is also a subsequent implementation
-step.
+outage.
+
+## Job outbox delivery
+
+Job-service polls committed outbox rows every second and sends up to 100 successful
+deliveries per poll. Each delivery has its own database transaction. PostgreSQL
+`FOR UPDATE SKIP LOCKED` lets service instances work on different rows without
+claiming the same row concurrently. The row lock stays held while waiting for the
+Kafka producer result; Kafka's default metadata and delivery timeouts still apply.
+This uses a database connection during a send, including during broker outages.
+
+Messages use the saved destination and JSON payload, with `jobId` as their Kafka
+key. A row is marked published only after Kafka acknowledges it. Failed sends
+record their error and retry after 1, 2, 4, 8, 16, 32, then at most 60 seconds.
+A failure ends the current poll. An older pending version blocks newer versions
+of the same job and destination, including while waiting for its retry; other
+jobs and destinations remain eligible. Gaps between job versions are allowed.
+
+Delivery is at least once: if Kafka acknowledges a message but the database commit
+fails or the process crashes, the same event can be sent again. Retries preserve
+the original `eventId` and payload. Consumers must deduplicate by `eventId`;
+Kafka producer idempotence alone does not deduplicate an outbox replay.
+
+The publisher is enabled by default. `jobs.outbox.enabled=false` pauses it without
+stopping outbox writes, and `jobs.outbox.poll-interval-ms` overrides the default
+1000 ms polling delay. The one-second poll supports the five-second dashboard
+target during normal operation; broker outages and backlogs delay delivery.
+
+## Publisher tests
+
+From `backend/job-service`, `mvn test` covers delivery state, retry backoff,
+transaction rollback, ordering, and concurrent publishers with the test database.
+To run the same outbox integration tests against PostgreSQL, point Spring's test
+datasource at a disposable database and enable Flyway with schema validation:
+
+```sh
+mvn -Dtest=JobOutboxIntegrationTests,OutboxEventPublisherIntegrationTests \
+  -Dspring.datasource.url=jdbc:postgresql://localhost:5432/outbox_test \
+  -Dspring.datasource.driver-class-name=org.postgresql.Driver \
+  -Dspring.datasource.username=herafi -Dspring.datasource.password=herafi \
+  -Dspring.flyway.enabled=true -Dspring.jpa.hibernate.ddl-auto=validate test
+```
+
+The real Kafka test is opt-in. It checks recovery from an unavailable producer
+endpoint and ordered delivery of both JSON contracts using temporary topics that
+it deletes afterwards:
+
+```sh
+KAFKA_TEST_BOOTSTRAP_SERVERS=localhost:9094 \
+  mvn -Dtest=OutboxKafkaIntegrationTests test
+```
+
+The PostgreSQL datasource options above can also be used with this Kafka test.
+These tests clear the outbox in their test database; use a dedicated test database.
 
 References: [Apache's Docker examples](https://github.com/apache/kafka/tree/4.2.2/docker/examples),
 [Spring Kafka setup](https://docs.spring.io/spring-kafka/reference/quick-tour.html).

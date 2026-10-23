@@ -93,9 +93,9 @@ for the exact evidence and demo sequence. The supporting architecture notes cove
 Local development now includes a single-node KRaft Kafka broker with separate internal
 and host listeners, persistent storage, and automatic creation of `analytics.events`
 and `jobs.lifecycle`. Both job-service and application-service have their Kafka client
-connections configured. Job-service records events in its database outbox; the
-background publisher, application lifecycle handler, and application outbox are the
-next integration steps.
+connections configured. Job-service records events in its database outbox and publishes
+them in the background with retries and ordering per job and destination. The
+application lifecycle handler and application outbox are the next integration steps.
 See the [local Kafka setup](infra/docker/kafka/README.md) for startup and inspection
 commands.
 

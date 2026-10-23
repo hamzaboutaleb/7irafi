@@ -78,4 +78,16 @@ public class OutboxEvent {
         this.createdAt = createdAt;
         this.nextAttemptAt = createdAt;
     }
+
+    public void markPublished(Instant acknowledgedAt) {
+        attempts++;
+        publishedAt = acknowledgedAt;
+        lastError = null;
+    }
+
+    public void recordFailure(Instant retryAt, String error) {
+        attempts++;
+        nextAttemptAt = retryAt;
+        lastError = error;
+    }
 }
