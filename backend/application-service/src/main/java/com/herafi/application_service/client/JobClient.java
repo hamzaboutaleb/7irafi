@@ -43,7 +43,7 @@ public class JobClient {
         try {
             JobSummary summary = client.get().uri("/internal/jobs/{id}/summary", jobId)
                     .retrieve().body(JobSummary.class);
-            if (summary == null || !jobId.equals(summary.id()) || summary.clientId() == null || summary.status() == null) {
+            if (!validSummary(summary, jobId)) {
                 throw unavailable();
             }
             return summary;
@@ -63,7 +63,7 @@ public class JobClient {
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(Map.of("workerId", workerId))
                     .retrieve().body(JobSummary.class);
-            if (summary == null || !jobId.equals(summary.id()) || summary.clientId() == null
+            if (!validSummary(summary, jobId)
                     || !"ASSIGNED".equals(summary.status()) || !workerId.equals(summary.assignedWorkerId())) {
                 throw unavailable();
             }
@@ -86,6 +86,12 @@ public class JobClient {
         return unavailable(null);
     }
 
+    private boolean validSummary(JobSummary summary, UUID jobId) {
+        return summary != null && jobId.equals(summary.id()) && summary.clientId() != null
+                && summary.status() != null && summary.skill() != null && !summary.skill().isBlank()
+                && summary.city() != null && !summary.city().isBlank();
+    }
+
     private ApplicationException unavailable(RestClientException cause) {
         log.atError().addKeyValue("event", "internal_call_failed").setCause(cause)
                 .log("Job service call failed");
@@ -97,7 +103,9 @@ public class JobClient {
             UUID id,
             UUID clientId,
             String status,
-            UUID assignedWorkerId) {
+            UUID assignedWorkerId,
+            String skill,
+            String city) {
 
     }
 }
