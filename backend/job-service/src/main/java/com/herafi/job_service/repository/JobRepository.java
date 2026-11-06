@@ -16,6 +16,8 @@ import com.herafi.job_service.entity.Job;
 
 public interface JobRepository extends JpaRepository<Job, UUID>, JpaSpecificationExecutor<Job> {
 
+    List<Job> findByIdInAndDeletedFalse(List<UUID> ids);
+
     List<Job> findByClientIdAndDeletedFalse(UUID clientId);
 
     Optional<Job> findByIdAndDeletedFalse(UUID id);

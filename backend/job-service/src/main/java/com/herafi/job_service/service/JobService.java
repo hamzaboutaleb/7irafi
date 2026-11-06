@@ -27,6 +27,7 @@ import com.herafi.job_service.dto.JobFilter;
 import com.herafi.job_service.dto.JobImageResponse;
 import com.herafi.job_service.dto.JobListResponse;
 import com.herafi.job_service.dto.JobSummaryResponse;
+import com.herafi.job_service.dto.JobTitleResponse;
 import com.herafi.job_service.dto.PageResponse;
 import com.herafi.job_service.dto.UpdateJobRequest;
 import com.herafi.job_service.entity.City;
@@ -269,6 +270,14 @@ public class JobService {
         job.setDeletedBy(userId);
         afterCommit(() -> jobImageRepository.findObjectKeysByJobId(jobId)
                 .forEach(this::markPendingCleanup));
+    }
+
+    /** Loads labels together. Missing or deleted jobs are omitted from the result. */
+    @Transactional(readOnly = true)
+    public List<JobTitleResponse> getTitles(List<UUID> ids) {
+        return jobRepository.findByIdInAndDeletedFalse(ids).stream()
+                .map(job -> new JobTitleResponse(job.getId(), job.getTitle()))
+                .toList();
     }
 
     public JobSummaryResponse getSummary(UUID id) {
