@@ -32,6 +32,6 @@
       <div class="reputation-summary"><app-rating-display [summary]="rating" [compact]="true" /></div>
       @if (!rating.totalRatings) { <p class="section-description">{{ 'dashboard.reputationEmpty' | translate }}</p> }
     }
-    <a routerLink="/profile" fragment="profile-ratings-heading" class="text-button reputation-link">{{ 'dashboard.viewReviews' | translate }}<span aria-hidden="true">↗</span></a>
+    <a routerLink="/profile" fragment="profile-ratings-heading" class="text-button reputation-link">{{ 'dashboard.viewReviews' | translate }}<svg lucideArrowRight aria-hidden="true" class="arrow-icon"></svg></a>
   </section>
 </aside>

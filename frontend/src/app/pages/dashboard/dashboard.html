@@ -3,12 +3,15 @@
   <div class="dashboard-container">
     <header class="welcome-row">
       <div>
-        <p class="eyebrow">{{ 'dashboard.title' | translate }}</p>
-        <h1>{{ profile() ? ('dashboard.welcomeName' | translate:{name: profile()!.firstName}) : ('dashboard.title' | translate) }}</h1>
-        <p class="welcome-description">{{ 'dashboard.intro' | translate }}</p>
+        <h1>{{ (view() === 'hiring' ? 'dashboard.hiringHeading' : 'dashboard.workingHeading') | translate }}</h1>
+        <p class="welcome-description">{{ (view() === 'hiring' ? 'dashboard.hiringHint' : 'dashboard.workingHint') | translate }}</p>
       </div>
       <a [routerLink]="primaryRoute()" class="primary-button">
-        <span aria-hidden="true">{{ view() === 'hiring' ? '+' : '↗' }}</span>
+        @if (view() === 'hiring') {
+          <span aria-hidden="true" class="primary-icon">+</span>
+        } @else {
+          <svg lucideArrowRight aria-hidden="true" class="arrow-icon"></svg>
+        }
         {{ primaryLabel() | translate }}
       </a>
     </header>
@@ -18,7 +21,6 @@
         <button type="button" (click)="selectView('hiring')" [attr.aria-pressed]="view() === 'hiring'">{{ 'dashboard.hiring' | translate }}</button>
         <button type="button" (click)="selectView('working')" [attr.aria-pressed]="view() === 'working'">{{ 'dashboard.working' | translate }}</button>
       </div>
-      <p class="view-description">{{ (view() === 'hiring' ? 'dashboard.hiringHint' : 'dashboard.workingHint') | translate }}</p>
     </div>
 
     @if (profileState() === 'loading' || profileState() === 'idle') {
@@ -52,13 +54,13 @@
                 <ul class="attention-list">
                   @for (action of data.actions; track action.kind + action.jobId) {
                     <li class="attention-item">
-                      <span class="action-icon" [class.review-icon]="action.kind === 'review'" aria-hidden="true">
+                      <span class="action-icon" aria-hidden="true">
                         @if (action.kind === 'review') {
-                          <svg viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9Z" /></svg>
+                          <svg lucideStar></svg>
                         } @else if (action.kind === 'applicants') {
-                          <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3" /><path d="M3 21v-2a6 6 0 0 1 12 0v2m1-16a3 3 0 0 1 0 6m3 10v-2a6 6 0 0 0-3-5" /></svg>
+                          <svg lucideUsersRound></svg>
                         } @else {
-                          <svg viewBox="0 0 24 24"><path d="m6 12 4 4 8-8" /><circle cx="12" cy="12" r="10" /></svg>
+                          <svg lucideCircleCheck></svg>
                         }
                       </span>
                       <div class="attention-copy">
@@ -72,10 +74,10 @@
                         </p>
                       </div>
                       @if (action.kind === 'applicants') {
-                        <a [routerLink]="['/jobs', action.jobId, 'applicants']" class="action-link">{{ 'dashboard.viewApplicants' | translate }}<span aria-hidden="true">↗</span></a>
+                        <a [routerLink]="['/jobs', action.jobId, 'applicants']" class="action-link">{{ 'dashboard.viewApplicants' | translate }}<svg lucideArrowRight aria-hidden="true" class="arrow-icon"></svg></a>
                       } @else {
                         <button type="button" class="action-link" aria-haspopup="dialog" (click)="openJob(action.jobId, action.kind === 'review')">
-                          {{ (action.kind === 'review' ? 'reviews.leave' : 'reviews.viewJob') | translate }}<span aria-hidden="true">↗</span>
+                          {{ (action.kind === 'review' ? 'reviews.leave' : 'reviews.viewJob') | translate }}<svg lucideArrowRight aria-hidden="true" class="arrow-icon"></svg>
                         </button>
                       }
                     </li>
@@ -91,7 +93,7 @@
                 <h2 id="current-jobs-heading">{{ (view() === 'hiring' ? 'dashboard.currentJobs' : 'dashboard.recentWork') | translate }}</h2>
                 @if (view() === 'working') { <p class="section-description">{{ 'dashboard.workingPreview' | translate }}</p> }
               </div>
-              <a [routerLink]="view() === 'hiring' ? '/jobs/my' : '/applications'" class="text-button">{{ 'dashboard.viewAll' | translate }}<span aria-hidden="true">↗</span></a>
+              <a [routerLink]="view() === 'hiring' ? '/jobs/my' : '/applications'" class="text-button">{{ 'dashboard.viewAll' | translate }}<svg lucideArrowRight aria-hidden="true" class="arrow-icon"></svg></a>
             </header>
 
             @if ((workState() === 'loading' || workState() === 'idle') && !snapshot()) {
@@ -105,7 +107,6 @@
                   @for (row of data.jobs; track row.id) {
                     <li class="job-item">
                       <div class="job-topline">
-                        <span class="job-mark" aria-hidden="true">{{ row.job?.skill?.slice(0, 1)?.toUpperCase() || '·' }}</span>
                         <div class="job-copy">
                           <h3>
                             @if (row.job; as job) {
@@ -113,19 +114,24 @@
                             } @else { {{ 'dashboard.jobUnavailable' | translate }} }
                           </h3>
                           @if (row.job; as job) {
-                            <p class="job-meta"><span>{{ job.city }}</span><span aria-hidden="true">·</span><span>{{ job.skill }}</span><span aria-hidden="true">·</span><span class="budget">{{ job.budget | number:'1.0-2' }} MAD</span></p>
+                            <p class="job-meta"><span>{{ job.skill }}</span><span aria-hidden="true">·</span><span>{{ job.city }}</span></p>
                           }
                         </div>
-                        <span class="status-badge" [attr.data-status]="row.job?.status">{{ statusLabel(row) | translate }}</span>
+                        @if (row.job) {
+                          <div class="job-side-info">
+                            <span class="budget">{{ row.job.budget | number:'1.0-2' }} <span>MAD</span></span>
+                            <span class="status-badge" [attr.data-status]="row.job.status"><span aria-hidden="true"></span>{{ statusLabel(row) | translate }}</span>
+                          </div>
+                        }
                       </div>
                       <div class="job-bottomline">
                         <time [attr.datetime]="row.appliedAt || row.job?.createdAt">{{ (row.appliedAt || row.job?.createdAt) | date:'mediumDate' }}</time>
                         @if (canReview(row)) {
-                          <button type="button" class="action-link" aria-haspopup="dialog" (click)="openJob(row.id, true)">{{ (ratings.hasReviewed(row.id) ? 'reviews.viewReview' : 'reviews.reviewJob') | translate }}<span aria-hidden="true">↗</span></button>
+                          <button type="button" class="action-link" aria-haspopup="dialog" (click)="openJob(row.id, true)">{{ (ratings.hasReviewed(row.id) ? 'reviews.viewReview' : 'reviews.reviewJob') | translate }}<svg lucideArrowRight aria-hidden="true" class="arrow-icon"></svg></button>
                         } @else if (view() === 'hiring' && row.job) {
-                          <a [routerLink]="row.job.status === 'OPEN' ? ['/jobs', row.id, 'applicants'] : ['/jobs/my']" class="action-link">{{ (row.job.status === 'OPEN' ? 'dashboard.viewApplicants' : 'dashboard.manageJob') | translate }}<span aria-hidden="true">↗</span></a>
+                          <a [routerLink]="row.job.status === 'OPEN' ? ['/jobs', row.id, 'applicants'] : ['/jobs/my']" class="action-link">{{ (row.job.status === 'OPEN' ? 'dashboard.viewApplicants' : 'dashboard.manageJob') | translate }}<svg lucideArrowRight aria-hidden="true" class="arrow-icon"></svg></a>
                         } @else {
-                          <a routerLink="/applications" class="action-link">{{ 'dashboard.viewApplication' | translate }}<span aria-hidden="true">↗</span></a>
+                          <a routerLink="/applications" class="action-link">{{ 'dashboard.viewApplication' | translate }}<svg lucideArrowRight aria-hidden="true" class="arrow-icon"></svg></a>
                         }
                       </div>
                     </li>
@@ -156,7 +162,7 @@
                   <h2 id="professional-heading">{{ (professional()?.onboardingStatus === 'SUSPENDED' ? 'dashboard.suspendedTitle' : 'dashboard.setupTitle') | translate }}</h2>
                   <p>{{ (professional()?.onboardingStatus === 'SUSPENDED' ? 'dashboard.suspendedHint' : 'dashboard.setupHint') | translate }}</p>
                 </div>
-                <a routerLink="/professional-profile" class="secondary-button">{{ (professional()?.onboardingStatus === 'SUSPENDED' ? 'dashboard.professionalProfile' : 'dashboard.setupAction') | translate }}<span aria-hidden="true">↗</span></a>
+                <a routerLink="/professional-profile" class="secondary-button">{{ (professional()?.onboardingStatus === 'SUSPENDED' ? 'dashboard.professionalProfile' : 'dashboard.setupAction') | translate }}<svg lucideArrowRight aria-hidden="true" class="arrow-icon"></svg></a>
               </section>
             }
           }

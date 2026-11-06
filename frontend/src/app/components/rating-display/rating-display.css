@@ -1,8 +1,8 @@
 :host { display: block; }
 .rating-display { display: grid; grid-template-columns: minmax(9rem, 1fr) minmax(12rem, 2fr); align-items: center; gap: 2rem; padding-block: 1rem 1.75rem; }
-.score-label, .review-count { color: #6b7280; font-size: .8rem; }
+.score-label, .review-count { color: #68747e; font-size: .8125rem; }
 .score-line { display: flex; align-items: baseline; gap: .4rem; margin-block: .25rem .5rem; }
-.score-line strong { font-size: 2.75rem; line-height: 1.15; letter-spacing: -.05em; color: #111827; }
+.score-line strong { font-size: 2.75rem; line-height: 1.15; letter-spacing: -.025em; color: #17212b; }
 .score-line span { color: #9ca3af; font-size: .9rem; }
 .review-count { margin-block-start: .4rem; }
 .distribution { display: grid; gap: .5rem; }
@@ -14,5 +14,8 @@
 .dist-fill { height: 100%; background: #f0b544; border-radius: inherit; }
 .compact { display: flex; padding: 0; }
 .compact .score-label { display: none; }
-.compact .score-line strong { font-size: 1.5rem; }
+.compact .score-line { gap: .25rem; margin-block: 0 .25rem; }
+.compact .score-line strong { font-size: 1.25rem; font-weight: 500; }
+.compact .score-line span { font-size: .8125rem; }
+.compact .review-count { margin-block-start: .25rem; font-size: .75rem; }
 @media (max-width: 480px) { .rating-display { grid-template-columns: 1fr; gap: 1.25rem; } }

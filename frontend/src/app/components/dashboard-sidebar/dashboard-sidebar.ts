@@ -1,6 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { Component, computed, EventEmitter, inject, Input, Output } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { LucideArrowRight } from '@lucide/angular';
 import { TranslatePipe } from '../../pipes/translate-pipe.js';
 import { NotificationService } from '../../services/notification.js';
 import { UserRatingSummary } from '../../services/rating.js';
@@ -9,7 +10,7 @@ import { RatingDisplayComponent } from '../rating-display/rating-display.js';
 /** Activity stays live through the shared notification service, independent of job loading. */
 @Component({
   selector: 'app-dashboard-sidebar',
-  imports: [DatePipe, RouterLink, TranslatePipe, RatingDisplayComponent],
+  imports: [DatePipe, RouterLink, LucideArrowRight, TranslatePipe, RatingDisplayComponent],
   templateUrl: './dashboard-sidebar.html',
   styleUrl: './dashboard-sidebar.css',
 })

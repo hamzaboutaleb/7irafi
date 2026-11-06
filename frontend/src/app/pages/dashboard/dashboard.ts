@@ -4,6 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Subscription } from 'rxjs';
 import { RouterLink } from '@angular/router';
+import { LucideArrowRight, LucideCircleCheck, LucideStar, LucideUsersRound } from '@lucide/angular';
 import { Navbar } from '../../components/navbar/navbar.js';
 import { Footer } from '../../components/footer/footer.js';
 import { JobDetailsModal } from '../../components/job-details-modal/job-details-modal.js';
@@ -21,7 +22,7 @@ type LoadState = 'idle' | 'loading' | 'loaded' | 'error';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [DatePipe, DecimalPipe, RouterLink, Navbar, Footer, JobDetailsModal, DashboardSidebar, TranslatePipe],
+  imports: [DatePipe, DecimalPipe, RouterLink, LucideArrowRight, LucideCircleCheck, LucideStar, LucideUsersRound, Navbar, Footer, JobDetailsModal, DashboardSidebar, TranslatePipe],
   providers: [DashboardData],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
