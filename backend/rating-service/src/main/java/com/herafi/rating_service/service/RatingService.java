@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.herafi.rating_service.client.JobClient;
+import com.herafi.rating_service.client.JobClient.JobSummary;
 import com.herafi.rating_service.client.UserClient;
 import com.herafi.rating_service.dto.CreateRatingRequest;
 import com.herafi.rating_service.dto.PageResponse;
@@ -17,6 +18,8 @@ import com.herafi.rating_service.dto.RatingResponse;
 import com.herafi.rating_service.dto.UserRatingSummary;
 import com.herafi.rating_service.entity.Rating;
 import com.herafi.rating_service.exception.DuplicateRatingException;
+import com.herafi.rating_service.exception.JobNotCompletedException;
+import com.herafi.rating_service.exception.JobServiceUnavailableException;
 import com.herafi.rating_service.exception.RatingException;
 import com.herafi.rating_service.repository.RatingRepository;
 
@@ -79,11 +82,9 @@ public class RatingService {
             throw new DuplicateRatingException();
         }
 
-        JobClient.JobSummary job = jobClient.validateJobCompleted(request.jobId(), raterId);
-        UUID recipientId = raterId.equals(job.clientId()) ? job.assignedWorkerId() : job.clientId();
-        if (!recipientId.equals(request.rateeId()) || raterId.equals(request.rateeId())) {
-            throw new RatingException("INVALID_RATING_PARTICIPANT", "You can only rate the other participant in this job");
-        }
+        JobSummary job = jobClient.getSummary(request.jobId());
+        validateCompletedJob(job);
+        validateParticipants(job, raterId, request.rateeId());
         userClient.validateUserExists(request.rateeId());
 
         Rating rating = new Rating();
@@ -97,5 +98,24 @@ public class RatingService {
         Rating saved = repository.save(rating);
 
         return RatingResponse.from(saved, "User " + raterId.toString().substring(0, 8));
+    }
+
+    private void validateCompletedJob(JobSummary job) {
+        if (!"COMPLETED".equals(job.status())) {
+            throw new JobNotCompletedException();
+        }
+        if (job.assignedWorkerId() == null) {
+            throw new JobServiceUnavailableException();
+        }
+    }
+
+    private void validateParticipants(JobSummary job, UUID raterId, UUID rateeId) {
+        boolean clientRatesWorker = raterId.equals(job.clientId()) && rateeId.equals(job.assignedWorkerId());
+        boolean workerRatesClient = raterId.equals(job.assignedWorkerId()) && rateeId.equals(job.clientId());
+
+        if ((!clientRatesWorker && !workerRatesClient) || raterId.equals(rateeId)) {
+            throw new RatingException("INVALID_RATING_PARTICIPANT",
+                    "Only the client and assigned professional can rate each other");
+        }
     }
 }

@@ -14,13 +14,14 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 
-import com.herafi.rating_service.exception.JobNotCompletedException;
 import com.herafi.rating_service.exception.JobServiceUnavailableException;
 import com.herafi.rating_service.exception.RatingException;
 
 @Component
 public class JobClient {
 
+    // TODO: use a annotation if possible for log (like sl4j @Slf4j) to avoid
+    // boilerplate code
     private static final Logger log = LoggerFactory.getLogger(JobClient.class);
 
     private final RestClient client;
@@ -28,7 +29,10 @@ public class JobClient {
     public JobClient(
             @LoadBalanced RestClient.Builder builder,
             @Value("${service.security.internal-api-key}") String internalApiKey) {
-        HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(1)).build();
+        HttpClient httpClient = HttpClient
+                .newBuilder()
+                .connectTimeout(Duration.ofSeconds(1))
+                .build();
         JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);
         factory.setReadTimeout(Duration.ofSeconds(2));
 
@@ -39,34 +43,29 @@ public class JobClient {
                 .build();
     }
 
-    public JobSummary validateJobCompleted(UUID jobId, UUID raterId) {
+    public JobSummary getSummary(UUID jobId) {
+        JobSummary response;
         try {
-            JobSummary response = client.get()
+            response = client.get()
                     .uri("/internal/jobs/{jobId}/summary", jobId)
                     .retrieve()
                     .body(JobSummary.class);
-
-            if (response == null || !jobId.equals(response.id()) || response.clientId() == null
-                    || response.status() == null) {
-                throw new JobServiceUnavailableException();
-            }
-            if (!"COMPLETED".equals(response.status()) || response.assignedWorkerId() == null) {
-                throw new JobNotCompletedException();
-            }
-            if (!raterId.equals(response.clientId()) && !raterId.equals(response.assignedWorkerId())) {
-                throw new RatingException("INVALID_RATING_PARTICIPANT", "Only job participants can submit a rating");
-            }
-            return response;
         } catch (RestClientResponseException ex) {
             if (ex.getStatusCode().value() == 404) {
                 throw new RatingException("JOB_NOT_FOUND", "Job not found");
             }
-            log.warn("Job summary lookup failed with HTTP {}", ex.getStatusCode().value());
+            log.warn("Job summary lookup failed for job {} with HTTP {}", jobId, ex.getStatusCode().value());
             throw new JobServiceUnavailableException();
         } catch (RestClientException | IllegalStateException ex) {
             log.warn("Job service validation failed for job {}: {}", jobId, ex.getMessage());
             throw new JobServiceUnavailableException();
         }
+
+        if (response == null || !jobId.equals(response.id()) || response.clientId() == null
+                || response.status() == null) {
+            throw new JobServiceUnavailableException();
+        }
+        return response;
     }
 
     public record JobSummary(UUID id, UUID clientId, String status, UUID assignedWorkerId) {
