@@ -1,10 +1,12 @@
 <form [formGroup]="form" (ngSubmit)="onSubmit()" class="rating-form">
   <div class="form-group">
     <label class="form-label">Your Rating</label>
-    <div class="star-rating" role="radiogroup" aria-label="Select rating" (mouseleave)="onStarLeave()">
+    <div class="star-rating" role="radiogroup" aria-label="Select rating" (mouseleave)="onStarLeave()" (keydown)="onArrowKey($event)">
       @for (star of stars; track star) {
         <button
           type="button"
+          role="radio"
+          [disabled]="submitting"
           class="star-btn"
           [class.filled]="star <= (hoverScore || form.value.score || 0)"
           [class.hover]="hoverScore > 0 && star <= hoverScore && star > (form.value.score || 0)"
@@ -16,7 +18,7 @@
           [attr.aria-label]="'Rate ' + star + ' out of 5'"
           [attr.aria-checked]="star === form.value.score"
           tabindex="0">
-          <lucide-icon [img]="Star" class="star-icon"></lucide-icon>
+          <svg lucideStar aria-hidden="true" class="star-icon"></svg>
         </button>
       }
     </div>
@@ -35,14 +37,19 @@
       formControlName="comment"
       placeholder="Share your experience..."
       rows="3"
+      maxlength="1000"
+      [readonly]="submitting"
       class="form-textarea"></textarea>
     @if (form.get('comment')?.invalid && form.get('comment')?.touched) {
       <small class="error">Comment must be 1000 characters or less</small>
     }
   </div>
 
+  @if (error) {
+    <p role="alert" class="error">{{ error }}</p>
+  }
   <div class="form-actions">
-    <button type="button" class="btn btn-secondary" (click)="onCancel()">Cancel</button>
+    <button type="button" class="btn btn-secondary" [disabled]="submitting" (click)="onCancel()">Cancel</button>
     <button type="submit" class="btn btn-primary" [disabled]="form.invalid || submitting">
       {{ submitting ? 'Submitting...' : 'Submit Rating' }}
     </button>

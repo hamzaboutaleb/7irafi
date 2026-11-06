@@ -1,18 +1,19 @@
-import { Component, EventEmitter, Input, OnInit, Output, HostListener } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, EventEmitter, inject, Input, Output } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { LucideAngularModule, Star } from '@lucide/angular';
+import { LucideStar } from '@lucide/angular';
 import { RatingService, RatingResponse } from '../../services/rating.js';
 import { AuthService } from '../../services/auth.js';
 
 @Component({
   selector: 'app-rating-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
+  imports: [CommonModule, ReactiveFormsModule, LucideStar],
   templateUrl: './rating-form.html',
   styleUrl: './rating-form.css',
 })
-export class RatingFormComponent implements OnInit {
+export class RatingFormComponent {
   @Input() jobId!: string;
   @Input() rateeId!: string;
   @Output() submitted = new EventEmitter<RatingResponse>();
@@ -20,10 +21,12 @@ export class RatingFormComponent implements OnInit {
 
   form: FormGroup;
   submitting = false;
+  error: string | null = null;
+  private readonly changeDetector = inject(ChangeDetectorRef);
+  private readonly destroyRef = inject(DestroyRef);
   hoverScore = 0;
   focusedStar = 0;
   readonly stars = [1, 2, 3, 4, 5];
-  readonly Star = Star;
 
   constructor(
     private fb: FormBuilder,
@@ -35,8 +38,6 @@ export class RatingFormComponent implements OnInit {
       comment: ['', [Validators.maxLength(1000)]],
     });
   }
-
-  ngOnInit(): void {}
 
   selectScore(score: number): void {
     this.form.patchValue({ score });
@@ -52,9 +53,9 @@ export class RatingFormComponent implements OnInit {
     this.hoverScore = 0;
   }
 
-  @HostListener('keydown.arrow-left', ['$event'])
-  @HostListener('keydown.arrow-right', ['$event'])
   onArrowKey(event: KeyboardEvent): void {
+    if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+    event.preventDefault();
     const currentScore = this.form.value.score || this.focusedStar || 0;
     let newScore = currentScore;
     
@@ -67,15 +68,8 @@ export class RatingFormComponent implements OnInit {
     if (newScore !== currentScore) {
       event.preventDefault();
       this.selectScore(newScore);
-    }
-  }
-
-  @HostListener('keydown.enter', ['$event'])
-  @HostListener('keydown.space', ['$event'])
-  onEnterOrSpace(event: KeyboardEvent): void {
-    if (this.focusedStar > 0 && this.focusedStar !== this.form.value.score) {
-      event.preventDefault();
-      this.selectScore(this.focusedStar);
+      const group = event.currentTarget as HTMLElement;
+      group.querySelectorAll<HTMLButtonElement>('button')[newScore - 1]?.focus();
     }
   }
 
@@ -88,15 +82,18 @@ export class RatingFormComponent implements OnInit {
   }
 
   onSubmit(): void {
+    if (this.submitting) return;
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
     this.submitting = true;
+    this.error = null;
     const raterId = this.auth.currentUserId();
     if (!raterId) {
       this.submitting = false;
+      this.error = 'Please sign in to submit a rating.';
       return;
     }
 
@@ -107,21 +104,25 @@ export class RatingFormComponent implements OnInit {
         score: this.form.value.score,
         comment: this.form.value.comment || undefined,
       })
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
           this.submitting = false;
           this.form.reset({ score: 0, comment: '' });
           this.focusedStar = 0;
           this.submitted.emit(response);
+          this.changeDetector.markForCheck();
         },
         error: (error) => {
           this.submitting = false;
-          console.error('Rating submission failed:', error);
+          this.error = error.error?.error?.message ?? 'Unable to submit your rating. Please try again.';
+          this.changeDetector.markForCheck();
         },
       });
   }
 
   onCancel(): void {
+    if (this.submitting) return;
     this.cancelled.emit();
   }
 }

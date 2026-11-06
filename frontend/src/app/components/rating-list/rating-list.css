@@ -128,13 +128,13 @@
   flex-shrink: 0;
 }
 
-.stars lucide-icon {
+.stars svg[lucideStar] {
   width: 1rem;
   height: 1rem;
   color: var(--border-color, #e5e7eb);
 }
 
-.stars lucide-icon.filled {
+.stars svg[lucideStar].filled {
   color: #fbbf24;
   fill: currentColor;
 }

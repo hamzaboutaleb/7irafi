@@ -40,24 +40,24 @@
   gap: 0.25rem;
 }
 
-.stars lucide-icon {
+.stars svg[lucideStar] {
   width: 1.5rem;
   height: 1.5rem;
   color: var(--border-color, #e5e7eb);
   transition: color 0.2s, transform 0.15s;
 }
 
-.stars lucide-icon.filled {
+.stars svg[lucideStar].filled {
   color: #fbbf24;
   fill: currentColor;
 }
 
-.rating-display.compact .stars lucide-icon {
+.rating-display.compact .stars svg[lucideStar] {
   width: 1.25rem;
   height: 1.25rem;
 }
 
-.stars:focus-within lucide-icon.filled {
+.stars:focus-within svg[lucideStar].filled {
   transform: scale(1.1);
 }
 

@@ -45,7 +45,7 @@ interface ApiResponse<T> {
 })
 export class RatingService {
   private http = inject(HttpClient);
-  private baseUrl = '/ratings';
+  private baseUrl = 'ratings';
 
   createRating(request: CreateRatingRequest): Observable<RatingResponse> {
     return this.http.post<ApiResponse<RatingResponse>>(this.baseUrl, request).pipe(map((res) => res.data));

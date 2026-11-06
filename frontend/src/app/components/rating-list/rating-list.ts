@@ -1,20 +1,17 @@
-import { Component, Input, OnInit, OnDestroy } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, Input, OnChanges, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule, Star } from '@lucide/angular';
+import { LucideStar } from '@lucide/angular';
 import { RatingService, RatingResponse, PageResponse } from '../../services/rating.js';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-rating-list',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideStar],
   templateUrl: './rating-list.html',
   styleUrl: './rating-list.css',
-  animations: [
-    // animations would go here if using Angular animations module
-  ],
 })
-export class RatingListComponent implements OnInit, OnDestroy {
+export class RatingListComponent implements OnChanges, OnDestroy {
   @Input() userId!: string;
   @Input() type: 'received' | 'given' = 'received';
   @Input() pageSize = 10;
@@ -23,28 +20,34 @@ export class RatingListComponent implements OnInit, OnDestroy {
   pagination = { page: 0, size: 10, totalElements: 0, totalPages: 0 };
   loading = false;
   error: string | null = null;
-  readonly Star = Star;
   private destroy$ = new Subject<void>();
+  private cancelRequest$ = new Subject<void>();
+  private readonly changeDetector = inject(ChangeDetectorRef);
 
   constructor(private ratingService: RatingService) {}
 
-  ngOnInit(): void {
+  ngOnChanges(): void {
+    this.ratings = [];
+    this.pagination = { page: 0, size: this.pageSize, totalElements: 0, totalPages: 0 };
     this.loadRatings();
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.cancelRequest$.complete();
   }
 
   loadRatings(): void {
+    this.cancelRequest$.next();
+    if (!this.userId) return;
     this.loading = true;
     this.error = null;
     const request$ = this.type === 'received'
       ? this.ratingService.getReceivedByUserId(this.userId, this.pagination.page, this.pagination.size)
       : this.ratingService.getGivenByUserId(this.userId, this.pagination.page, this.pagination.size);
 
-    request$.pipe(takeUntil(this.destroy$)).subscribe({
+    request$.pipe(takeUntil(this.destroy$), takeUntil(this.cancelRequest$)).subscribe({
       next: (response: PageResponse<RatingResponse>) => {
         this.ratings = response.content;
         this.pagination = {
@@ -54,11 +57,12 @@ export class RatingListComponent implements OnInit, OnDestroy {
           totalPages: response.totalPages,
         };
         this.loading = false;
+        this.changeDetector.markForCheck();
       },
       error: (err) => {
         this.error = 'Failed to load ratings. Please try again.';
         this.loading = false;
-        console.error('Rating list load error:', err);
+        this.changeDetector.markForCheck();
       },
     });
   }

@@ -14,12 +14,15 @@ import { DatePipe } from '@angular/common';
 import { ProfessionalProfile as ProfessionalProfileModel } from '../../types/professional-profile.js';
 import { RouterLink } from "@angular/router";
 import { TranslatePipe } from '../../pipes/translate-pipe.js';
+import { RatingDisplayComponent } from '../../components/rating-display/rating-display.js';
+import { RatingListComponent } from '../../components/rating-list/rating-list.js';
+import { RatingService, UserRatingSummary } from '../../services/rating.js';
 
 type ProfessionalSectionState = 'loading' | 'none' | 'loaded' | 'error';
 
 @Component({
   selector: 'app-profile',
-  imports: [ReactiveFormsModule, Navbar, Footer, DatePipe, RouterLink, AvatarUpload, NotificationPanel, TranslatePipe],
+  imports: [ReactiveFormsModule, Navbar, Footer, DatePipe, RouterLink, AvatarUpload, NotificationPanel, TranslatePipe, RatingDisplayComponent, RatingListComponent],
   templateUrl: './profile.html',
   styleUrl: './profile.css',
 })
@@ -27,6 +30,12 @@ export class Profile implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly userService = inject(UserService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly ratingService = inject(RatingService);
+
+  readonly ratingSummary = signal<UserRatingSummary | null>(null);
+  readonly ratingsLoading = signal(false);
+  readonly ratingsError = signal<string | null>(null);
+  readonly ratingType = signal<'received' | 'given'>('received');
 
   readonly profile = signal<UserProfile | null>(null);
   readonly isLoading = signal(true);
@@ -49,6 +58,7 @@ export class Profile implements OnInit {
       .subscribe({
         next: (response) => {
           this.profile.set(response.data);
+          this.loadRatingSummary();
           this.form.patchValue({
             firstName: response.data.firstName,
             lastName: response.data.lastName,
@@ -88,6 +98,23 @@ export class Profile implements OnInit {
     this.errorMessage.set(null);
     this.successMessage.set(null);
     this.isEditingPersonal.set(true);
+  }
+
+  loadRatingSummary(): void {
+    const userId = this.profile()?.id;
+    if (!userId || this.ratingsLoading()) return;
+    this.ratingsLoading.set(true);
+    this.ratingsError.set(null);
+    this.ratingService.getSummary(userId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: summary => {
+        this.ratingSummary.set(summary);
+        this.ratingsLoading.set(false);
+      },
+      error: () => {
+        this.ratingsError.set('Unable to load your rating summary. Please try again.');
+        this.ratingsLoading.set(false);
+      },
+    });
   }
 
   cancelEditingPersonal(): void {

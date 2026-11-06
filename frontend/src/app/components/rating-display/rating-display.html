@@ -3,7 +3,7 @@
     <div class="big-score">{{ averageScore.toFixed(1) }}</div>
     <div class="stars" role="img" [attr.aria-label]="'Average rating: ' + averageScore.toFixed(1) + ' out of 5'">
       @for (star of [1,2,3,4,5]; track star) {
-        <lucide-icon [img]="Star" [class.filled]="star <= roundedAvg"></lucide-icon>
+        <svg lucideStar aria-hidden="true" [class.filled]="star <= roundedAvg"></svg>
       }
     </div>
     <div class="review-count">{{ totalRatings }} {{ totalRatings === 1 ? 'review' : 'reviews' }}</div>

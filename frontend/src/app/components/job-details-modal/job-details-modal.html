@@ -101,6 +101,21 @@
         <p class="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed text-gray-600">{{ detail.description }}</p>
       </section>
 
+      @if (rateeId(); as recipientId) {
+        <section class="mt-6 border-t border-gray-100 pt-5" aria-labelledby="job-rating-heading">
+          <h3 id="job-rating-heading" class="mb-3 font-semibold">{{ isOwner() ? 'Rate the professional' : 'Rate the client' }}</h3>
+          @if (ratingSubmitted()) {
+            <p role="status" class="text-sm font-semibold text-primary-700">Your rating has been submitted. Thank you!</p>
+          } @else if (ratingOpen()) {
+            <app-rating-form [jobId]="detail.id" [rateeId]="recipientId"
+              (submitted)="ratingSubmitted.set(true); ratingOpen.set(false)"
+              (cancelled)="ratingOpen.set(false)" />
+          } @else {
+            <button type="button" (click)="ratingOpen.set(true)" class="rounded-xl bg-primary-600 px-5 py-3 text-sm font-semibold text-white">Leave a review</button>
+          }
+        </section>
+      }
+
       <footer class="mt-6 border-t border-gray-100 pt-5">
         @if (applied()) {
           <p role="status" class="text-sm font-semibold text-primary-700">{{ 'jobDetails.applied' | translate }}</p>

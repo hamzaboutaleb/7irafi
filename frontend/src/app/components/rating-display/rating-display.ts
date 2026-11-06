@@ -1,12 +1,12 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule, Star } from '@lucide/angular';
+import { LucideStar } from '@lucide/angular';
 import { UserRatingSummary } from '../../services/rating.js';
 
 @Component({
   selector: 'app-rating-display',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideStar],
   templateUrl: './rating-display.html',
   styleUrl: './rating-display.css',
 })
@@ -14,7 +14,6 @@ export class RatingDisplayComponent {
   @Input() summary: UserRatingSummary | null = null;
   @Input() showDistribution = true;
   @Input() compact = false;
-  readonly Star = Star;
   readonly levels = [5, 4, 3, 2, 1];
 
   get averageScore(): number {

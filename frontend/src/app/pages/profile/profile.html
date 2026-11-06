@@ -79,6 +79,23 @@
           </span>
         </section>
 
+        <section class="mb-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8" aria-labelledby="profile-ratings-heading">
+          <h2 id="profile-ratings-heading" class="mb-4 text-xl font-semibold text-gray-900">Ratings and reviews</h2>
+          @if (ratingsLoading()) {
+            <p role="status" class="text-sm text-gray-600">Loading your rating summary…</p>
+          } @else if (ratingsError()) {
+            <p role="alert" class="text-sm text-red-700">{{ ratingsError() }}</p>
+            <button type="button" (click)="loadRatingSummary()" class="mt-2 font-semibold text-primary-700 underline">{{ 'common.retry' | translate }}</button>
+          } @else {
+            <app-rating-display [summary]="ratingSummary()" />
+          }
+          <div class="my-5 flex gap-3" role="group" aria-label="Review type">
+            <button type="button" (click)="ratingType.set('received')" [attr.aria-pressed]="ratingType() === 'received'" class="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold aria-pressed:bg-primary-50 aria-pressed:text-primary-700">Received</button>
+            <button type="button" (click)="ratingType.set('given')" [attr.aria-pressed]="ratingType() === 'given'" class="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold aria-pressed:bg-primary-50 aria-pressed:text-primary-700">Given</button>
+          </div>
+          <app-rating-list [userId]="currentProfile.id" [type]="ratingType()" />
+        </section>
+
         <app-notification-panel />
 
         <app-avatar-upload [profile]="currentProfile" (profileChange)="profile.set($event)" />

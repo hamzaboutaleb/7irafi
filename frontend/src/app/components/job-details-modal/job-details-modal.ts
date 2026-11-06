@@ -15,7 +15,7 @@ import {
 } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
-import { catchError, forkJoin, of } from 'rxjs';
+import { catchError, forkJoin, of, tap } from 'rxjs';
 import { ApplicationService, applicationError } from '../../services/application.js';
 import { UserService } from '../../services/user.js';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -23,10 +23,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { JobService } from '../../services/job.js';
 import { EstimatedDuration, JobDetail } from '../../types/job.js';
 import { TranslatePipe } from '../../pipes/translate-pipe.js';
+import { RatingFormComponent } from '../rating-form/rating-form.js';
 
 @Component({
   selector: 'app-job-details-modal',
-  imports: [DatePipe, DecimalPipe, TitleCasePipe, RouterLink, TranslatePipe],
+  imports: [DatePipe, DecimalPipe, TitleCasePipe, RouterLink, TranslatePipe, RatingFormComponent],
   templateUrl: './job-details-modal.html',
 })
 export class JobDetailsModal implements OnInit, AfterViewInit, OnDestroy {
@@ -42,6 +43,16 @@ export class JobDetailsModal implements OnInit, AfterViewInit, OnDestroy {
   readonly applied = signal(false);
   readonly applyError = signal<string | null>(null);
   readonly isOwner = computed(() => this.currentUserId() === this.job()?.clientId);
+  readonly ratingOpen = signal(false);
+  readonly ratingSubmitted = signal(false);
+  readonly rateeId = computed(() => {
+    const job = this.job();
+    const userId = this.currentUserId();
+    if (!job || !userId || job.status !== 'COMPLETED' || !job.assignedWorkerId) return null;
+    if (userId === job.clientId) return job.assignedWorkerId;
+    if (userId === job.assignedWorkerId) return job.clientId;
+    return null;
+  });
   readonly canApply = computed(() => this.eligibility() === 'eligible' &&
     !this.isOwner() && this.job()?.status === 'OPEN' && !this.applying() && !this.applied());
   private previousOverflow = '';
@@ -99,7 +110,7 @@ export class JobDetailsModal implements OnInit, AfterViewInit, OnDestroy {
   loadEligibility(): void {
     this.eligibility.set('loading');
     forkJoin({
-      user: this.users.getCurrentUser(),
+      user: this.users.getCurrentUser().pipe(tap(user => this.currentUserId.set(user.data.id))),
       professional: this.users.getCurrentProfessionalProfile().pipe(
         catchError((error: HttpErrorResponse) => {
           if (error.status === 404) return of(null);
