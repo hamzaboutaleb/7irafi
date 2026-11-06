@@ -11,6 +11,12 @@ es() {
   curl -sS --fail-with-body -u "elastic:${ELASTIC_PASSWORD}" "$@"
 }
 
+# Escape backslashes and double-quotes so a password with special characters
+# still produces valid JSON when embedded in a request body below.
+esc() {
+  printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
+}
+
 echo "waiting for Elasticsearch"
 until curl -s -u "elastic:${ELASTIC_PASSWORD}" "$ES_URL/_cluster/health" | grep -qE '"status":"(green|yellow)"'; do
   sleep 5
@@ -19,7 +25,7 @@ done
 echo "setting kibana_system password"
 es -X POST "$ES_URL/_security/user/kibana_system/_password" \
   -H 'Content-Type: application/json' \
-  -d "{\"password\":\"${KIBANA_SYSTEM_PASSWORD}\"}"
+  -d "{\"password\":\"$(esc "$KIBANA_SYSTEM_PASSWORD")\"}"
 echo
 
 echo "creating logstash_writer role"
@@ -36,7 +42,7 @@ echo
 echo "creating logstash_writer user"
 es -X POST "$ES_URL/_security/user/logstash_writer" \
   -H 'Content-Type: application/json' \
-  -d "{\"password\":\"${LOGSTASH_ES_PASSWORD}\",\"roles\":[\"logstash_writer\"]}"
+  -d "{\"password\":\"$(esc "$LOGSTASH_ES_PASSWORD")\",\"roles\":[\"logstash_writer\"]}"
 echo
 
 echo "applying ILM policy"
