@@ -1,29 +1,23 @@
-<div class="rating-display" [class.compact]="compact" [attr.aria-label]="getAriaLabel()">
-  <div class="overall-score">
-    <div class="big-score">{{ averageScore.toFixed(1) }}</div>
-    <div class="stars" role="img" [attr.aria-label]="'Average rating: ' + averageScore.toFixed(1) + ' out of 5'">
-      @for (star of [1,2,3,4,5]; track star) {
-        <svg lucideStar aria-hidden="true" [class.filled]="star <= roundedAvg"></svg>
-      }
+@if (totalRatings > 0) {
+  <div class="rating-display" [class.compact]="compact">
+    <div class="overall-score" role="group" [attr.aria-label]="getAriaLabel()">
+      <p class="score-label">{{ 'reviews.average' | translate }}</p>
+      <div class="score-line"><strong>{{ averageScore | number:'1.1-1' }}</strong><span>/ 5</span></div>
+      <app-rating-stars [score]="averageScore" />
+      <p class="review-count">{{ (totalRatings === 1 ? 'reviews.oneReview' : 'reviews.count') | translate:{count: totalRatings} }}</p>
     </div>
-    <div class="review-count">{{ totalRatings }} {{ totalRatings === 1 ? 'review' : 'reviews' }}</div>
-  </div>
-
-  @if (showDistribution && totalRatings > 0 && !compact) {
-    <div class="distribution" role="img" [attr.aria-label]="getDistributionAriaLabel()">
-      @for (level of levels; track level) {
-        <div class="dist-row">
-          <span class="dist-label">{{ level }}★</span>
-          <div class="dist-bar" aria-hidden="true">
-            <div class="dist-fill" [style.width.%]="getPercentage(level)"></div>
+    @if (showDistribution && !compact) {
+      <div class="distribution" role="img" [attr.aria-label]="getDistributionAriaLabel()">
+        @for (level of levels; track level) {
+          <div class="dist-row" aria-hidden="true">
+            <span class="dist-label">{{ level }} <span class="star">★</span></span>
+            <div class="dist-bar"><div class="dist-fill" [style.width.%]="getPercentage(level)"></div></div>
+            <span class="dist-count">{{ getCount(level) }}</span>
           </div>
-          <span class="dist-count">{{ getCount(level) }}</span>
-        </div>
-      }
-    </div>
-  }
-
-  @if (totalRatings === 0 && !compact) {
-    <p class="no-ratings">No ratings yet</p>
-  }
-</div>
+        }
+      </div>
+    }
+  </div>
+} @else if (compact) {
+  <span class="review-count">{{ 'reviews.noReviews' | translate }}</span>
+}

@@ -3,6 +3,8 @@ import {
   AfterViewInit,
   Component,
   computed,
+  effect,
+  untracked,
   DestroyRef,
   ElementRef,
   inject,
@@ -23,11 +25,13 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { JobService } from '../../services/job.js';
 import { EstimatedDuration, JobDetail } from '../../types/job.js';
 import { TranslatePipe } from '../../pipes/translate-pipe.js';
+import { RatingResponse, RatingService } from '../../services/rating.js';
+import { RatingStars } from '../rating-stars/rating-stars.js';
 import { RatingFormComponent } from '../rating-form/rating-form.js';
 
 @Component({
   selector: 'app-job-details-modal',
-  imports: [DatePipe, DecimalPipe, TitleCasePipe, RouterLink, TranslatePipe, RatingFormComponent],
+  imports: [DatePipe, DecimalPipe, TitleCasePipe, RouterLink, TranslatePipe, RatingFormComponent, RatingStars],
   templateUrl: './job-details-modal.html',
 })
 export class JobDetailsModal implements OnInit, AfterViewInit, OnDestroy {
@@ -45,6 +49,11 @@ export class JobDetailsModal implements OnInit, AfterViewInit, OnDestroy {
   readonly isOwner = computed(() => this.currentUserId() === this.job()?.clientId);
   readonly ratingOpen = signal(false);
   readonly ratingSubmitted = signal(false);
+  readonly savedReview = signal<RatingResponse | null>(null);
+  readonly reviewState = signal<'loading' | 'loaded' | 'error'>('loading');
+  readonly ratingBusy = signal(false);
+  readonly recipientName = signal('');
+  private readonly ratings = inject(RatingService);
   readonly rateeId = computed(() => {
     const job = this.job();
     const userId = this.currentUserId();
@@ -59,6 +68,7 @@ export class JobDetailsModal implements OnInit, AfterViewInit, OnDestroy {
 
   readonly jobId = input.required<string>();
   readonly alreadyApplied = input(false);
+  readonly startWithReview = input(false);
   readonly closed = output<void>();
   readonly job = signal<JobDetail | null>(null);
   readonly isLoading = signal(true);
@@ -73,6 +83,39 @@ export class JobDetailsModal implements OnInit, AfterViewInit, OnDestroy {
     FULL_DAY: 'Full day',
     MULTI_DAY: 'Multiple days',
   };
+
+  constructor() {
+    // Identity and job details arrive independently. Check once both identify the
+    // other participant; never offer an empty form before checking saved reviews.
+    effect(() => {
+      if (this.rateeId()) untracked(() => this.loadReview());
+    });
+  }
+
+  loadReview(): void {
+    if (!this.rateeId() || this.ratingBusy()) return;
+    this.reviewState.set('loading');
+    this.ratings.getByJobId(this.jobId()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: reviews => {
+        const ownReview = reviews.find(review => review.raterId === this.currentUserId());
+        this.savedReview.set(ownReview ?? null);
+        this.recipientName.set(ownReview?.rateeName || reviews.find(review => review.raterId === this.rateeId())?.raterName || '');
+        this.ratingOpen.set(!ownReview && this.startWithReview());
+        this.reviewState.set('loaded');
+      },
+      error: () => this.reviewState.set('error'),
+    });
+  }
+
+  reviewSaved(review: RatingResponse): void {
+    this.savedReview.set(review);
+    this.ratingSubmitted.set(true);
+    this.ratingOpen.set(false);
+  }
+
+  protectSubmission(event: Event): void {
+    if (this.ratingBusy()) event.preventDefault();
+  }
 
   ngOnInit(): void {
     this.applied.set(this.alreadyApplied());

@@ -1,57 +1,49 @@
-<form [formGroup]="form" (ngSubmit)="onSubmit()" class="rating-form">
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="rating-form" [attr.aria-busy]="submitting">
+  <header>
+    @if (recipientName) { <p class="recipient">{{ recipientName }}</p> }
+    @if (jobTitle) { <p class="context">{{ 'reviews.context' | translate:{job: jobTitle} }}</p> }
+    <p class="intro">{{ 'reviews.formHint' | translate }}</p>
+  </header>
   <div class="form-group">
-    <label class="form-label">Your Rating</label>
-    <div class="star-rating" role="radiogroup" aria-label="Select rating" (mouseleave)="onStarLeave()" (keydown)="onArrowKey($event)">
-      @for (star of stars; track star) {
-        <button
-          type="button"
-          role="radio"
-          [disabled]="submitting"
-          class="star-btn"
-          [class.filled]="star <= (hoverScore || form.value.score || 0)"
-          [class.hover]="hoverScore > 0 && star <= hoverScore && star > (form.value.score || 0)"
-          [class.focused]="focusedStar === star && focusedStar !== form.value.score"
-          (click)="selectScore(star)"
-          (mouseenter)="onStarHover(star)"
-          (focus)="onStarFocus(star)"
-          (blur)="onStarBlur()"
-          [attr.aria-label]="'Rate ' + star + ' out of 5'"
-          [attr.aria-checked]="star === form.value.score"
-          tabindex="0">
-          <svg lucideStar aria-hidden="true" class="star-icon"></svg>
-        </button>
-      }
+    <span id="rating-score-label" class="form-label">{{ 'reviews.score' | translate }}</span>
+    <div class="score-picker">
+      <div class="star-rating" role="radiogroup" aria-labelledby="rating-score-label" aria-describedby="rating-score-description"
+        (mouseleave)="onStarLeave()" (keydown)="onArrowKey($event)">
+        @for (star of stars; track star) {
+          <button type="button" role="radio" [disabled]="submitting" class="star-btn"
+            [class.filled]="star <= (hoverScore || form.value.score || 0)"
+            (click)="selectScore(star)" (mouseenter)="onStarHover(star)"
+            [attr.aria-label]="('reviews.outOfFive' | translate:{score: star}) + ': ' + (scoreLabels[star] | translate)"
+            [attr.aria-checked]="star === form.value.score"
+            [attr.tabindex]="star === (form.value.score || 1) ? 0 : -1">
+            <svg lucideStar aria-hidden="true"></svg>
+          </button>
+        }
+      </div>
+      <span id="rating-score-description" class="score-text" aria-live="polite">{{ scoreLabels[hoverScore || form.value.score || 0] | translate }}</span>
     </div>
-    @if (form.value.score > 0) {
-      <div class="score-text">{{ form.value.score }} out of 5</div>
-    }
     @if (form.get('score')?.invalid && form.get('score')?.touched) {
-      <small class="error">Please select a rating</small>
+      <small class="error" role="alert">{{ 'reviews.scoreRequired' | translate }}</small>
     }
   </div>
-
   <div class="form-group">
-    <label for="comment" class="form-label">Comment (optional)</label>
-    <textarea
-      id="comment"
-      formControlName="comment"
-      placeholder="Share your experience..."
-      rows="3"
-      maxlength="1000"
-      [readonly]="submitting"
-      class="form-textarea"></textarea>
+    <label for="rating-comment" class="form-label">{{ 'reviews.comment' | translate }}</label>
+    <textarea id="rating-comment" formControlName="comment" [placeholder]="'reviews.placeholder' | translate"
+      rows="4" maxlength="1000" [readonly]="submitting" class="form-textarea" aria-describedby="rating-comment-count"></textarea>
+    <p id="rating-comment-count" class="character-count">{{ 'reviews.characters' | translate:{count: form.value.comment?.length || 0} }}</p>
     @if (form.get('comment')?.invalid && form.get('comment')?.touched) {
-      <small class="error">Comment must be 1000 characters or less</small>
+      <small class="error">{{ 'reviews.commentLimit' | translate }}</small>
     }
   </div>
-
   @if (error) {
-    <p role="alert" class="error">{{ error }}</p>
+    <div role="alert" class="error-message"><p>{{ error }}</p>
+      @if (duplicate) { <button type="button" class="reload" (click)="reloadRequested.emit()">{{ 'reviews.reload' | translate }}</button> }
+    </div>
   }
   <div class="form-actions">
-    <button type="button" class="btn btn-secondary" [disabled]="submitting" (click)="onCancel()">Cancel</button>
-    <button type="submit" class="btn btn-primary" [disabled]="form.invalid || submitting">
-      {{ submitting ? 'Submitting...' : 'Submit Rating' }}
+    <button type="button" class="btn btn-secondary" [disabled]="submitting" (click)="onCancel()">{{ 'common.cancel' | translate }}</button>
+    <button type="submit" class="btn btn-primary" [disabled]="submitting || duplicate">
+      {{ (submitting ? 'reviews.submitting' : 'reviews.submit') | translate }}
     </button>
   </div>
 </form>

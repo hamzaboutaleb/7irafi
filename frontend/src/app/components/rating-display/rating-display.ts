@@ -1,12 +1,14 @@
-import { Component, Input } from '@angular/core';
+import { Component, inject, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideStar } from '@lucide/angular';
+import { RatingStars } from '../rating-stars/rating-stars.js';
+import { TranslatePipe } from '../../pipes/translate-pipe.js';
+import { I18nService } from '../../services/i18n.js';
 import { UserRatingSummary } from '../../services/rating.js';
 
 @Component({
   selector: 'app-rating-display',
   standalone: true,
-  imports: [CommonModule, LucideStar],
+  imports: [CommonModule, RatingStars, TranslatePipe],
   templateUrl: './rating-display.html',
   styleUrl: './rating-display.css',
 })
@@ -14,6 +16,7 @@ export class RatingDisplayComponent {
   @Input() summary: UserRatingSummary | null = null;
   @Input() showDistribution = true;
   @Input() compact = false;
+  readonly i18n = inject(I18nService);
   readonly levels = [5, 4, 3, 2, 1];
 
   get averageScore(): number {
@@ -22,10 +25,6 @@ export class RatingDisplayComponent {
 
   get totalRatings(): number {
     return this.summary?.totalRatings ?? 0;
-  }
-
-  get roundedAvg(): number {
-    return Math.round(this.averageScore * 2) / 2;
   }
 
   getCount(level: number): number {
@@ -39,14 +38,13 @@ export class RatingDisplayComponent {
 
   getAriaLabel(): string {
     if (this.totalRatings === 0) {
-      return 'No ratings yet';
+      return this.i18n.translate('reviews.noReviews');
     }
-    return `Average rating ${this.averageScore.toFixed(1)} out of 5, based on ${this.totalRatings} reviews`;
+    return this.i18n.translate('reviews.outOfFive', { score: this.averageScore.toFixed(1) }) + ', ' + this.i18n.translate('reviews.count', { count: this.totalRatings });
   }
 
   getDistributionAriaLabel(): string {
     if (this.totalRatings === 0) return '';
-    const parts = this.levels.map(l => `${this.getCount(l)} ${l}-star`);
-    return `Rating breakdown: ${parts.join(', ')}`;
+    return this.levels.map(score => this.i18n.translate('reviews.levelCount', { score, count: this.getCount(score) })).join(', ');
   }
 }

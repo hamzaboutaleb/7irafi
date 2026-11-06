@@ -8,6 +8,7 @@ import { Observable } from 'rxjs';
 import { Navbar } from '../../components/navbar/navbar.js';
 import { Footer } from '../../components/footer/footer.js';
 import { JobDetailsModal } from '../../components/job-details-modal/job-details-modal.js';
+import { RatingService } from '../../services/rating.js';
 import { JobService } from '../../services/job.js';
 import { JobResponse, JobStatus, UpdateJobRequest } from '../../types/job.js';
 import { TranslatePipe } from '../../pipes/translate-pipe.js';
@@ -30,6 +31,9 @@ export class MyJobs implements OnInit {
   readonly jobs = signal<JobResponse[]>([]);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+  readonly ratings = inject(RatingService);
+  readonly completedJobToReview = signal<JobResponse | null>(null);
+  readonly startWithReview = signal(false);
   readonly notice = signal<string | null>(null);
   readonly status = signal<JobStatus | ''>('');
   readonly statuses: JobStatus[] = ['OPEN', 'ASSIGNED', 'COMPLETED', 'CANCELLED'];
@@ -49,6 +53,11 @@ export class MyJobs implements OnInit {
   }
 
   ngOnInit(): void { this.load(); }
+
+  openReview(jobId: string): void {
+    this.startWithReview.set(true);
+    this.selectedJobId.set(jobId);
+  }
 
   closeMenu(menu: HTMLDetailsElement): void {
     menu.open = false;
@@ -148,6 +157,7 @@ export class MyJobs implements OnInit {
           : jobs.map(item => item.id === job.id && updated ? updated : item));
         this.busy.set(false);
         this.closeAction();
+        if (action === 'complete' && updated) this.completedJobToReview.set(updated);
         this.notice.set({ edit: 'Job updated.', cancel: 'Job cancelled.', complete: 'Job marked complete.', delete: 'Job deleted.' }[action]);
       },
       error: (error: HttpErrorResponse) => {

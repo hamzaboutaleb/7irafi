@@ -1,6 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
-import { map, Observable } from 'rxjs';
+import { inject, Injectable, signal } from '@angular/core';
+import { AuthService } from './auth.js';
+import { map, Observable, Subject, tap } from 'rxjs';
 
 export interface CreateRatingRequest {
   jobId: string;
@@ -17,7 +18,9 @@ export interface RatingResponse {
   score: number;
   comment: string | null;
   createdAt: string;
-  raterName: string;
+  raterName: string | null;
+  rateeName?: string | null;
+  jobTitle?: string | null;
 }
 
 export interface UserRatingSummary {
@@ -45,14 +48,37 @@ interface ApiResponse<T> {
 })
 export class RatingService {
   private http = inject(HttpClient);
+  private readonly auth = inject(AuthService);
   private baseUrl = 'ratings';
+  private readonly reviewsChangedSubject = new Subject<void>();
+  readonly reviewsChanged = this.reviewsChangedSubject.asObservable();
+  private readonly reviewedJobs = signal(new Set<string>());
+
+  hasReviewed(jobId: string): boolean {
+    return this.reviewedJobs().has(`${this.auth.currentUserId()}:${jobId}`);
+  }
+
+  private rememberReviews(reviews: RatingResponse[], userId: string): void {
+    this.reviewedJobs.update(previous => new Set([
+      ...previous, ...reviews.filter(review => review.raterId === userId).map(review => `${userId}:${review.jobId}`),
+    ]));
+  }
 
   createRating(request: CreateRatingRequest): Observable<RatingResponse> {
-    return this.http.post<ApiResponse<RatingResponse>>(this.baseUrl, request).pipe(map((res) => res.data));
+    return this.http.post<ApiResponse<RatingResponse>>(this.baseUrl, request).pipe(
+      map((res) => res.data),
+      tap(review => {
+        this.rememberReviews([review], review.raterId);
+        this.reviewsChangedSubject.next();
+      }),
+    );
   }
 
   getByJobId(jobId: string): Observable<RatingResponse[]> {
-    return this.http.get<ApiResponse<RatingResponse[]>>(`${this.baseUrl}/job/${jobId}`).pipe(map((res) => res.data));
+    return this.http.get<ApiResponse<RatingResponse[]>>(`${this.baseUrl}/job/${jobId}`).pipe(
+      map((res) => res.data),
+      tap(reviews => this.rememberReviews(reviews, this.auth.currentUserId() ?? '')),
+    );
   }
 
   getReceivedByUserId(userId: string, page = 0, size = 20): Observable<PageResponse<RatingResponse>> {
@@ -66,7 +92,7 @@ export class RatingService {
     const params = new HttpParams().set('page', page).set('size', size);
     return this.http
       .get<ApiResponse<PageResponse<RatingResponse>>>(`${this.baseUrl}/user/${userId}/given`, { params })
-      .pipe(map((res) => res.data));
+      .pipe(map((res) => res.data), tap(page => this.rememberReviews(page.content, userId)));
   }
 
   getSummary(userId: string): Observable<UserRatingSummary> {

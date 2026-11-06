@@ -20,6 +20,8 @@
             @if (application.job; as job) {
               <app-job-card [job]="job" [applicationStatus]="application.status"
                 [appliedAt]="application.createdAt"
+                [canReview]="job.status === 'COMPLETED' && job.assignedWorkerId === auth.currentUserId()"
+                [reviewed]="ratings.hasReviewed(job.id)" (reviewRequested)="openReview(job.id)"
                 (viewDetails)="selectedJobId.set(application.jobId)" />
             } @else {
               <div class="h-full rounded-2xl border border-gray-200 bg-white p-5">
@@ -55,7 +57,11 @@
           <li class="rounded-2xl border border-gray-200 bg-white p-5">
             <h2 class="break-words text-lg font-semibold text-gray-900">{{ job.title }}</h2>
             <p class="mt-2 text-sm text-gray-500">{{ job.city }} · {{ job.status.toLowerCase() }}</p>
-            <a [routerLink]="['/jobs', job.id, 'applicants']" class="mt-4 inline-block text-sm font-semibold text-primary-700 underline">{{ 'myJobs.viewApplicants' | translate }}</a>
+            @if (job.status === 'COMPLETED' && job.assignedWorkerId) {
+              <button type="button" (click)="openReview(job.id)" class="mt-4 min-h-11 text-sm font-semibold text-primary-800 underline">{{ (ratings.hasReviewed(job.id) ? 'reviews.viewReview' : 'reviews.reviewJob') | translate }}</button>
+            } @else {
+              <a [routerLink]="['/jobs', job.id, 'applicants']" class="mt-4 inline-block text-sm font-semibold text-primary-700 underline">{{ 'myJobs.viewApplicants' | translate }}</a>
+            }
           </li>
         }
       </ul>
@@ -63,6 +69,6 @@
   </section>
 </main>
 @if (selectedJobId(); as jobId) {
-  <app-job-details-modal [jobId]="jobId" [alreadyApplied]="true" (closed)="selectedJobId.set(null)" />
+  <app-job-details-modal [jobId]="jobId" [alreadyApplied]="true" [startWithReview]="startWithReview()" (closed)="selectedJobId.set(null); startWithReview.set(false)" />
 }
 <app-footer />

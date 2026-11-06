@@ -4,18 +4,28 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LucideStar } from '@lucide/angular';
 import { RatingService, RatingResponse } from '../../services/rating.js';
+import { TranslatePipe } from '../../pipes/translate-pipe.js';
+import { I18nService } from '../../services/i18n.js';
+import { TranslationKey } from '../../i18n/language.js';
 import { AuthService } from '../../services/auth.js';
 
 @Component({
   selector: 'app-rating-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, LucideStar],
+  imports: [CommonModule, ReactiveFormsModule, LucideStar, TranslatePipe],
   templateUrl: './rating-form.html',
   styleUrl: './rating-form.css',
 })
 export class RatingFormComponent {
   @Input() jobId!: string;
   @Input() rateeId!: string;
+  @Input() jobTitle = '';
+  @Input() recipientName = '';
+  @Output() busyChange = new EventEmitter<boolean>();
+  @Output() reloadRequested = new EventEmitter<void>();
+  readonly i18n = inject(I18nService);
+  readonly scoreLabels: TranslationKey[] = ['reviews.select', 'reviews.poor', 'reviews.fair', 'reviews.okay', 'reviews.good', 'reviews.excellent'];
+  duplicate = false;
   @Output() submitted = new EventEmitter<RatingResponse>();
   @Output() cancelled = new EventEmitter<void>();
 
@@ -25,7 +35,6 @@ export class RatingFormComponent {
   private readonly changeDetector = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
   hoverScore = 0;
-  focusedStar = 0;
   readonly stars = [1, 2, 3, 4, 5];
 
   constructor(
@@ -42,7 +51,6 @@ export class RatingFormComponent {
   selectScore(score: number): void {
     this.form.patchValue({ score });
     this.hoverScore = 0;
-    this.focusedStar = score;
   }
 
   onStarHover(score: number): void {
@@ -54,31 +62,21 @@ export class RatingFormComponent {
   }
 
   onArrowKey(event: KeyboardEvent): void {
-    if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+    if (this.submitting) return;
+    const current = this.form.value.score || 1;
+    const forward = this.i18n.direction() === 'rtl' ? 'ArrowLeft' : 'ArrowRight';
+    const backward = this.i18n.direction() === 'rtl' ? 'ArrowRight' : 'ArrowLeft';
+    let score: number;
+    switch (event.key) {
+      case forward: case 'ArrowUp': score = Math.min(5, current + 1); break;
+      case backward: case 'ArrowDown': score = Math.max(1, current - 1); break;
+      case 'Home': score = 1; break;
+      case 'End': score = 5; break;
+      default: return;
+    }
     event.preventDefault();
-    const currentScore = this.form.value.score || this.focusedStar || 0;
-    let newScore = currentScore;
-    
-    if (event.key === 'ArrowRight') {
-      newScore = Math.min(5, currentScore + 1);
-    } else if (event.key === 'ArrowLeft') {
-      newScore = Math.max(1, currentScore - 1);
-    }
-    
-    if (newScore !== currentScore) {
-      event.preventDefault();
-      this.selectScore(newScore);
-      const group = event.currentTarget as HTMLElement;
-      group.querySelectorAll<HTMLButtonElement>('button')[newScore - 1]?.focus();
-    }
-  }
-
-  onStarFocus(score: number): void {
-    this.focusedStar = score;
-  }
-
-  onStarBlur(): void {
-    this.focusedStar = this.form.value.score || 0;
+    this.selectScore(score);
+    (event.currentTarget as HTMLElement).querySelectorAll<HTMLButtonElement>('button')[score - 1]?.focus();
   }
 
   onSubmit(): void {
@@ -89,11 +87,14 @@ export class RatingFormComponent {
     }
 
     this.submitting = true;
+    this.busyChange.emit(true);
+    this.duplicate = false;
     this.error = null;
     const raterId = this.auth.currentUserId();
     if (!raterId) {
       this.submitting = false;
-      this.error = 'Please sign in to submit a rating.';
+      this.busyChange.emit(false);
+      this.error = this.i18n.translate('reviews.signIn');
       return;
     }
 
@@ -102,20 +103,22 @@ export class RatingFormComponent {
         jobId: this.jobId,
         rateeId: this.rateeId,
         score: this.form.value.score,
-        comment: this.form.value.comment || undefined,
+        comment: this.form.value.comment?.trim() || undefined,
       })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
           this.submitting = false;
+          this.busyChange.emit(false);
           this.form.reset({ score: 0, comment: '' });
-          this.focusedStar = 0;
           this.submitted.emit(response);
           this.changeDetector.markForCheck();
         },
         error: (error) => {
           this.submitting = false;
-          this.error = error.error?.error?.message ?? 'Unable to submit your rating. Please try again.';
+          this.busyChange.emit(false);
+          this.duplicate = error.error?.error?.code === 'DUPLICATE_RATING';
+          this.error = this.i18n.translate(this.duplicate ? 'reviews.duplicate' : 'reviews.submitError');
           this.changeDetector.markForCheck();
         },
       });

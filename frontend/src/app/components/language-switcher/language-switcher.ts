@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, input } from '@angular/core';
 import { Language } from '../../i18n/language.js';
 import { I18nService } from '../../services/i18n.js';
 import { TranslatePipe } from '../../pipes/translate-pipe.js';
@@ -12,6 +12,7 @@ import { TranslatePipe } from '../../pipes/translate-pipe.js';
 export class LanguageSwitcher {
   private readonly i18n = inject(I18nService);
 
+  readonly controlId = input('language');
   readonly options = this.i18n.options;
   readonly current = this.i18n.language;
 

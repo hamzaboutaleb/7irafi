@@ -1,0 +1,31 @@
+/* Shares the page's card and link styling; this component owns the sidebar layout. */
+:host { display: block; min-width: 0; }
+.side-column { display: grid; gap: 1.5rem; }
+.panel { background: white; border: 1px solid #e3e8ec; border-radius: 1.1rem; box-shadow: 0 1px 2px #16222e04; overflow: hidden; }
+.panel-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.35rem 1.5rem 1rem; }
+h2 { color: #1f2937; font-size: .95rem; font-weight: 650; line-height: 1.5; }
+.section-description { color: #6b7280; font-size: .75rem; line-height: 1.7; margin-block-start: .35rem; }
+.text-button { display: inline-flex; align-items: center; justify-content: center; gap: .35rem; min-height: 2.75rem; font-size: .75rem; font-weight: 600; color: var(--color-primary-800); cursor: pointer; }
+.text-button { flex-shrink: 0; }
+.text-button:hover { text-decoration: underline; text-underline-offset: .2rem; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--color-primary-600); outline-offset: 4px; border-radius: .4rem; }
+.activity-list { padding-inline: 1.5rem; }
+.activity-item { display: flex; align-items: flex-start; gap: .75rem; padding-block: 1rem; border-block-start: 1px solid #edf1f3; }
+.activity-dot { width: .4rem; height: .4rem; border-radius: 50%; flex-shrink: 0; background: #d1d5db; margin-block-start: .5rem; }
+.activity-dot.unread { background: var(--color-primary-600); }
+.activity-copy { min-width: 0; }
+.activity-title { display: block; color: #374151; font-size: .8rem; font-weight: 600; line-height: 1.6; overflow-wrap: anywhere; }
+.activity-item:hover .activity-title { color: var(--color-primary-700); }
+.activity-body { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: #6b7280; font-size: .75rem; line-height: 1.75; margin-block-start: .15rem; overflow-wrap: anywhere; }
+.activity-copy time { display: block; margin-block-start: .4rem; font-size: .65rem; color: #9ca3af; }
+.sidebar-message { padding: .25rem 1.5rem 1.5rem; font-size: .8rem; color: #6b7280; line-height: 1.8; }
+.sidebar-message > .text-button { margin-block-start: .5rem; }
+.activity-empty p { color: #4b5563; font-weight: 600; margin-block-end: .25rem; }
+.activity-empty span { display: block; font-size: .75rem; }
+.reputation-panel > .section-description, .reputation-summary, .reputation-link { margin-inline: 1.5rem; }
+.reputation-panel > .panel-header { padding-block-end: .25rem; }
+.reputation-summary { margin-block: 1rem .5rem; }
+.reputation-link { margin-block: .75rem 1rem; }
+@media (min-width: 601px) and (max-width: 900px) {
+  .side-column { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+}

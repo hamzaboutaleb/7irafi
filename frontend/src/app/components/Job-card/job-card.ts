@@ -19,6 +19,9 @@ export class JobCard {
     const status = this.applicationStatus();
     return status ? applicationStatusLabels[status] : null;
   });
+  readonly canReview = input(false);
+  readonly reviewed = input(false);
+  readonly reviewRequested = output<void>();
   readonly viewDetails = output<void>();
 
   readonly placeholderUrl = 'job-placeholder.png';

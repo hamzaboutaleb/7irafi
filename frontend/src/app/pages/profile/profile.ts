@@ -16,13 +16,14 @@ import { RouterLink } from "@angular/router";
 import { TranslatePipe } from '../../pipes/translate-pipe.js';
 import { RatingDisplayComponent } from '../../components/rating-display/rating-display.js';
 import { RatingListComponent } from '../../components/rating-list/rating-list.js';
+import { JobDetailsModal } from '../../components/job-details-modal/job-details-modal.js';
 import { RatingService, UserRatingSummary } from '../../services/rating.js';
 
 type ProfessionalSectionState = 'loading' | 'none' | 'loaded' | 'error';
 
 @Component({
   selector: 'app-profile',
-  imports: [ReactiveFormsModule, Navbar, Footer, DatePipe, RouterLink, AvatarUpload, NotificationPanel, TranslatePipe, RatingDisplayComponent, RatingListComponent],
+  imports: [ReactiveFormsModule, Navbar, Footer, DatePipe, RouterLink, AvatarUpload, NotificationPanel, TranslatePipe, RatingDisplayComponent, RatingListComponent, JobDetailsModal],
   templateUrl: './profile.html',
   styleUrl: './profile.css',
 })
@@ -35,6 +36,8 @@ export class Profile implements OnInit {
   readonly ratingSummary = signal<UserRatingSummary | null>(null);
   readonly ratingsLoading = signal(false);
   readonly ratingsError = signal<string | null>(null);
+  readonly reviewListState = signal<'loading' | 'loaded' | 'error'>('loading');
+  readonly reviewJobId = signal<string | null>(null);
   readonly ratingType = signal<'received' | 'given'>('received');
 
   readonly profile = signal<UserProfile | null>(null);
@@ -52,6 +55,8 @@ export class Profile implements OnInit {
   });
 
   ngOnInit(): void {
+    this.ratingService.reviewsChanged.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.loadRatingSummary());
     this.userService
       .getCurrentUser()
       .pipe(takeUntilDestroyed(this.destroyRef))

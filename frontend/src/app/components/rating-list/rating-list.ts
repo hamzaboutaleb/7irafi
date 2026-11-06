@@ -1,20 +1,25 @@
-import { ChangeDetectorRef, Component, inject, Input, OnChanges, OnDestroy } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, inject, Input, Output, OnChanges, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideStar } from '@lucide/angular';
+import { RatingStars } from '../rating-stars/rating-stars.js';
+import { RouterLink } from '@angular/router';
+import { TranslatePipe } from '../../pipes/translate-pipe.js';
 import { RatingService, RatingResponse, PageResponse } from '../../services/rating.js';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-rating-list',
   standalone: true,
-  imports: [CommonModule, LucideStar],
+  imports: [CommonModule, RatingStars, TranslatePipe, RouterLink],
   templateUrl: './rating-list.html',
   styleUrl: './rating-list.css',
 })
-export class RatingListComponent implements OnChanges, OnDestroy {
+export class RatingListComponent implements OnChanges, OnDestroy, OnInit {
   @Input() userId!: string;
   @Input() type: 'received' | 'given' = 'received';
   @Input() pageSize = 10;
+  @Output() stateChange = new EventEmitter<'loading' | 'loaded' | 'error'>();
+  @Output() retryRequested = new EventEmitter<void>();
+  @Output() viewJob = new EventEmitter<string>();
 
   ratings: RatingResponse[] = [];
   pagination = { page: 0, size: 10, totalElements: 0, totalPages: 0 };
@@ -25,6 +30,11 @@ export class RatingListComponent implements OnChanges, OnDestroy {
   private readonly changeDetector = inject(ChangeDetectorRef);
 
   constructor(private ratingService: RatingService) {}
+
+  ngOnInit(): void {
+    // A review submitted in the job dialog should appear without refreshing the page.
+    this.ratingService.reviewsChanged.pipe(takeUntil(this.destroy$)).subscribe(() => this.loadRatings(0));
+  }
 
   ngOnChanges(): void {
     this.ratings = [];
@@ -38,14 +48,15 @@ export class RatingListComponent implements OnChanges, OnDestroy {
     this.cancelRequest$.complete();
   }
 
-  loadRatings(): void {
+  loadRatings(page = this.pagination.page): void {
     this.cancelRequest$.next();
     if (!this.userId) return;
     this.loading = true;
+    this.stateChange.emit('loading');
     this.error = null;
     const request$ = this.type === 'received'
-      ? this.ratingService.getReceivedByUserId(this.userId, this.pagination.page, this.pagination.size)
-      : this.ratingService.getGivenByUserId(this.userId, this.pagination.page, this.pagination.size);
+      ? this.ratingService.getReceivedByUserId(this.userId, page, this.pagination.size)
+      : this.ratingService.getGivenByUserId(this.userId, page, this.pagination.size);
 
     request$.pipe(takeUntil(this.destroy$), takeUntil(this.cancelRequest$)).subscribe({
       next: (response: PageResponse<RatingResponse>) => {
@@ -57,10 +68,12 @@ export class RatingListComponent implements OnChanges, OnDestroy {
           totalPages: response.totalPages,
         };
         this.loading = false;
+        this.stateChange.emit('loaded');
         this.changeDetector.markForCheck();
       },
-      error: (err) => {
-        this.error = 'Failed to load ratings. Please try again.';
+      error: () => {
+        this.error = 'reviews.loadError';
+        this.stateChange.emit('error');
         this.loading = false;
         this.changeDetector.markForCheck();
       },
@@ -68,9 +81,8 @@ export class RatingListComponent implements OnChanges, OnDestroy {
   }
 
   onPageChange(page: number): void {
-    if (page >= 0 && page < this.pagination.totalPages && page !== this.pagination.page) {
-      this.pagination.page = page;
-      this.loadRatings();
+    if (!this.loading && page >= 0 && page < this.pagination.totalPages && page !== this.pagination.page) {
+      this.loadRatings(page);
     }
   }
 
@@ -83,6 +95,7 @@ export class RatingListComponent implements OnChanges, OnDestroy {
   }
 
   retry(): void {
+    this.retryRequested.emit();
     this.loadRatings();
   }
 }

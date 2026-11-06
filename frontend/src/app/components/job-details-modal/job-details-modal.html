@@ -1,6 +1,7 @@
 <dialog
   #dialog
   (close)="closed.emit()"
+  (cancel)="protectSubmission($event)"
   aria-labelledby="job-details-title"
   class="fixed inset-0 m-auto h-dvh max-h-dvh w-screen max-w-none overflow-y-auto border-0 bg-white p-0 text-gray-900 shadow-xl backdrop:bg-gray-900/50 sm:h-auto sm:max-h-[calc(100dvh-3rem)] sm:w-[calc(100%-3rem)] sm:max-w-3xl sm:rounded-2xl"
 >
@@ -10,6 +11,7 @@
     </h2>
     <button
       type="button"
+      [disabled]="ratingBusy()"
       autofocus
       (click)="dialog.close()"
       class="shrink-0 cursor-pointer rounded-xl border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
@@ -29,6 +31,36 @@
         {{ 'common.retry' | translate }}
       </button>
     } @else if (job(); as detail) {
+      @if (rateeId(); as recipientId) {
+        <section class="mb-6 rounded-2xl border border-primary-100 bg-primary-50/40 p-5" aria-labelledby="job-rating-heading" [attr.aria-busy]="reviewState() === 'loading'">
+          <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h3 id="job-rating-heading" class="font-semibold text-gray-900">{{ (savedReview() ? 'reviews.saved' : isOwner() ? 'reviews.professional' : 'reviews.client') | translate }}</h3>
+            <span class="rounded-full bg-white px-3 py-1 text-xs font-medium text-primary-800">{{ 'reviews.completedJob' | translate }}</span>
+          </div>
+          @if (reviewState() === 'loading') {
+            <p role="status" class="text-sm text-gray-600">{{ 'reviews.checking' | translate }}</p>
+          } @else if (reviewState() === 'error') {
+            <p role="alert" class="text-sm text-gray-600">{{ 'reviews.checkError' | translate }}</p>
+            <button type="button" (click)="loadReview()" class="mt-2 min-h-11 text-sm font-semibold text-primary-800 underline">{{ 'common.retry' | translate }}</button>
+          } @else if (savedReview(); as review) {
+            @if (ratingSubmitted()) { <p role="status" class="mb-3 text-sm text-primary-800">{{ 'reviews.thanks' | translate }}</p> }
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <app-rating-stars [score]="review.score" />
+              <time [attr.datetime]="review.createdAt" class="text-xs text-gray-500">{{ review.createdAt | date:'mediumDate' }}</time>
+            </div>
+            @if (review.rateeName) { <p class="mt-3 text-sm font-medium text-gray-700">{{ 'reviews.for' | translate:{name: review.rateeName} }}</p> }
+            @if (review.comment) { <p class="mt-3 whitespace-pre-wrap text-sm leading-7 text-gray-600 [overflow-wrap:anywhere]">{{ review.comment }}</p> }
+          } @else if (ratingOpen()) {
+            <app-rating-form [jobId]="detail.id" [rateeId]="recipientId" [jobTitle]="detail.title" [recipientName]="recipientName()"
+              (busyChange)="ratingBusy.set($event)" (submitted)="reviewSaved($event)"
+              (reloadRequested)="loadReview()" (cancelled)="ratingOpen.set(false)" />
+          } @else {
+            <p class="mb-4 text-sm text-gray-600">{{ 'reviews.formHint' | translate }}</p>
+            <button type="button" (click)="ratingOpen.set(true)" class="min-h-11 rounded-xl bg-primary-700 px-5 py-3 text-sm font-semibold text-white hover:bg-primary-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600">{{ 'reviews.leave' | translate }}</button>
+          }
+        </section>
+      }
+
       <img
         [src]="imageUrl()"
         [alt]="detail.title"
@@ -101,21 +133,7 @@
         <p class="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed text-gray-600">{{ detail.description }}</p>
       </section>
 
-      @if (rateeId(); as recipientId) {
-        <section class="mt-6 border-t border-gray-100 pt-5" aria-labelledby="job-rating-heading">
-          <h3 id="job-rating-heading" class="mb-3 font-semibold">{{ isOwner() ? 'Rate the professional' : 'Rate the client' }}</h3>
-          @if (ratingSubmitted()) {
-            <p role="status" class="text-sm font-semibold text-primary-700">Your rating has been submitted. Thank you!</p>
-          } @else if (ratingOpen()) {
-            <app-rating-form [jobId]="detail.id" [rateeId]="recipientId"
-              (submitted)="ratingSubmitted.set(true); ratingOpen.set(false)"
-              (cancelled)="ratingOpen.set(false)" />
-          } @else {
-            <button type="button" (click)="ratingOpen.set(true)" class="rounded-xl bg-primary-600 px-5 py-3 text-sm font-semibold text-white">Leave a review</button>
-          }
-        </section>
-      }
-
+      @if (!rateeId()) {
       <footer class="mt-6 border-t border-gray-100 pt-5">
         @if (applied()) {
           <p role="status" class="text-sm font-semibold text-primary-700">{{ 'jobDetails.applied' | translate }}</p>
@@ -142,6 +160,7 @@
           <p role="alert" class="mt-3 text-sm text-red-700">{{ applyError() }}</p>
         }
       </footer>
+      }
     }
   </div>
 </dialog>

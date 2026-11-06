@@ -80,20 +80,23 @@
         </section>
 
         <section class="mb-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8" aria-labelledby="profile-ratings-heading">
-          <h2 id="profile-ratings-heading" class="mb-4 text-xl font-semibold text-gray-900">Ratings and reviews</h2>
-          @if (ratingsLoading()) {
-            <p role="status" class="text-sm text-gray-600">Loading your rating summary…</p>
-          } @else if (ratingsError()) {
-            <p role="alert" class="text-sm text-red-700">{{ ratingsError() }}</p>
-            <button type="button" (click)="loadRatingSummary()" class="mt-2 font-semibold text-primary-700 underline">{{ 'common.retry' | translate }}</button>
-          } @else {
+          <h2 id="profile-ratings-heading" class="text-xl font-semibold text-gray-900">{{ 'reviews.title' | translate }}</h2>
+          <p class="mb-5 mt-1 text-sm leading-6 text-gray-500">{{ 'reviews.intro' | translate }}</p>
+          @if (ratingsLoading() && reviewListState() !== 'error') {
+            <div role="status" class="mb-5 h-32 animate-pulse rounded-xl bg-gray-50 motion-reduce:animate-none"><span class="sr-only">{{ 'reviews.loading' | translate }}</span></div>
+          } @else if (ratingsError() && reviewListState() !== 'error') {
+            <div role="alert" class="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-600">
+              <span>{{ 'reviews.summaryError' | translate }}</span>
+              <button type="button" (click)="loadRatingSummary()" class="min-h-11 font-semibold text-primary-800 underline">{{ 'common.retry' | translate }}</button>
+            </div>
+          } @else if (ratingSummary()) {
             <app-rating-display [summary]="ratingSummary()" />
           }
-          <div class="my-5 flex gap-3" role="group" aria-label="Review type">
-            <button type="button" (click)="ratingType.set('received')" [attr.aria-pressed]="ratingType() === 'received'" class="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold aria-pressed:bg-primary-50 aria-pressed:text-primary-700">Received</button>
-            <button type="button" (click)="ratingType.set('given')" [attr.aria-pressed]="ratingType() === 'given'" class="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold aria-pressed:bg-primary-50 aria-pressed:text-primary-700">Given</button>
+          <div class="flex flex-wrap gap-1 border-b border-gray-200" role="group" [attr.aria-label]="'reviews.type' | translate">
+            <button type="button" (click)="ratingType.set('received')" [attr.aria-pressed]="ratingType() === 'received'" class="min-h-11 cursor-pointer border-b-2 border-transparent px-3 py-3 text-sm font-semibold text-gray-500 hover:text-primary-800 focus-visible:outline-2 focus-visible:outline-primary-600 aria-pressed:border-primary-700 aria-pressed:text-primary-800">{{ 'reviews.aboutMe' | translate }}</button>
+            <button type="button" (click)="ratingType.set('given')" [attr.aria-pressed]="ratingType() === 'given'" class="min-h-11 cursor-pointer border-b-2 border-transparent px-3 py-3 text-sm font-semibold text-gray-500 hover:text-primary-800 focus-visible:outline-2 focus-visible:outline-primary-600 aria-pressed:border-primary-700 aria-pressed:text-primary-800">{{ 'reviews.byMe' | translate }}</button>
           </div>
-          <app-rating-list [userId]="currentProfile.id" [type]="ratingType()" />
+          <app-rating-list [userId]="currentProfile.id" [type]="ratingType()" (stateChange)="reviewListState.set($event)" (retryRequested)="loadRatingSummary()" (viewJob)="reviewJobId.set($event)" />
         </section>
 
         <app-notification-panel />
@@ -375,3 +378,7 @@
   </div>
 </main>
 <app-footer />
+
+@if (reviewJobId(); as jobId) {
+  <app-job-details-modal [jobId]="jobId" [startWithReview]="true" (closed)="reviewJobId.set(null)" />
+}
