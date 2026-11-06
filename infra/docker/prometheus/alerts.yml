@@ -1,0 +1,61 @@
+groups:
+  - name: 7irafi
+    rules:
+      - alert: ServiceDown
+        expr: up == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.job }} is down"
+
+      - alert: HighErrorRate
+        expr: |
+          sum by (application) (rate(http_server_requests_seconds_count{status=~"5..", uri!~"/actuator.*"}[5m]))
+            / sum by (application) (rate(http_server_requests_seconds_count{uri!~"/actuator.*"}[5m])) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.application }} 5xx ratio above 5%"
+
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(0.95,
+            sum by (le, application) (rate(http_server_requests_seconds_bucket{uri!~"/actuator.*"}[5m]))) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.application }} p95 latency above 1s"
+
+      - alert: DatabasePoolExhausted
+        expr: hikaricp_connections_pending > 0
+          or hikaricp_connections_active / hikaricp_connections_max > 0.9
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.application }} database pool exhausted"
+
+      - alert: HighJvmMemory
+        expr: |
+          sum by (application) (jvm_memory_used_bytes{area="heap"})
+            / sum by (application) (jvm_memory_max_bytes{area="heap"}) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.application }} heap usage above 90%"
+
+      # Docker's data disk (node-exporter's own /etc/hostname is a file in Docker's
+      # data dir) and, on WSL, C:, where Docker Desktop's growing virtual disk lives.
+      - alert: DiskPressure
+        expr: |
+          node_filesystem_avail_bytes{mountpoint=~"/etc/hostname|/host/mnt/c"}
+            / node_filesystem_size_bytes{mountpoint=~"/etc/hostname|/host/mnt/c"} < 0.10
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Docker storage below 10% free ({{ $labels.mountpoint }})"

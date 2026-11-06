@@ -14,15 +14,20 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 
+import com.herafi.application_service.config.RequestIdInterceptor;
 import com.herafi.application_service.exceptions.ApplicationException;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Component
+@Slf4j
 public class JobClient {
 
     private final RestClient client;
 
     public JobClient(@Value("${services.job.url}") String baseUrl,
-            @Value("${service.security.internal-api-key}") String internalApiKey) {
+            @Value("${service.security.internal-api-key}") String internalApiKey,
+            RequestIdInterceptor requestIdInterceptor) {
         var httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(3)).build();
         var factory = new JdkClientHttpRequestFactory(httpClient);
         factory.setReadTimeout(Duration.ofSeconds(5));
@@ -30,6 +35,7 @@ public class JobClient {
                 .baseUrl(baseUrl)
                 .requestFactory(factory)
                 .defaultHeader("X-Internal-Api-Key", internalApiKey)
+                .requestInterceptor(requestIdInterceptor)
                 .build();
     }
 
@@ -37,7 +43,7 @@ public class JobClient {
         try {
             JobSummary summary = client.get().uri("/internal/jobs/{id}/summary", jobId)
                     .retrieve().body(JobSummary.class);
-            if (summary == null || !jobId.equals(summary.id()) || summary.clientId() == null || summary.status() == null) {
+            if (!validSummary(summary, jobId)) {
                 throw unavailable();
             }
             return summary;
@@ -45,9 +51,9 @@ public class JobClient {
             if (exception.getStatusCode().value() == 404) {
                 throw new ApplicationException(HttpStatus.NOT_FOUND, "JOB_NOT_FOUND", "Job not found");
             }
-            throw unavailable();
+            throw unavailable(exception);
         } catch (RestClientException exception) {
-            throw unavailable();
+            throw unavailable(exception);
         }
     }
 
@@ -57,7 +63,7 @@ public class JobClient {
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(Map.of("workerId", workerId))
                     .retrieve().body(JobSummary.class);
-            if (summary == null || !jobId.equals(summary.id()) || summary.clientId() == null
+            if (!validSummary(summary, jobId)
                     || !"ASSIGNED".equals(summary.status()) || !workerId.equals(summary.assignedWorkerId())) {
                 throw unavailable();
             }
@@ -70,13 +76,25 @@ public class JobClient {
                 throw new ApplicationException(HttpStatus.CONFLICT, "JOB_STATE_CONFLICT",
                         "Job can no longer be assigned. Refresh and retry.");
             }
-            throw unavailable();
+            throw unavailable(exception);
         } catch (RestClientException exception) {
-            throw unavailable();
+            throw unavailable(exception);
         }
     }
 
     private ApplicationException unavailable() {
+        return unavailable(null);
+    }
+
+    private boolean validSummary(JobSummary summary, UUID jobId) {
+        return summary != null && jobId.equals(summary.id()) && summary.clientId() != null
+                && summary.status() != null && summary.skill() != null && !summary.skill().isBlank()
+                && summary.city() != null && !summary.city().isBlank();
+    }
+
+    private ApplicationException unavailable(RestClientException cause) {
+        log.atError().addKeyValue("event", "internal_call_failed").setCause(cause)
+                .log("Job service call failed");
         return new ApplicationException(HttpStatus.SERVICE_UNAVAILABLE,
                 "JOB_SERVICE_UNAVAILABLE", "Unable to confirm the job operation. Please retry.");
     }
@@ -85,7 +103,9 @@ public class JobClient {
             UUID id,
             UUID clientId,
             String status,
-            UUID assignedWorkerId) {
+            UUID assignedWorkerId,
+            String skill,
+            String city) {
 
     }
 }

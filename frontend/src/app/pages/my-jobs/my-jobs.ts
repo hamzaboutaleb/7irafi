@@ -96,7 +96,7 @@ export class MyJobs implements OnInit {
   allowed(job: JobResponse, action: Action): boolean {
     switch (action) {
       case 'edit': return job.status === 'OPEN';
-      case 'cancel': return job.status === 'OPEN' || job.status === 'ASSIGNED';
+      case 'cancel': return job.status === 'OPEN';
       case 'complete': return job.status === 'ASSIGNED';
       case 'delete': return job.status !== 'ASSIGNED';
     }

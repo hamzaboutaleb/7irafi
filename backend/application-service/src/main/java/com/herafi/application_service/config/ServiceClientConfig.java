@@ -15,13 +15,13 @@ public class ServiceClientConfig {
 
     @Primary
     @Bean
-    RestClient.Builder restClientBuilder() {
-        return RestClient.builder();
+    RestClient.Builder restClientBuilder(RequestIdInterceptor requestIdInterceptor) {
+        return RestClient.builder().requestInterceptor(requestIdInterceptor);
     }
 
     @LoadBalanced
     @Bean
-    RestClient.Builder loadBalancedRestClientBuilder() {
-        return RestClient.builder();
+    RestClient.Builder loadBalancedRestClientBuilder(RequestIdInterceptor requestIdInterceptor) {
+        return RestClient.builder().requestInterceptor(requestIdInterceptor);
     }
 }

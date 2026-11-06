@@ -57,7 +57,8 @@ public class NotificationClient {
                     .retrieve()
                     .toBodilessEntity();
         } catch (RestClientException exception) {
-            log.warn("Could not create a {} notification for {}: {}", type, recipientId, exception.getMessage());
+            log.atError().addKeyValue("event", "internal_call_failed").setCause(exception)
+                    .log("Could not create a {} notification for {}: {}", type, recipientId, exception.getMessage());
         }
     }
 }

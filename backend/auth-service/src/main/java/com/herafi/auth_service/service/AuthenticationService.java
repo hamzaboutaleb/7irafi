@@ -14,16 +14,25 @@ import com.herafi.auth_service.exception.InvalidCredentialsException;
 import com.herafi.auth_service.repository.UserCredentialRepository;
 import com.herafi.auth_service.security.UserPrincipal;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+
+import lombok.extern.slf4j.Slf4j;
+
 @Service
+@Slf4j
 public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final UserCredentialRepository repository;
+    private final MeterRegistry meterRegistry;
 
     public AuthenticationService(
             AuthenticationManager authenticationManager,
-            UserCredentialRepository repository) {
+            UserCredentialRepository repository,
+            MeterRegistry meterRegistry) {
         this.authenticationManager = authenticationManager;
         this.repository = repository;
+        this.meterRegistry = meterRegistry;
     }
 
     public UserCredential authenticate(LoginRequest request) {
@@ -41,6 +50,11 @@ public class AuthenticationService {
             return repository.findById(principal.id())
                     .orElseThrow(InvalidCredentialsException::new);
         } catch (AuthenticationException exception) {
+            Counter.builder("herafi.login.failures")
+                    .description("Login failures")
+                    .register(meterRegistry)
+                    .increment();
+            log.atWarn().addKeyValue("event", "login_failed").log("Login failed");
             throw new InvalidCredentialsException();
         }
     }

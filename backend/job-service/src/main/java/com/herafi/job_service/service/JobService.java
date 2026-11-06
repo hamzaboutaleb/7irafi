@@ -35,6 +35,7 @@ import com.herafi.job_service.entity.Job;
 import com.herafi.job_service.entity.JobImage;
 import com.herafi.job_service.entity.JobStatus;
 import com.herafi.job_service.entity.Skill;
+import com.herafi.job_service.event.JobAnalyticsEvent;
 import com.herafi.job_service.exceptions.InvalidImageException;
 import com.herafi.job_service.exceptions.InvalidJobStateException;
 import com.herafi.job_service.exceptions.InvalidReferenceException;
@@ -49,6 +50,9 @@ import com.herafi.job_service.repository.JobImageRepository;
 import com.herafi.job_service.repository.JobRepository;
 import com.herafi.job_service.repository.SkillRepository;
 import com.herafi.job_service.specification.JobSpecification;
+
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -67,7 +71,10 @@ public class JobService {
     private final SkillRepository skillRepository;
     private final CityRepository cityRepository;
     private final JobImageProperties imageProperties;
+    private final MeterRegistry meterRegistry;
+    private final OutboxEventWriter outboxEventWriter;
 
+    @Transactional
     public Job create(UUID clientId, CreateJobRequest request) {
         validateReferences(request);
 
@@ -86,7 +93,18 @@ public class JobService {
             job.setPreferredTime(request.preferredTime());
         }
 
-        return jobRepository.save(job);
+        Job savedJob = jobRepository.save(job);
+        outboxEventWriter.recordJobEvent(savedJob, JobAnalyticsEvent.Type.JOB_CREATED);
+
+        afterCommit(() -> {
+            Counter.builder("herafi.jobs.posted")
+                    .description("Jobs successfully created")
+                    .register(meterRegistry)
+                    .increment();
+            log.atInfo().addKeyValue("event", "job_created").log("Job created jobId={}", savedJob.getId());
+        });
+
+        return savedJob;
     }
 
     private void validateReferences(CreateJobRequest request) {
@@ -107,7 +125,13 @@ public class JobService {
 
         Specification<Job> specification = JobSpecification.filter(filter);
 
-        String[] parts = sort.split(",");
+        if (sort == null || sort.isBlank()) {
+            throw new InvalidSortException("Sort must be field or field,asc|desc");
+        }
+        String[] parts = sort.split(",", -1);
+        if (parts.length > 2) {
+            throw new InvalidSortException("Sort must be field or field,asc|desc");
+        }
 
         String field = parts[0].trim();
 
@@ -129,7 +153,7 @@ public class JobService {
             direction = Sort.Direction.ASC;
         }
 
-        Sort sorting = Sort.by(direction, field);
+        Sort sorting = Sort.by(direction, field).and(Sort.by(Sort.Direction.ASC, "id"));
 
         Pageable pageable = PageRequest.of(
                 page,
@@ -208,6 +232,7 @@ public class JobService {
         }
 
         job.setStatus(JobStatus.COMPLETED);
+        outboxEventWriter.recordJobEvent(job, JobAnalyticsEvent.Type.JOB_STATUS_CHANGED);
 
         return job;
     }
@@ -237,13 +262,14 @@ public class JobService {
                     "You are not allowed to cancel this job");
         }
 
-        if (job.getStatus() != JobStatus.OPEN && job.getStatus() != JobStatus.ASSIGNED) {
+        if (job.getStatus() != JobStatus.OPEN) {
             throw new JobStateConflictException(
-                    "Only open or assigned jobs can be cancelled");
+                    "Only open jobs can be cancelled");
         }
 
         job.setStatus(JobStatus.CANCELLED);
         job.setAssignedWorkerId(null);
+        outboxEventWriter.recordJobEvent(job, JobAnalyticsEvent.Type.JOB_STATUS_CHANGED);
 
         return job;
     }
@@ -268,6 +294,7 @@ public class JobService {
         job.setDeleted(true);
         job.setDeletedAt(Instant.now());
         job.setDeletedBy(userId);
+        outboxEventWriter.recordJobEvent(job, JobAnalyticsEvent.Type.JOB_DELETED);
         afterCommit(() -> jobImageRepository.findObjectKeysByJobId(jobId)
                 .forEach(this::markPendingCleanup));
     }
@@ -287,7 +314,7 @@ public class JobService {
         return new JobSummaryResponse(
                 job.getId(),
                 job.getClientId(),
-                job.getStatus(), job.getAssignedWorkerId());
+                job.getStatus(), job.getAssignedWorkerId(), job.getSkill(), job.getCity());
     }
 
     @Transactional
@@ -299,7 +326,7 @@ public class JobService {
             return new JobSummaryResponse(
                     job.getId(),
                     job.getClientId(),
-                    job.getStatus(), job.getAssignedWorkerId());
+                    job.getStatus(), job.getAssignedWorkerId(), job.getSkill(), job.getCity());
         }
 
         if (job.getStatus() != JobStatus.OPEN) {
@@ -309,12 +336,12 @@ public class JobService {
         job.setStatus(JobStatus.ASSIGNED);
         job.setAssignedWorkerId(workerId);
 
-        jobRepository.save(job);
+        outboxEventWriter.recordJobEvent(job, JobAnalyticsEvent.Type.JOB_STATUS_CHANGED);
 
         return new JobSummaryResponse(
                 job.getId(),
                 job.getClientId(),
-                job.getStatus(), job.getAssignedWorkerId());
+                job.getStatus(), job.getAssignedWorkerId(), job.getSkill(), job.getCity());
     }
 
     @Transactional
@@ -360,6 +387,12 @@ public class JobService {
                     file.getSize(),
                     contentType);
         } catch (IOException e) {
+            Counter.builder("herafi.job.image.upload.failures")
+                    .description("Job image upload failures")
+                    .register(meterRegistry)
+                    .increment();
+            log.atError().addKeyValue("event", "image_upload_failed").setCause(e)
+                    .log("Image upload failed for job {}", jobId);
             throw new InvalidImageException("Failed to read image");
         }
 
