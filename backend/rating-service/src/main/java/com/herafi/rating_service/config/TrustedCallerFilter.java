@@ -14,17 +14,24 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.herafi.rating_service.dto.ApiErrorResponse;
+
+import tools.jackson.databind.ObjectMapper;
+
 @Component
 public class TrustedCallerFilter extends OncePerRequestFilter {
 
     private final String gatewaySharedSecret;
     private final String internalApiKey;
+    private final ObjectMapper objectMapper;
 
     public TrustedCallerFilter(
             @Value("${service.security.gateway-shared-secret}") String gatewaySharedSecret,
-            @Value("${service.security.internal-api-key}") String internalApiKey) {
+            @Value("${service.security.internal-api-key}") String internalApiKey,
+            ObjectMapper objectMapper) {
         this.gatewaySharedSecret = gatewaySharedSecret;
         this.internalApiKey = internalApiKey;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -64,9 +71,9 @@ public class TrustedCallerFilter extends OncePerRequestFilter {
             String code,
             String message) throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.getWriter().write("""
-                {"success":false,"error":{"code":"%s","message":"%s","errors":[]}}
-                """.formatted(code, message).trim());
+        ApiErrorResponse body = ApiErrorResponse.of(code, message);
+        objectMapper.writeValue(response.getWriter(), body);
     }
 }
