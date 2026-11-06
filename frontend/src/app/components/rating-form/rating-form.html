@@ -1,0 +1,49 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="rating-form" [attr.aria-busy]="submitting">
+  <header>
+    @if (recipientName) { <p class="recipient">{{ recipientName }}</p> }
+    @if (jobTitle) { <p class="context">{{ 'reviews.context' | translate:{job: jobTitle} }}</p> }
+    <p class="intro">{{ 'reviews.formHint' | translate }}</p>
+  </header>
+  <div class="form-group">
+    <span id="rating-score-label" class="form-label">{{ 'reviews.score' | translate }}</span>
+    <div class="score-picker">
+      <div class="star-rating" role="radiogroup" aria-labelledby="rating-score-label" aria-describedby="rating-score-description"
+        (mouseleave)="onStarLeave()" (keydown)="onArrowKey($event)">
+        @for (star of stars; track star) {
+          <button type="button" role="radio" [disabled]="submitting" class="star-btn"
+            [class.filled]="star <= (hoverScore || form.value.score || 0)"
+            (click)="selectScore(star)" (mouseenter)="onStarHover(star)"
+            [attr.aria-label]="('reviews.outOfFive' | translate:{score: star}) + ': ' + (scoreLabels[star] | translate)"
+            [attr.aria-checked]="star === form.value.score"
+            [attr.tabindex]="star === (form.value.score || 1) ? 0 : -1">
+            <svg lucideStar aria-hidden="true"></svg>
+          </button>
+        }
+      </div>
+      <span id="rating-score-description" class="score-text" aria-live="polite">{{ scoreLabels[hoverScore || form.value.score || 0] | translate }}</span>
+    </div>
+    @if (form.get('score')?.invalid && form.get('score')?.touched) {
+      <small class="error" role="alert">{{ 'reviews.scoreRequired' | translate }}</small>
+    }
+  </div>
+  <div class="form-group">
+    <label for="rating-comment" class="form-label">{{ 'reviews.comment' | translate }}</label>
+    <textarea id="rating-comment" formControlName="comment" [placeholder]="'reviews.placeholder' | translate"
+      rows="4" maxlength="1000" [readonly]="submitting" class="form-textarea" aria-describedby="rating-comment-count"></textarea>
+    <p id="rating-comment-count" class="character-count">{{ 'reviews.characters' | translate:{count: form.value.comment?.length || 0} }}</p>
+    @if (form.get('comment')?.invalid && form.get('comment')?.touched) {
+      <small class="error">{{ 'reviews.commentLimit' | translate }}</small>
+    }
+  </div>
+  @if (error) {
+    <div role="alert" class="error-message"><p>{{ error }}</p>
+      @if (duplicate) { <button type="button" class="reload" (click)="reloadRequested.emit()">{{ 'reviews.reload' | translate }}</button> }
+    </div>
+  }
+  <div class="form-actions">
+    <button type="button" class="btn btn-secondary" [disabled]="submitting" (click)="onCancel()">{{ 'common.cancel' | translate }}</button>
+    <button type="submit" class="btn btn-primary" [disabled]="submitting || duplicate">
+      {{ (submitting ? 'reviews.submitting' : 'reviews.submit') | translate }}
+    </button>
+  </div>
+</form>

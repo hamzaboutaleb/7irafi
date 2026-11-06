@@ -1,6 +1,7 @@
 package com.herafi.user_service.service;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -9,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.herafi.user_service.dto.CreateUserProfileRequest;
 import com.herafi.user_service.dto.UpdateUserProfileRequest;
+import com.herafi.user_service.dto.UserDisplayNameResponse;
 import com.herafi.user_service.entity.UserProfile;
 import com.herafi.user_service.exception.ProfileEmailAlreadyInUseException;
 import com.herafi.user_service.exception.UserProfileAlreadyExistsException;
@@ -48,6 +50,14 @@ public class UserProfileService {
     public UserProfile get(UUID userId) {
         return repository.findById(userId)
                 .orElseThrow(() -> new UserProfileNotFoundException(userId));
+    }
+
+    /** Reads all requested profiles together instead of running a separate lookup per review. */
+    @Transactional(readOnly = true)
+    public List<UserDisplayNameResponse> getDisplayNames(List<UUID> userIds) {
+        return repository.findAllById(userIds).stream()
+                .map(UserDisplayNameResponse::from)
+                .toList();
     }
 
     @Transactional

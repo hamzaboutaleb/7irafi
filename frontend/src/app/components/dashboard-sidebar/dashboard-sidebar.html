@@ -1,0 +1,37 @@
+<aside class="side-column">
+  <section class="panel activity-panel" aria-labelledby="activity-heading">
+    <header class="panel-header"><h2 id="activity-heading">{{ 'dashboard.activity' | translate }}</h2></header>
+    @if (notifications.loading() && !recentActivity().length) {
+      <p role="status" class="sidebar-message">{{ 'common.loading' | translate }}</p>
+    }
+    @if (notifications.loadError()) {
+      <div role="alert" class="sidebar-message"><p>{{ 'dashboard.activityError' | translate }}</p><button type="button" class="text-button" (click)="notifications.load()">{{ 'common.retry' | translate }}</button></div>
+    }
+    @if (recentActivity().length) {
+      <ul class="activity-list">
+        @for (item of recentActivity(); track item.id) {
+          <li><a [routerLink]="item.targetUrl || '/profile'" (click)="notifications.markRead(item)" class="activity-item">
+            <span class="activity-dot" [class.unread]="!item.read" aria-hidden="true"></span>
+            <span class="activity-copy"><span class="activity-title">{{ item.title }}</span><span class="activity-body">{{ item.body }}</span><time [attr.datetime]="item.createdAt">{{ item.createdAt | date:'MMM d, HH:mm' }}</time></span>
+          </a></li>
+        }
+      </ul>
+    } @else if (!notifications.loading() && !notifications.loadError()) {
+      <div class="sidebar-message activity-empty"><p>{{ 'dashboard.activityEmpty' | translate }}</p><span>{{ 'dashboard.activityEmptyHint' | translate }}</span></div>
+    }
+  </section>
+
+  <section class="panel reputation-panel" aria-labelledby="reputation-heading">
+    <header class="panel-header"><h2 id="reputation-heading">{{ 'dashboard.reputation' | translate }}</h2></header>
+    <p class="section-description">{{ 'dashboard.reputationHint' | translate }}</p>
+    @if (summaryState === 'loading') {
+      <p role="status" class="sidebar-message">{{ 'common.loading' | translate }}</p>
+    } @else if (summaryState === 'error') {
+      <div role="alert" class="sidebar-message"><p>{{ 'reviews.summaryError' | translate }}</p><button type="button" class="text-button" (click)="retrySummary.emit()">{{ 'common.retry' | translate }}</button></div>
+    } @else if (summary; as rating) {
+      <div class="reputation-summary"><app-rating-display [summary]="rating" [compact]="true" /></div>
+      @if (!rating.totalRatings) { <p class="section-description">{{ 'dashboard.reputationEmpty' | translate }}</p> }
+    }
+    <a routerLink="/profile" fragment="profile-ratings-heading" class="text-button reputation-link">{{ 'dashboard.viewReviews' | translate }}<svg lucideArrowRight aria-hidden="true" class="arrow-icon"></svg></a>
+  </section>
+</aside>

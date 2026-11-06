@@ -9,6 +9,8 @@ import { Footer } from '../../components/footer/footer.js';
 import { JobDetailsModal } from '../../components/job-details-modal/job-details-modal.js';
 import { JobCard } from '../../components/Job-card/job-card.js';
 import { ApplicationService, applicationError } from '../../services/application.js';
+import { AuthService } from '../../services/auth.js';
+import { RatingService } from '../../services/rating.js';
 import { JobService } from '../../services/job.js';
 import { JobApplication, applicationStatusLabels } from '../../types/application.js';
 import { JobListItem, JobResponse } from '../../types/job.js';
@@ -37,11 +39,19 @@ export class Applications implements OnInit {
   readonly totalPages = signal(0);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+  readonly auth = inject(AuthService);
+  readonly ratings = inject(RatingService);
+  readonly startWithReview = signal(false);
   readonly selectedJobId = signal<string | null>(null);
   readonly labels = applicationStatusLabels;
 
   ngOnInit(): void {
     this.show(this.route.snapshot.queryParamMap.get('view') === 'jobs' ? 'jobs' : 'applications');
+  }
+
+  openReview(jobId: string): void {
+    this.startWithReview.set(true);
+    this.selectedJobId.set(jobId);
   }
 
   show(view: 'applications' | 'jobs'): void {

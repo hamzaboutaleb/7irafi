@@ -1,4 +1,4 @@
-<article class="relative flex h-[480px] w-full min-w-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+<article class="relative flex h-full min-h-[480px] w-full min-w-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
   <button type="button" (click)="viewDetails.emit()" aria-haspopup="dialog"
     [attr.aria-label]="'View details for ' + job().title"
     class="absolute inset-0 z-10 cursor-pointer rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400"></button>
@@ -10,7 +10,7 @@
       <span class="line-clamp-2 [overflow-wrap:anywhere]">{{ job().title }}</span>
     </h2>
     <span class="shrink-0 rounded-full bg-primary-50 px-3 py-1 text-xs font-semibold text-primary-700">
-      {{ applicationLabel() || (job().status | titlecase) }}
+      {{ job().status === 'COMPLETED' ? (job().status | titlecase) : applicationLabel() || (job().status | titlecase) }}
     </span>
   </div>
 
@@ -39,4 +39,10 @@
       </dd>
     </div>
   </dl>
+  @if (canReview()) {
+    <button type="button" (click)="reviewRequested.emit()" aria-haspopup="dialog"
+      class="relative z-20 mt-4 min-h-11 w-full cursor-pointer rounded-xl bg-primary-700 px-4 py-3 text-sm font-semibold text-white hover:bg-primary-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600">
+      {{ (reviewed() ? 'reviews.viewReview' : 'reviews.reviewJob') | translate }}
+    </button>
+  }
 </article>

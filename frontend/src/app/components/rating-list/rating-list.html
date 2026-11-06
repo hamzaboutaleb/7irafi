@@ -1,0 +1,59 @@
+<div class="rating-list" [attr.aria-busy]="loading">
+  @if (error) {
+    <div class="error-state" role="alert">
+      <span>{{ 'reviews.loadError' | translate }}</span>
+      <button type="button" class="retry-button" (click)="retry()">{{ 'common.retry' | translate }}</button>
+    </div>
+  }
+  @if (loading && ratings.length === 0) {
+    <div class="skeletons" role="status">
+      <span class="sr-only">{{ 'reviews.loading' | translate }}</span>
+      @for (item of [1, 2]; track item) {
+        <div class="skeleton" aria-hidden="true"><div></div><div></div><div></div></div>
+      }
+    </div>
+  } @else if (!error && ratings.length === 0) {
+    <div class="empty" role="status">
+      <span class="empty-symbol" aria-hidden="true">☆</span>
+      <p class="empty-title">{{ (type === 'received' ? 'reviews.noReviews' : 'reviews.noneGiven') | translate }}</p>
+      <p class="empty-description">{{ (type === 'received' ? 'reviews.noneReceived' : 'reviews.givenHint') | translate }}</p>
+      @if (type === 'given') {
+        <div class="empty-links"><a routerLink="/jobs/my">{{ 'nav.jobs.mine' | translate }}</a><a routerLink="/applications">{{ 'jobDetails.myApplications' | translate }}</a></div>
+      }
+    </div>
+  }
+  @if (ratings.length > 0) {
+    <div class="ratings" [class.refreshing]="loading">
+      @for (rating of ratings; track rating.id) {
+        <article class="rating-card">
+          <header class="card-header">
+            <div class="person">
+              <span class="avatar" aria-hidden="true">{{ ((type === 'received' ? rating.raterName : rating.rateeName) || '?').slice(0, 1).toUpperCase() }}</span>
+              <div>
+                <p class="person-name">{{ type === 'received' ? (rating.raterName || ('reviews.unknownUser' | translate)) : ('reviews.for' | translate:{name: rating.rateeName || ('reviews.unknownUser' | translate)}) }}</p>
+                <time [attr.datetime]="rating.createdAt" class="rating-date">{{ rating.createdAt | date:'mediumDate' }}</time>
+              </div>
+            </div>
+            <app-rating-stars [score]="rating.score" />
+          </header>
+          @if (rating.comment) { <p class="rating-comment">{{ rating.comment }}</p> }
+          <footer class="card-footer">
+            <span class="job-label">{{ rating.jobTitle || ('reviews.completedJob' | translate) }}</span>
+            <button type="button" (click)="viewJob.emit(rating.jobId)" class="view-job" aria-haspopup="dialog">{{ 'reviews.viewJob' | translate }}<span aria-hidden="true">↗</span></button>
+          </footer>
+        </article>
+      }
+    </div>
+    @if (pagination.totalPages > 1) {
+      <nav class="pagination" [attr.aria-label]="'reviews.pages' | translate">
+        <button type="button" class="page-btn" (click)="goToPrevious()" [disabled]="loading || pagination.page === 0" [attr.aria-label]="'common.previous' | translate">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m14 6-6 6 6 6" /></svg>
+        </button>
+        <span class="page-info" aria-live="polite">{{ 'reviews.page' | translate:{page: pagination.page + 1, total: pagination.totalPages} }}</span>
+        <button type="button" class="page-btn" (click)="goToNext()" [disabled]="loading || pagination.page + 1 >= pagination.totalPages" [attr.aria-label]="'common.next' | translate">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m10 6 6 6-6 6" /></svg>
+        </button>
+      </nav>
+    }
+  }
+</div>

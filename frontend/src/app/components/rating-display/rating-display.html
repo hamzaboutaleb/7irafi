@@ -1,0 +1,23 @@
+@if (totalRatings > 0) {
+  <div class="rating-display" [class.compact]="compact">
+    <div class="overall-score" role="group" [attr.aria-label]="getAriaLabel()">
+      <p class="score-label">{{ 'reviews.average' | translate }}</p>
+      <div class="score-line"><strong>{{ averageScore | number:'1.1-1' }}</strong><span>/ 5</span></div>
+      <app-rating-stars [score]="averageScore" />
+      <p class="review-count">{{ (totalRatings === 1 ? 'reviews.oneReview' : 'reviews.count') | translate:{count: totalRatings} }}</p>
+    </div>
+    @if (showDistribution && !compact) {
+      <div class="distribution" role="img" [attr.aria-label]="getDistributionAriaLabel()">
+        @for (level of levels; track level) {
+          <div class="dist-row" aria-hidden="true">
+            <span class="dist-label">{{ level }} <span class="star">★</span></span>
+            <div class="dist-bar"><div class="dist-fill" [style.width.%]="getPercentage(level)"></div></div>
+            <span class="dist-count">{{ getCount(level) }}</span>
+          </div>
+        }
+      </div>
+    }
+  </div>
+} @else if (compact) {
+  <span class="review-count">{{ 'reviews.noReviews' | translate }}</span>
+}

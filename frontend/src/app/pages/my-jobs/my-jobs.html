@@ -15,6 +15,18 @@
       </label>
     </div>
     @if (notice()) { <p role="status" class="mb-5 rounded-xl bg-primary-50 p-4 text-primary-800">{{ notice() }}</p> }
+    @if (completedJobToReview(); as completedJob) {
+      @if (!ratings.hasReviewed(completedJob.id)) {
+        <aside class="mb-6 rounded-2xl border border-primary-100 bg-white p-5">
+          <p class="font-semibold text-gray-900">{{ 'reviews.completePrompt' | translate }}</p>
+          <p class="mt-1 text-sm text-gray-500">{{ completedJob.title }}</p>
+          <div class="mt-4 flex flex-wrap gap-3">
+            <button type="button" class="primary-button" (click)="openReview(completedJob.id)">{{ 'reviews.leave' | translate }}</button>
+            <button type="button" class="secondary-button" (click)="completedJobToReview.set(null)">{{ 'reviews.later' | translate }}</button>
+          </div>
+        </aside>
+      }
+    }
     @if (loading()) {
       <p role="status" class="py-10 text-center text-gray-600">{{ 'myJobs.loading' | translate }}</p>
     } @else if (error()) {
@@ -80,7 +92,11 @@
               </dl>
               <div class="mt-auto border-t border-gray-100 pt-4">
                 <div class="flex flex-wrap gap-2">
-                  <a [routerLink]="['/jobs', job.id, 'applicants']" class="primary-button">{{ 'myJobs.viewApplicants' | translate }}</a>
+                  @if (job.status === 'COMPLETED' && job.assignedWorkerId) {
+                    <button type="button" class="primary-button" (click)="openReview(job.id)" aria-haspopup="dialog">{{ (ratings.hasReviewed(job.id) ? 'reviews.viewReview' : 'reviews.reviewJob') | translate }}</button>
+                  } @else {
+                    <a [routerLink]="['/jobs', job.id, 'applicants']" class="primary-button">{{ 'myJobs.viewApplicants' | translate }}</a>
+                  }
                   @if (allowed(job, 'cancel')) {
                     <button type="button" class="secondary-button" (click)="openAction(job, 'cancel')">{{ 'myJobs.cancel' | translate }}</button>
                   }
@@ -136,5 +152,5 @@
   }
 </dialog>
 @if (selectedJobId(); as jobId) {
-  <app-job-details-modal [jobId]="jobId" (closed)="selectedJobId.set(null)" />
+  <app-job-details-modal [jobId]="jobId" [startWithReview]="startWithReview()" (closed)="selectedJobId.set(null); startWithReview.set(false)" />
 }

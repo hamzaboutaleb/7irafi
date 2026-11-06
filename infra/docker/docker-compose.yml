@@ -52,7 +52,7 @@ services:
       - postgres-data:/var/lib/postgresql/data
       - ./postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d auth_db" ]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d auth_db"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -100,7 +100,11 @@ services:
       discovery-service:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health | grep -q UP" ]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://localhost:8081/actuator/health | grep -q UP",
+        ]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -132,7 +136,11 @@ services:
       minio-init:
         condition: service_completed_successfully
     healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health | grep -q UP" ]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://localhost:8082/actuator/health | grep -q UP",
+        ]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -160,13 +168,17 @@ services:
       discovery-service:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://localhost:8086/actuator/health | grep -q UP" ]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://localhost:8086/actuator/health | grep -q UP",
+        ]
       interval: 5s
       timeout: 5s
       retries: 20
 
   chat-service:
-    build: 
+    build:
       context: ../../backend/chat-service
       dockerfile: Dockerfile
     environment:
@@ -183,16 +195,19 @@ services:
     ports:
       - "127.0.0.1:8085:8085"
     depends_on:
-      postgres: 
+      postgres:
         condition: service_healthy
       discovery-service:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8085/actuator/health | grep -q UP" ]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://localhost:8085/actuator/health | grep -q UP",
+        ]
       interval: 5s
       timeout: 5s
       retries: 20
-
 
   job-service:
     container_name: job-service-dev
@@ -218,8 +233,8 @@ services:
     volumes:
       - ../../backend/job-service/src:/app/src
       - job-maven-cache:/root/.m2
-    entrypoint: [ "mvn" ]
-    command: [ "spring-boot:run" ]
+    entrypoint: ["mvn"]
+    command: ["spring-boot:run"]
     develop:
       watch:
         - action: rebuild
@@ -234,7 +249,11 @@ services:
       # auth-service:
       #   condition: service_healthy
     healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://localhost:8083/actuator/health | grep -q UP" ]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://localhost:8083/actuator/health | grep -q UP",
+        ]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -261,7 +280,43 @@ services:
       discovery-service:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://localhost:8084/actuator/health | grep -q UP" ]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://localhost:8084/actuator/health | grep -q UP",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  rating-service:
+    build:
+      context: ../../backend/rating-service
+      dockerfile: Dockerfile
+    environment:
+      SERVER_PORT: 8087
+      DB_URL: jdbc:postgresql://postgres:5432/rating_db
+      DB_USERNAME: ${DB_USERNAME:-herafi}
+      DB_PASSWORD: ${DB_PASSWORD:-herafi}
+      SHOW_SQL: "true"
+      DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka/
+      GATEWAY_SHARED_SECRET: ${GATEWAY_SHARED_SECRET:-7irafi-development-gateway-key}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:-7irafi-development-internal-key}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+      job-service:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://localhost:8087/actuator/health | grep -q UP",
+        ]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -273,19 +328,23 @@ services:
       args:
         PROJECT: minio
         RELEASE: RELEASE.2025-09-07T16-13-09Z
-    entrypoint: [ "minio" ]
+    entrypoint: ["minio"]
     container_name: minio
     ports:
       - "9000:9000"
       - "9001:9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minio}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minio123}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minio123456}
     volumes:
       - minio_data:/data
     command: server /data --console-address ":9001"
     healthcheck:
-      test: [ "CMD-SHELL", "curl -f http://localhost:9000/minio/health/cluster || exit 1" ]
+      test:
+        [
+          "CMD-SHELL",
+          "curl -f http://localhost:9000/minio/health/cluster || exit 1",
+        ]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -333,10 +392,16 @@ services:
         condition: service_healthy
       application-service:
         condition: service_healthy
+      rating-service:
+        condition: service_healthy
       discovery-service:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q UP" ]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://localhost:8080/actuator/health | grep -q UP",
+        ]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -362,7 +427,11 @@ services:
       SERVER_PORT: 8761
       APP_ENVIRONMENT: ${APP_ENVIRONMENT:-dev}
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8761/actuator/health | grep -q UP"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://localhost:8761/actuator/health | grep -q UP",
+        ]
       interval: 5s
       timeout: 5s
       retries: 20
