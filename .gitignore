@@ -19,7 +19,7 @@ Thumbs.db
 .env
 .env.*
 !.env.example
-
+**/.metals
 # Local-only working files (see CLAUDE.md: only code is pushed)
 /handoff.md
 /docs/
