@@ -1,16 +1,23 @@
 package com.herafi.rating_service.service;
 
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.herafi.rating_service.client.JobClient;
 import com.herafi.rating_service.client.UserClient;
 import com.herafi.rating_service.dto.CreateRatingRequest;
+import com.herafi.rating_service.dto.PageResponse;
 import com.herafi.rating_service.dto.RatingResponse;
+import com.herafi.rating_service.dto.UserRatingSummary;
 import com.herafi.rating_service.entity.Rating;
 import com.herafi.rating_service.exception.DuplicateRatingException;
+import com.herafi.rating_service.exception.RatingException;
 import com.herafi.rating_service.repository.RatingRepository;
 
 @Service
@@ -26,13 +33,57 @@ public class RatingService {
         this.userClient = userClient;
     }
 
+    @Transactional(readOnly = true)
+    public List<RatingResponse> getByJobId(UUID jobId) {
+        return repository.findByJobIdOrderByCreatedAtDescIdDesc(jobId).stream()
+                .map(this::toResponse).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<RatingResponse> getReceivedByUserId(UUID userId, Pageable pageable) {
+        return PageResponse.from(repository.findByRateeIdOrderByCreatedAtDescIdDesc(userId, pageable)
+                .map(this::toResponse));
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<RatingResponse> getGivenByUserId(UUID userId, Pageable pageable) {
+        return PageResponse.from(repository.findByRaterIdOrderByCreatedAtDescIdDesc(userId, pageable)
+                .map(this::toResponse));
+    }
+
+    @Transactional(readOnly = true)
+    public UserRatingSummary getSummary(UUID userId) {
+        Map<Integer, Long> distribution = new LinkedHashMap<>();
+        for (int score = 1; score <= 5; score++) {
+            distribution.put(score, 0L);
+        }
+        long total = 0;
+        long weightedScore = 0;
+        for (RatingRepository.ScoreCount bucket : repository.countScoresByRateeId(userId)) {
+            int score = bucket.getScore().intValue();
+            distribution.put(score, bucket.getCount());
+            total += bucket.getCount();
+            weightedScore += score * bucket.getCount();
+        }
+        return new UserRatingSummary(userId, total == 0 ? 0 : (double) weightedScore / total,
+                total, distribution);
+    }
+
+    private RatingResponse toResponse(Rating rating) {
+        return RatingResponse.from(rating, "User " + rating.getRaterId().toString().substring(0, 8));
+    }
+
     @Transactional
     public RatingResponse create(UUID raterId, CreateRatingRequest request) {
         if (repository.existsByJobIdAndRaterIdAndRateeId(request.jobId(), raterId, request.rateeId())) {
             throw new DuplicateRatingException();
         }
 
-        jobClient.validateJobCompleted(request.jobId(), raterId);
+        JobClient.JobSummary job = jobClient.validateJobCompleted(request.jobId(), raterId);
+        UUID recipientId = raterId.equals(job.clientId()) ? job.assignedWorkerId() : job.clientId();
+        if (!recipientId.equals(request.rateeId()) || raterId.equals(request.rateeId())) {
+            throw new RatingException("INVALID_RATING_PARTICIPANT", "You can only rate the other participant in this job");
+        }
         userClient.validateUserExists(request.rateeId());
 
         Rating rating = new Rating();

@@ -12,7 +12,9 @@ import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 
+import com.herafi.rating_service.exception.RatingException;
 import com.herafi.rating_service.exception.UserNotFoundException;
 
 @Component
@@ -42,9 +44,14 @@ public class UserClient {
                     .uri("/internal/users/{userId}/exists", userId)
                     .retrieve()
                     .toBodilessEntity();
-        } catch (RestClientException ex) {
+        } catch (RestClientResponseException ex) {
+            if (ex.getStatusCode().value() == 404) {
+                throw new UserNotFoundException(userId);
+            }
+            throw new RatingException("USER_SERVICE_UNAVAILABLE", "Unable to confirm the user. Please try again.");
+        } catch (RestClientException | IllegalStateException ex) {
             log.warn("User service validation failed for user {}: {}", userId, ex.getMessage());
-            throw new UserNotFoundException(userId);
+            throw new RatingException("USER_SERVICE_UNAVAILABLE", "Unable to confirm the user. Please try again.");
         }
     }
 }
