@@ -9,13 +9,19 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
+@Builder
+// JPA needs the empty constructor; Lombok's builder uses the private full constructor.
 @NoArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Entity
 @Table(name = "ratings")
 public class Rating {

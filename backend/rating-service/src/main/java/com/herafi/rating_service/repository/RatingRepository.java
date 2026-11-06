@@ -17,8 +17,6 @@ public interface RatingRepository extends JpaRepository<Rating, UUID> {
 
     Page<Rating> findByRaterIdOrderByCreatedAtDescIdDesc(UUID raterId, Pageable pageable);
 
-    Page<Rating> findByJobId(UUID jobId, Pageable pageable);
-
     List<Rating> findByJobIdOrderByCreatedAtDescIdDesc(UUID jobId);
 
     @Query("select r.score as score, count(r) as count from Rating r where r.rateeId = :userId group by r.score")
