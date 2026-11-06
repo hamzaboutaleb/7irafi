@@ -1,8 +1,13 @@
 package com.herafi.rating_service.client;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
@@ -79,6 +84,36 @@ public class JobClient {
             throw new JobServiceUnavailableException();
         }
         return response;
+    }
+
+    /**
+     * Loads job labels in one call for a review page. A label lookup must not make
+     * saved reviews disappear when the job service is temporarily unavailable.
+     * Creation still uses getSummary, where job validation is required.
+     */
+    public Map<UUID, String> getTitles(Set<UUID> jobIds) {
+        if (jobIds.isEmpty()) return Map.of();
+        try {
+            List<JobTitle> jobs = client.get()
+                    .uri(uri -> uri.path("/internal/jobs/titles").queryParam("ids", jobIds).build())
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<List<JobTitle>>() {});
+            Map<UUID, String> titles = new HashMap<>();
+            if (jobs != null) {
+                for (JobTitle job : jobs) {
+                    if (job != null && jobIds.contains(job.id()) && job.title() != null) {
+                        titles.put(job.id(), job.title());
+                    }
+                }
+            }
+            return titles;
+        } catch (RestClientException | IllegalStateException ex) {
+            log.warn("Job title lookup failed for {} jobs: {}", jobIds.size(), ex.getMessage());
+            return Map.of();
+        }
+    }
+
+    public record JobTitle(UUID id, String title) {
     }
 
     /**

@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import com.herafi.rating_service.entity.Rating;
 
+/** Names and the job title can be absent; clients should show a localised fallback. */
 public record RatingResponse(
         UUID id,
         UUID jobId,
@@ -13,9 +14,11 @@ public record RatingResponse(
         Integer score,
         String comment,
         Instant createdAt,
-        String raterName) {
+        String raterName,
+        String rateeName,
+        String jobTitle) {
 
-    public static RatingResponse from(Rating rating, String raterName) {
+    public static RatingResponse from(Rating rating, String raterName, String rateeName, String jobTitle) {
         return new RatingResponse(
                 rating.getId(),
                 rating.getJobId(),
@@ -24,6 +27,6 @@ public record RatingResponse(
                 rating.getScore() != null ? rating.getScore().intValue() : null,
                 rating.getComment(),
                 rating.getCreatedAt(),
-                raterName);
+                raterName, rateeName, jobTitle);
     }
 }

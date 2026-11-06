@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -78,8 +79,8 @@ public class RatingService {
 
         Rating rating = buildRating(raterId, request);
         Rating saved = repository.save(rating);
-        Map<UUID, String> reviewerNames = userClient.getDisplayNames(Set.of(raterId));
-        return toResponse(saved, reviewerNames);
+        Map<UUID, String> names = userClient.getDisplayNames(Set.of(raterId, request.rateeId()));
+        return toResponse(saved, names, jobClient.getTitles(Set.of(request.jobId())));
     }
 
     /**
@@ -90,8 +91,9 @@ public class RatingService {
     @Transactional(readOnly = true)
     public List<RatingResponse> getByJobId(UUID jobId) {
         List<Rating> ratings = repository.findByJobIdOrderByCreatedAtDescIdDesc(jobId);
-        Map<UUID, String> reviewerNames = getReviewerNames(ratings);
-        return ratings.stream().map(rating -> toResponse(rating, reviewerNames)).toList();
+        Map<UUID, String> names = getParticipantNames(ratings);
+        Map<UUID, String> titles = getJobTitles(ratings);
+        return ratings.stream().map(rating -> toResponse(rating, names, titles)).toList();
     }
 
     /**
@@ -215,28 +217,29 @@ public class RatingService {
         return new UserRatingSummary(userId, averageScore, totalRatings, distribution);
     }
 
-    /**
-     * Converts a database entity into the response returned by the API.
-     * Names are fetched together before mapping, rather than making an HTTP call
-     * for every rating. If a profile is missing or the name lookup failed, use an
-     * honest "Unknown user" label instead of inventing a name from an ID.
-     */
-    private RatingResponse toResponse(Rating rating, Map<UUID, String> reviewerNames) {
-        return RatingResponse.from(rating, reviewerNames.getOrDefault(rating.getRaterId(), "Unknown user"));
+    /** Names and job labels are optional display details, loaded before mapping. */
+    private RatingResponse toResponse(Rating rating, Map<UUID, String> names, Map<UUID, String> titles) {
+        return RatingResponse.from(rating, names.get(rating.getRaterId()),
+                names.get(rating.getRateeId()), titles.get(rating.getJobId()));
     }
 
-    /** Converts one page after loading its reviewer names in a single batch. */
+    /** Loads both participants and job labels in batches, then maps the whole page. */
     private PageResponse<RatingResponse> toPageResponse(Page<Rating> ratings) {
-        Map<UUID, String> reviewerNames = getReviewerNames(ratings.getContent());
-        return PageResponse.from(ratings.map(rating -> toResponse(rating, reviewerNames)));
+        Map<UUID, String> names = getParticipantNames(ratings.getContent());
+        Map<UUID, String> titles = getJobTitles(ratings.getContent());
+        return PageResponse.from(ratings.map(rating -> toResponse(rating, names, titles)));
     }
 
-    /** A reviewer may appear several times on a page, so request each name only once. */
-    private Map<UUID, String> getReviewerNames(List<Rating> ratings) {
-        if (ratings.isEmpty()) {
-            return Map.of();
-        }
-        Set<UUID> reviewerIds = ratings.stream().map(Rating::getRaterId).collect(Collectors.toSet());
-        return userClient.getDisplayNames(reviewerIds);
+    /** A person can appear in several reviews; request each name only once. */
+    private Map<UUID, String> getParticipantNames(List<Rating> ratings) {
+        Set<UUID> ids = ratings.stream()
+                .flatMap(rating -> Stream.of(rating.getRaterId(), rating.getRateeId()))
+                .collect(Collectors.toSet());
+        return userClient.getDisplayNames(ids);
+    }
+
+    private Map<UUID, String> getJobTitles(List<Rating> ratings) {
+        Set<UUID> ids = ratings.stream().map(Rating::getJobId).collect(Collectors.toSet());
+        return jobClient.getTitles(ids);
     }
 }

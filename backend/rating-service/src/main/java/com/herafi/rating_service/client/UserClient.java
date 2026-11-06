@@ -50,13 +50,24 @@ public class UserClient {
     }
 
     /**
-     * Fetches names for a whole review page in one request. Missing profiles are
+     * Fetches names for a review page in batches of at most 100. Missing profiles are
      * left out of the result. If names cannot be loaded, return an empty map so
-     * callers can still show reviews with an "Unknown user" label.
+     * callers can still show reviews with a translated fallback label.
      * This fallback is only for display names; validateUserExists must still fail
      * when a required user check cannot be completed.
      */
     public Map<UUID, String> getDisplayNames(Set<UUID> userIds) {
+        // A page can contain 100 reviews and up to 200 different participants.
+        // Keep each request within the user service's limit of 100 IDs.
+        List<UUID> ids = List.copyOf(userIds);
+        Map<UUID, String> names = new HashMap<>();
+        for (int start = 0; start < ids.size(); start += 100) {
+            names.putAll(getDisplayNameBatch(Set.copyOf(ids.subList(start, Math.min(start + 100, ids.size())))));
+        }
+        return names;
+    }
+
+    private Map<UUID, String> getDisplayNameBatch(Set<UUID> userIds) {
         if (userIds.isEmpty()) {
             return Map.of();
         }
