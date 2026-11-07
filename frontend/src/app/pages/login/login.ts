@@ -29,7 +29,6 @@ export class Login {
       email: ['', [Validators.required, Validators.email, Validators.maxLength(255)]],
       password: ['', [Validators.required, Validators.maxLength(128)]],
     },
-    { updateOn: 'blur' },
   );
 
   login() {
