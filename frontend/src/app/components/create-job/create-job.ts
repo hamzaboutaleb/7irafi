@@ -28,7 +28,6 @@ import { TranslatePipe } from '../../pipes/translate-pipe.js';
   selector: 'app-create-job',
   imports: [Navbar, Footer, RouterLink, ReactiveFormsModule, PostingStatusModal, TranslatePipe, Select, LucideDynamicIcon],
   templateUrl: './create-job.html',
-  styleUrl: './create-job.css',
 })
 export class CreateJob implements OnInit {
   private readonly i18n = inject(I18nService);
