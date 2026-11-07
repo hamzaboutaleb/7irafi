@@ -11,7 +11,7 @@ import { NotificationPanel } from '../notification-panel/notification-panel.js';
   selector: 'app-notification-bell',
   imports: [LucideBell, TranslatePipe, NotificationPanel],
   templateUrl: './notification-bell.html',
-  styleUrl: './notification-bell.css',
+  host: { class: 'inline-flex' },
 })
 export class NotificationBell {
   readonly controlId = input.required<string>();

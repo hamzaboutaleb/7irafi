@@ -11,7 +11,7 @@ import { AppNotification } from '../../types/notification.js';
   selector: 'app-notification-panel',
   imports: [DatePipe, TranslatePipe, LucideBell, LucideX],
   templateUrl: './notification-panel.html',
-  styleUrl: './notification-panel.css',
+  host: { class: 'block' },
 })
 export class NotificationPanel {
   private readonly notifications = inject(NotificationService);
