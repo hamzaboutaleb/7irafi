@@ -1,27 +1,27 @@
-<main class="auth-page">
-  <div class="auth-content">
-    <a routerLink="/" class="brand-link" [attr.aria-label]="'auth.login.home' | translate"><img src="logo.svg" alt="7irafy" width="140" height="44" /></a>
-    <section class="auth-panel" aria-labelledby="login-title">
-      <header><h1 id="login-title">{{ 'auth.login.screenTitle' | translate }}</h1><p>{{ 'auth.login.subtitle' | translate }}</p></header>
-      <form [formGroup]="form" (ngSubmit)="login()" [attr.aria-busy]="submitting()" novalidate>
-        @if (errorMessage(); as error) { <p class="auth-error" role="alert">{{ error | translate }}</p> }
+<main class="auth-page grid min-h-dvh items-center bg-[#f8f9fa] px-4 py-8 text-gray-900 min-[480px]:px-5 min-[480px]:py-10">
+  <div class="auth-content mx-auto w-full max-w-md">
+    <a routerLink="/" class="brand-link mx-auto mb-7 flex min-h-11 w-fit items-center justify-center rounded focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-primary-600" [attr.aria-label]="'auth.login.home' | translate"><img class="block h-11 w-[140px] object-contain" src="logo.svg" alt="7irafy" width="140" height="44" /></a>
+    <section class="auth-panel rounded-xl border border-slate-200 bg-white p-6 min-[480px]:p-8" aria-labelledby="login-title">
+      <header><h1 class="text-2xl leading-8 font-semibold" id="login-title">{{ 'auth.login.screenTitle' | translate }}</h1><p class="mt-2 text-sm leading-6 text-slate-500">{{ 'auth.login.subtitle' | translate }}</p></header>
+      <form class="mt-6 grid gap-5" [formGroup]="form" (ngSubmit)="login()" [attr.aria-busy]="submitting()" novalidate>
+        @if (errorMessage(); as error) { <p class="auth-error rounded-lg bg-red-50 p-3 text-[13px] leading-[22px] text-red-700" role="alert">{{ error | translate }}</p> }
         <div class="field-group">
-          <label for="login-email">{{ 'auth.field.emailAddress' | translate }}</label>
-          <input id="login-email" name="email" type="email" inputmode="email" autocomplete="username" autocapitalize="none" spellcheck="false" formControlName="email" required maxlength="255" [readOnly]="submitting()" [attr.aria-invalid]="!!fieldError('email')" [attr.aria-describedby]="fieldError('email') ? 'login-email-error' : null" (input)="errorMessage.set(null)" />
-          @if (fieldError('email'); as error) { <p id="login-email-error" class="field-error">{{ error }}</p> }
+          <label class="mb-2 block text-sm font-medium text-gray-700" for="login-email">{{ 'auth.field.emailAddress' | translate }}</label>
+          <input class="min-h-12 w-full rounded-lg border border-gray-300 bg-white p-3 text-base leading-[22px] text-gray-900 focus:border-primary-600 focus:outline-none focus:ring-1 focus:ring-primary-600 aria-invalid:border-red-700 read-only:bg-gray-50 read-only:text-slate-500" id="login-email" name="email" type="email" inputmode="email" autocomplete="username" autocapitalize="none" spellcheck="false" formControlName="email" required maxlength="255" [readOnly]="submitting()" [attr.aria-invalid]="!!fieldError('email')" [attr.aria-describedby]="fieldError('email') ? 'login-email-error' : null" (input)="errorMessage.set(null)" />
+          @if (fieldError('email'); as error) { <p id="login-email-error" class="field-error mt-2 text-xs leading-5 text-red-700">{{ error }}</p> }
         </div>
         <div class="field-group">
-          <label for="login-password">{{ 'auth.field.password' | translate }}</label>
-          <div class="password-field">
-            <input #passwordInput id="login-password" name="password" [type]="passwordVisible() ? 'text' : 'password'" autocomplete="current-password" formControlName="password" required maxlength="128" [readOnly]="submitting()" [attr.aria-invalid]="!!fieldError('password')" [attr.aria-describedby]="fieldError('password') ? 'login-password-error' : null" (input)="errorMessage.set(null)" />
-            <button type="button" class="password-toggle" [disabled]="submitting()" [attr.aria-label]="(passwordVisible() ? 'auth.login.hidePassword' : 'auth.login.showPassword') | translate" (pointerdown)="$event.preventDefault()" (click)="togglePassword(passwordInput, $event)"><svg [lucideIcon]="passwordVisible() ? icons.hide : icons.show" aria-hidden="true" /></button>
+          <label class="mb-2 block text-sm font-medium text-gray-700" for="login-password">{{ 'auth.field.password' | translate }}</label>
+          <div class="password-field relative">
+            <input class="min-h-12 w-full rounded-lg border border-gray-300 bg-white p-3 text-base leading-[22px] text-gray-900 focus:border-primary-600 focus:outline-none focus:ring-1 focus:ring-primary-600 aria-invalid:border-red-700 read-only:bg-gray-50 read-only:text-slate-500 pe-14" #passwordInput id="login-password" name="password" [type]="passwordVisible() ? 'text' : 'password'" autocomplete="current-password" formControlName="password" required maxlength="128" [readOnly]="submitting()" [attr.aria-invalid]="!!fieldError('password')" [attr.aria-describedby]="fieldError('password') ? 'login-password-error' : null" (input)="errorMessage.set(null)" />
+            <button type="button" class="password-toggle absolute end-0.5 top-0.5 grid size-11 cursor-pointer place-items-center rounded-md text-slate-500 enabled:hover:bg-gray-100 enabled:hover:text-gray-700 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-primary-600 disabled:cursor-not-allowed disabled:opacity-60" [disabled]="submitting()" [attr.aria-label]="(passwordVisible() ? 'auth.login.hidePassword' : 'auth.login.showPassword') | translate" (pointerdown)="$event.preventDefault()" (click)="togglePassword(passwordInput, $event)"><svg class="size-[18px] stroke-[1.5]" [lucideIcon]="passwordVisible() ? icons.hide : icons.show" aria-hidden="true" /></button>
           </div>
-          @if (fieldError('password'); as error) { <p id="login-password-error" class="field-error">{{ error }}</p> }
+          @if (fieldError('password'); as error) { <p id="login-password-error" class="field-error mt-2 text-xs leading-5 text-red-700">{{ error }}</p> }
         </div>
-        <button type="submit" class="auth-submit" [disabled]="submitting()">{{ (submitting() ? 'auth.login.submitting' : 'auth.login.submit') | translate }}</button>
+        <button type="submit" class="auth-submit mt-1 min-h-12 w-full cursor-pointer rounded-lg bg-primary-700 px-5 py-3 text-sm leading-6 font-medium text-white enabled:hover:bg-primary-800 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-primary-600 disabled:cursor-not-allowed disabled:opacity-60" [disabled]="submitting()">{{ (submitting() ? 'auth.login.submitting' : 'auth.login.submit') | translate }}</button>
         <span class="sr-only" role="status">{{ submitting() ? ('auth.login.submitting' | translate) : '' }}</span>
       </form>
-      <p class="account-link">{{ 'auth.login.noAccount' | translate }} <a routerLink="/register" queryParamsHandling="preserve">{{ 'auth.register.submit' | translate }}</a></p>
+      <p class="account-link mt-6 text-center text-[13px] leading-6 text-slate-500">{{ 'auth.login.noAccount' | translate }} <a routerLink="/register" queryParamsHandling="preserve" class="inline-block font-medium text-primary-700 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-primary-600">{{ 'auth.register.submit' | translate }}</a></p>
     </section>
   </div>
 </main>

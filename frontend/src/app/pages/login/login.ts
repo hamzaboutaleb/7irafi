@@ -16,7 +16,6 @@ import { TranslationKey } from '../../i18n/language.js';
   selector: 'app-login',
   imports: [LucideDynamicIcon, ReactiveFormsModule, RouterLink, TranslatePipe],
   templateUrl: './login.html',
-  styleUrl: './login.css',
 })
 export class Login {
   readonly icons = { show: LucideEye, hide: LucideEyeOff };
