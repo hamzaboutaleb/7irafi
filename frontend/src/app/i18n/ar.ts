@@ -581,7 +581,6 @@ export const ar: Record<keyof typeof en, string> = {
   "jobs.retryPhotos": "إعادة محاولة رفع الصور",
   "jobs.uploadingPhotos": "جارٍ الرفع…",
   "jobDetails.title": "تفاصيل العمل",
-  "jobDetails.continueReview": "متابعة التقييم",
   "jobDetails.overview": "الميزانية والتوقيت",
   "jobDetails.postedBy": "نشره",
   "jobDetails.ownerUnavailable": "تعذر تحميل معلومات صاحب العمل",

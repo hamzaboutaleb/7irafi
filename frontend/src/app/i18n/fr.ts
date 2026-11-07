@@ -581,7 +581,6 @@ export const fr: Record<keyof typeof en, string> = {
   "jobs.retryPhotos": "Réessayer les photos",
   "jobs.uploadingPhotos": "Envoi…",
   "jobDetails.title": "Détails de la mission",
-  "jobDetails.continueReview": "Continuer l’avis",
   "jobDetails.overview": "Budget et disponibilités",
   "jobDetails.postedBy": "Publié par",
   "jobDetails.ownerUnavailable": "Informations du client indisponibles",

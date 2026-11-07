@@ -1,4 +1,4 @@
-<dialog #dialog class="details-dialog" (close)="closed.emit()" (cancel)="protectSubmission($event)" aria-labelledby="job-details-title">
+<dialog #dialog class="details-dialog" [class.review-mode]="ratingOpen() && !savedReview()" (close)="closed.emit()" (cancel)="protectSubmission($event)" aria-labelledby="job-details-title">
   <header class="details-header">
     <div class="details-heading">
       <h2 id="job-details-title">{{ job()?.title || ('jobDetails.title' | translate) }}</h2>
@@ -21,6 +21,8 @@
     } @else if (errorMessage()) {
       <div role="alert" class="details-state"><p>{{ errorMessage() }}</p><button type="button" class="secondary-button" (click)="loadDetails()">{{ 'common.retry' | translate }}</button></div>
     } @else if (job(); as detail) {
+      <details class="job-context" [open]="!ratingOpen() || !!savedReview()">
+        <summary><span>{{ 'jobDetails.title' | translate }}</span><span class="context-budget"><bdi>{{ budgetLabel() }} MAD</bdi><svg lucideChevronRight aria-hidden="true"></svg></span></summary>
       <dl class="details-summary" [attr.aria-label]="'jobDetails.overview' | translate">
         <div class="summary-budget"><dt>{{ 'job.budget' | translate }}</dt><dd><bdi>{{ budgetLabel() }} <span>MAD</span></bdi></dd></div>
         <div><dt><svg lucideClock aria-hidden="true"></svg>{{ 'jobs.duration' | translate }}</dt><dd>{{ durationLabel() }}</dd></div>
@@ -69,6 +71,8 @@
         </section>
       }
 
+      </details>
+
       @if (rateeId(); as recipientId) {
         <section #reviewSection class="detail-section review-section" aria-labelledby="job-rating-heading" [attr.aria-busy]="reviewState() === 'loading'">
           <div class="section-heading"><h3 id="job-rating-heading" tabindex="-1">{{ (savedReview() ? 'reviews.saved' : isOwner() ? 'reviews.professional' : 'reviews.client') | translate }}</h3></div>
@@ -83,7 +87,7 @@
             @if (review.rateeName) { <p class="review-recipient">{{ 'reviews.for' | translate: { name: review.rateeName } }}</p> }
             @if (review.comment) { <p class="review-comment" dir="auto">{{ review.comment }}</p> }
           } @else if (ratingOpen()) {
-            <app-rating-form [jobId]="detail.id" [rateeId]="recipientId" [jobTitle]="detail.title" [recipientName]="recipientName()"
+            <app-rating-form [jobId]="detail.id" [rateeId]="recipientId" [recipientName]="recipientName() || (!isOwner() ? ownerName() : '')"
               (busyChange)="ratingBusy.set($event)" (submitted)="reviewSaved($event)" (reloadRequested)="loadReview()" (cancelled)="ratingOpen.set(false)" />
           } @else {
             <p class="muted-text">{{ 'reviews.formHint' | translate }}</p>
@@ -94,19 +98,15 @@
     }
   </div>
 
-  @if (!isLoading() && !errorMessage() && job(); as detail) {
+  @if (!isLoading() && !errorMessage() && (!rateeId() || (!ratingOpen() && !savedReview())) && job(); as detail) {
     <footer class="details-footer">
       <div class="footer-budget"><span>{{ 'job.budget' | translate }}</span><strong><bdi>{{ budgetLabel() }} <span>MAD</span></bdi></strong></div>
       <div class="footer-action">
         @if (rateeId()) {
           <p class="action-note">{{ 'reviews.completedJob' | translate }}</p>
-          @if (ratingOpen() && !savedReview()) {
-            <button type="button" class="secondary-button" (click)="focusReview()" [disabled]="ratingBusy()">{{ 'jobDetails.continueReview' | translate }}</button>
-          } @else {
-            <button type="button" class="primary-button" (click)="focusReview(true)" [disabled]="ratingBusy() || reviewState() === 'loading'">
-              {{ (savedReview() ? 'reviews.viewReview' : 'reviews.leave') | translate }}
-            </button>
-          }
+          <button type="button" class="primary-button" (click)="focusReview(true)" [disabled]="ratingBusy() || reviewState() === 'loading'">
+            {{ 'reviews.leave' | translate }}
+          </button>
         } @else if (applied()) {
           <p role="status" class="applied-note"><svg lucideCircleCheck aria-hidden="true"></svg>{{ 'jobDetails.applied' | translate }}</p>
           <a routerLink="/applications" class="text-button">{{ 'jobDetails.myApplications' | translate }}</a>

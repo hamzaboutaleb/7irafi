@@ -29,7 +29,7 @@
   <div class="form-group">
     <label for="rating-comment" class="form-label">{{ 'reviews.comment' | translate }}</label>
     <textarea id="rating-comment" formControlName="comment" [placeholder]="'reviews.placeholder' | translate"
-      rows="4" maxlength="1000" [readonly]="submitting" class="form-textarea" aria-describedby="rating-comment-count"></textarea>
+      rows="3" maxlength="1000" [readonly]="submitting" class="form-textarea" aria-describedby="rating-comment-count"></textarea>
     <p id="rating-comment-count" class="character-count">{{ 'reviews.characters' | translate:{count: form.value.comment?.length || 0} }}</p>
     @if (form.get('comment')?.invalid && form.get('comment')?.touched) {
       <small class="error">{{ 'reviews.commentLimit' | translate }}</small>

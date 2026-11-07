@@ -70,3 +70,15 @@ button:focus-visible, a:focus-visible, h3:focus { outline: 2px solid var(--color
 :host-context([dir='rtl']) .image-nav svg { transform: rotate(180deg); }
 .image-dialog button:focus-visible { outline-color: #fff; }
 @media (max-width: 639px) { .details-dialog { width: 100%; height: 100dvh; max-height: 100dvh; max-width: none; border: 0; border-radius: 0; } .details-header { padding: 16px 20px; gap: 8px; } .details-heading h2 { font-size: 20px; line-height: 28px; } .details-body { padding: 20px; } .details-summary { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; } .summary-budget { grid-column: 1 / -1; } .owner-row { flex-wrap: wrap; } .posted-date { flex-basis: calc(100% - 56px); margin-inline-start: 56px; } .gallery-preview > img { height: 160px; } .details-footer { gap: 16px; padding: 12px 20px max(12px, env(safe-area-inset-bottom)); } .footer-action { max-width: 65%; } .primary-button { padding-inline: 16px; } }
+
+.job-context > summary { display: none; }
+.review-mode { max-width: 640px; }
+.review-mode .job-context > summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 44px; cursor: pointer; color: #4b5563; font-size: 13px; list-style: none; }
+.job-context > summary::-webkit-details-marker { display: none; }
+.context-budget { display: inline-flex; align-items: center; gap: 8px; font-variant-numeric: tabular-nums; }
+.job-context[open] .context-budget svg { transform: rotate(90deg); }
+.review-mode .job-context { border-bottom: 1px solid #e5e7eb; padding-bottom: 12px; }
+.review-mode .job-context[open] { padding-bottom: 20px; }
+.review-mode .review-section { border-top: 0; padding-top: 0; margin-top: 20px; }
+.review-mode .section-heading { margin-bottom: 8px; }
+.job-context > summary:focus-visible { outline: 2px solid var(--color-primary-700); outline-offset: 2px; }

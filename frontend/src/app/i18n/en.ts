@@ -584,7 +584,6 @@ export const en = {
   "jobs.retryPhotos": "Retry photos",
   "jobs.uploadingPhotos": "Uploading…",
   "jobDetails.title": "Job details",
-  "jobDetails.continueReview": "Continue review",
   "jobDetails.overview": "Budget and timing",
   "jobDetails.postedBy": "Posted by",
   "jobDetails.ownerUnavailable": "Owner details unavailable",
