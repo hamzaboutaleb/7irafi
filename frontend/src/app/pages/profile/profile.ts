@@ -28,7 +28,6 @@ type ProfessionalSectionState = 'loading' | 'none' | 'loaded' | 'error';
   selector: 'app-profile',
   imports: [ReactiveFormsModule, Navbar, Footer, DatePipe, RouterLink, AvatarUpload, NotificationPanel, TranslatePipe, RatingDisplayComponent, RatingListComponent, JobDetailsModal, LucideDynamicIcon, LucidePencil],
   templateUrl: './profile.html',
-  styleUrl: './profile.css',
 })
 export class Profile implements OnInit {
   private readonly formBuilder = inject(FormBuilder);

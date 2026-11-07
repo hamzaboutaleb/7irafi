@@ -22,7 +22,7 @@ const MAX_BYTES = 2 * 1024 * 1024;
   selector: 'app-avatar-upload',
   imports: [TranslatePipe, LucideCamera],
   templateUrl: './avatar-upload.html',
-  styleUrl: './avatar-upload.css',
+  host: { class: 'mb-6 block' },
 })
 export class AvatarUpload {
   private readonly userService = inject(UserService);

@@ -1,62 +1,62 @@
-<section class="avatar-card" aria-labelledby="avatar-heading">
+<section class="avatar-card rounded-xl border border-gray-200 bg-white p-6" aria-labelledby="avatar-heading">
   @if (!showIdentity()) {
-    <h2 id="avatar-heading" class="avatar-name">{{ 'profile.picture' | translate }}</h2>
+    <h2 id="avatar-heading" class="avatar-name text-xl leading-7 font-semibold text-gray-900 [overflow-wrap:anywhere]">{{ 'profile.picture' | translate }}</h2>
   }
   <input #fileInput type="file" hidden [accept]="accept" (change)="pick($event)"
     [disabled]="uploading() || removing()" />
-  <div class="identity-row" [class.standalone]="!showIdentity()">
-    <div class="avatar-wrapper">
+  <div class="identity-row flex min-w-0 items-center gap-4 [&.standalone]:mt-4" [class.standalone]="!showIdentity()">
+    <div class="avatar-wrapper relative size-16 shrink-0">
       @if (preview() || profile().avatarUrl) {
-        <img [src]="preview() ?? profile().avatarUrl" [alt]="'profile.picture' | translate" class="avatar-image" />
+        <img [src]="preview() ?? profile().avatarUrl" [alt]="'profile.picture' | translate" class="avatar-image size-full rounded-full border border-gray-200 object-cover" />
       } @else {
-        <span class="avatar-initials" aria-hidden="true">{{ initials }}</span>
+        <span class="avatar-initials flex size-full items-center justify-center rounded-full bg-primary-50 text-xl font-medium text-primary-800" aria-hidden="true">{{ initials }}</span>
       }
-      <button #cameraButton type="button" class="camera-button" (click)="edit()"
+      <button #cameraButton type="button" class="disabled:cursor-not-allowed disabled:opacity-50 camera-button group/camera absolute -end-2.5 -bottom-2.5 grid size-11 cursor-pointer place-items-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-primary-700" (click)="edit()"
         [disabled]="uploading() || removing()" [attr.aria-label]="'profile.picture.change' | translate"
         [attr.title]="'profile.picture.change' | translate" [attr.aria-expanded]="editing()"
         aria-controls="avatar-editor">
-        <span class="camera-badge"><svg lucideCamera aria-hidden="true"></svg></span>
+        <span class="camera-badge grid size-7 place-items-center rounded-full border border-gray-300 bg-white text-gray-600 shadow-xs transition-colors duration-[160ms] group-hover/camera:bg-primary-50 group-hover/camera:text-primary-800 motion-reduce:transition-none"><svg class="size-4 stroke-[1.5]" lucideCamera aria-hidden="true"></svg></span>
       </button>
     </div>
     @if (showIdentity()) {
-      <div class="identity-copy">
-        <h2 id="avatar-heading" class="avatar-name">{{ profile().firstName }} {{ profile().lastName }}</h2>
-        <p class="avatar-email">{{ profile().email }}</p>
+      <div class="identity-copy min-w-0 flex-1">
+        <h2 id="avatar-heading" class="avatar-name text-xl leading-7 font-semibold text-gray-900 [overflow-wrap:anywhere]">{{ profile().firstName }} {{ profile().lastName }}</h2>
+        <p class="avatar-email mt-1 text-sm leading-5 text-gray-600 [overflow-wrap:anywhere]">{{ profile().email }}</p>
       </div>
     }
   </div>
 
   @if (editing() || !showIdentity()) {
-    <div id="avatar-editor" class="avatar-editor" [attr.aria-label]="'profile.picture' | translate" role="group">
-      <p class="upload-guidance">{{ 'profile.picture.rules' | translate: { size: maxMegabytes } }}</p>
-      <div class="photo-actions">
-        <button type="button" class="photo-button" (click)="edit()" [disabled]="uploading() || removing()">
+    <div id="avatar-editor" class="avatar-editor mt-6 border-t border-gray-100 pt-4" [attr.aria-label]="'profile.picture' | translate" role="group">
+      <p class="upload-guidance text-xs leading-5 text-gray-500">{{ 'profile.picture.rules' | translate: { size: maxMegabytes } }}</p>
+      <div class="photo-actions mt-3 flex flex-wrap gap-2">
+        <button type="button" class="disabled:cursor-not-allowed disabled:opacity-50 photo-button min-h-11 cursor-pointer rounded-lg border border-gray-300 px-4 py-2 text-sm leading-5 font-medium text-gray-700 transition-colors duration-[160ms] hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700 motion-reduce:transition-none" (click)="edit()" [disabled]="uploading() || removing()">
           {{ (preview() ? 'profile.picture.chooseAnother' : 'profile.picture.choose') | translate }}
         </button>
         @if (preview()) {
-          <button type="button" class="photo-button save-photo" (click)="upload()"
+          <button type="button" class="disabled:cursor-not-allowed disabled:opacity-50 photo-button min-h-11 cursor-pointer rounded-lg border border-gray-300 px-4 py-2 text-sm leading-5 font-medium text-gray-700 transition-colors duration-[160ms] hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700 motion-reduce:transition-none save-photo [&.save-photo]:border-transparent [&.save-photo]:bg-primary-700 [&.save-photo]:text-white [&.save-photo:hover]:bg-primary-800" (click)="upload()"
             [disabled]="uploading() || removing()" [attr.aria-busy]="uploading()">
             {{ (uploading() ? 'profile.picture.uploading' : 'profile.picture.save') | translate }}
           </button>
         } @else if (profile().avatarUrl) {
-          <button type="button" class="photo-button remove-photo" (click)="remove()" [disabled]="removing()"
+          <button type="button" class="disabled:cursor-not-allowed disabled:opacity-50 photo-button min-h-11 cursor-pointer rounded-lg border border-gray-300 px-4 py-2 text-sm leading-5 font-medium text-gray-700 transition-colors duration-[160ms] hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700 motion-reduce:transition-none remove-photo [&.remove-photo]:text-red-700" (click)="remove()" [disabled]="removing()"
             [attr.aria-busy]="removing()">
             {{ (removing() ? 'profile.picture.removing' : 'profile.picture.remove') | translate }}
           </button>
         }
-        <button type="button" class="photo-button cancel-photo" (click)="cancel()" [disabled]="uploading() || removing()">
+        <button type="button" class="disabled:cursor-not-allowed disabled:opacity-50 photo-button min-h-11 cursor-pointer rounded-lg border border-gray-300 px-4 py-2 text-sm leading-5 font-medium text-gray-700 transition-colors duration-[160ms] hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700 motion-reduce:transition-none cancel-photo [&.cancel-photo]:border-transparent" (click)="cancel()" [disabled]="uploading() || removing()">
           {{ 'common.cancel' | translate }}
         </button>
       </div>
       @if (uploading()) {
-        <div class="upload-progress" role="progressbar" [attr.aria-valuenow]="progress()"
+        <div class="upload-progress mt-4 h-1 overflow-hidden rounded bg-gray-100 [&>div]:h-full [&>div]:bg-primary-700" role="progressbar" [attr.aria-valuenow]="progress()"
           aria-valuemin="0" aria-valuemax="100" [attr.aria-label]="'profile.uploadProgress' | translate">
           <div [style.width.%]="progress()"></div>
         </div>
-        <p class="upload-guidance">{{ progress() }}%</p>
+        <p class="upload-guidance text-xs leading-5 text-gray-500">{{ progress() }}%</p>
       }
     </div>
   }
-  @if (error()) { <p role="alert" class="photo-feedback photo-error">{{ error() }}</p> }
-  @if (notice()) { <p role="status" class="photo-feedback">{{ notice() }}</p> }
+  @if (error()) { <p role="alert" class="photo-feedback mt-4 text-sm leading-5 text-primary-800 photo-error [&.photo-error]:text-red-700">{{ error() }}</p> }
+  @if (notice()) { <p role="status" class="photo-feedback mt-4 text-sm leading-5 text-primary-800">{{ notice() }}</p> }
 </section>
