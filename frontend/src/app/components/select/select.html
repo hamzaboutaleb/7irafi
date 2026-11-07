@@ -1,5 +1,6 @@
 <button #trigger type="button" class="select-trigger" [class.compact]="compact()" role="combobox"
   [id]="controlId()" [disabled]="disabled()" [attr.aria-label]="label()"
+  [attr.aria-invalid]="invalid()" [attr.aria-describedby]="describedBy()"
   aria-haspopup="listbox" [attr.aria-expanded]="open()"
   [attr.aria-controls]="controlId() + '-options'"
   [attr.aria-activedescendant]="open() ? controlId() + '-option-' + active() : null"

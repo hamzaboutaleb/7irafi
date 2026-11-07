@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { NgTemplateOutlet } from '@angular/common';
-import { Component, computed, DestroyRef, HostListener, inject, OnInit, signal } from '@angular/core';
+import { DOCUMENT, TitleCasePipe } from '@angular/common';
+import { afterNextRender, Component, computed, DestroyRef, HostListener, inject, Injector, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -19,14 +19,53 @@ import {
   PreferredTime,
 } from '../../types/job.js';
 import { JobPhoto } from '../../types/job.js';
+import { Select, SelectOption } from '../select/select.js';
+import { I18nService } from '../../services/i18n.js';
+import { LucideDynamicIcon, LucideArrowLeft, LucidePlus, LucideX, LucideImage, LucideLoaderCircle } from '@lucide/angular';
 import { TranslatePipe } from '../../pipes/translate-pipe.js';
 
 @Component({
   selector: 'app-create-job',
-  imports: [Navbar, Footer, RouterLink, ReactiveFormsModule, PostingStatusModal, NgTemplateOutlet, TranslatePipe],
+  imports: [Navbar, Footer, RouterLink, ReactiveFormsModule, PostingStatusModal, TranslatePipe, Select, LucideDynamicIcon],
   templateUrl: './create-job.html',
+  styleUrl: './create-job.css',
 })
 export class CreateJob implements OnInit {
+  private readonly i18n = inject(I18nService);
+  private readonly document = inject(DOCUMENT);
+  private readonly injector = inject(Injector);
+  private readonly titleCase = new TitleCasePipe();
+  readonly icons = { back: LucideArrowLeft, add: LucidePlus, remove: LucideX, image: LucideImage, loading: LucideLoaderCircle };
+  readonly skillOptions = computed(() => [{ value: '', label: this.i18n.translate('createJob.selectSkill'), disabled: true }, ...this.skills().map(value => ({ value, label: this.titleCase.transform(value.replaceAll('_', ' ')) }))]);
+  readonly cityOptions = computed(() => [{ value: '', label: this.i18n.translate('createJob.selectCity'), disabled: true }, ...this.cities().map(value => ({ value, label: this.titleCase.transform(value.replaceAll('_', ' ')) }))]);
+  readonly durationOptions = computed<readonly SelectOption<EstimatedDuration | ''>[]>(() => [
+    { value: '', label: this.i18n.translate('createJob.selectDuration'), disabled: true },
+    { value: 'HALF_DAY', label: this.i18n.translate('createJob.halfDay') },
+    { value: 'FULL_DAY', label: this.i18n.translate('createJob.fullDay') },
+    { value: 'MULTI_DAY', label: this.i18n.translate('createJob.multipleDays') },
+  ]);
+  readonly timeOptions = computed<readonly SelectOption<PreferredTime>[]>(() => [
+    { value: 'ANYTIME', label: this.i18n.translate('createJob.anytime') },
+    { value: 'MORNING', label: this.i18n.translate('createJob.morning') },
+    { value: 'AFTERNOON', label: this.i18n.translate('createJob.afternoon') },
+    { value: 'EVENING', label: this.i18n.translate('createJob.evening') },
+  ]);
+  setChoice(field: 'skill' | 'city', value: string): void {
+    const control = this.form.controls[field]; control.setValue(value); control.markAsDirty(); control.markAsTouched();
+  }
+  setDuration(value: EstimatedDuration | ''): void {
+    const control = this.form.controls.estimatedDuration; control.setValue(value || null); control.markAsDirty(); control.markAsTouched();
+  }
+  setTime(value: PreferredTime): void {
+    const control = this.form.controls.preferredTime; control.setValue(value); control.markAsDirty(); control.markAsTouched();
+  }
+  private focusInvalid(): void {
+    afterNextRender(() => {
+      const fields = ['title', 'description', 'skill', 'budget', 'city', 'addressLine', 'estimatedDuration', 'preferredTime'] as const;
+      const field = fields.find(name => this.form.controls[name].invalid);
+      if (field) this.document.getElementById(field)?.focus();
+    }, { injector: this.injector });
+  }
   private readonly formBuilder = inject(FormBuilder);
   private readonly jobService = inject(JobService);
   private readonly destroyRef = inject(DestroyRef);
@@ -67,7 +106,7 @@ export class CreateJob implements OnInit {
 
   canLeave(): boolean {
     return !this.hasUnfinishedWork() || window.confirm(
-      'Leave this page? Unsaved details and photos will be lost. Any job already posted will remain.',
+      this.i18n.translate('createJob.leaveConfirm'),
     );
   }
 
@@ -83,11 +122,11 @@ export class CreateJob implements OnInit {
     const photos = [...this.photos()];
     for (const file of Array.from(input.files ?? [])) {
       if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-        errors.push(`${file.name}: choose a JPEG, PNG, or WebP photo.`);
+        errors.push(this.i18n.translate('createJob.photoTypeError', { name: file.name }));
       } else if (!file.size || file.size > this.maxPhotoBytes) {
-        errors.push(`${file.name}: choose a non-empty photo no larger than 10 MB.`);
+        errors.push(this.i18n.translate('createJob.photoSizeError', { name: file.name }));
       } else if (photos.length >= this.maxPhotos) {
-        errors.push(`${file.name}: you can add up to 10 photos.`);
+        errors.push(this.i18n.translate('createJob.photoCountError', { name: file.name }));
       } else if (!photos.some((photo) => photo.file.name === file.name &&
         photo.file.size === file.size && photo.file.lastModified === file.lastModified)) {
         photos.push({ file, previewUrl: URL.createObjectURL(file), status: 'queued', error: null });
@@ -123,10 +162,10 @@ export class CreateJob implements OnInit {
           catchError((error: HttpErrorResponse) => {
             const body = error.error as JobApiError | undefined;
             const message = error.status === 0
-              ? 'Upload could not be confirmed. View your job before retrying to avoid a duplicate photo.'
+              ? this.i18n.translate('createJob.uploadUncertain')
               : error.status === 403
-                ? 'You do not have permission to upload this photo.'
-                : body?.message ?? 'Photo upload failed. Please retry.';
+                ? this.i18n.translate('createJob.uploadDenied')
+                : body?.message ?? this.i18n.translate('createJob.uploadError');
             this.updatePhoto(photo, 'failed', message);
             if (error.status === 401) return throwError(() => error);
             return of(null);
@@ -149,7 +188,7 @@ export class CreateJob implements OnInit {
     this.postingResult.set({
       jobId: job.id,
       failed: this.failedPhotos().map((photo) => ({
-        file: photo.file, error: photo.error ?? 'Photo upload failed.',
+        file: photo.file, error: photo.error ?? this.i18n.translate('createJob.uploadError'),
       })),
     });
     this.isRedirecting.set(true);
@@ -159,7 +198,7 @@ export class CreateJob implements OnInit {
       // Preserve the posted job and retry files when navigation cannot complete.
     }
     this.isRedirecting.set(false);
-    this.errorMessage.set('Your job was posted. Open the jobs page to see its status.');
+    this.errorMessage.set(this.i18n.translate('createJob.postedRedirectError'));
     this.showFailure.set(true);
   }
 
@@ -202,12 +241,12 @@ export class CreateJob implements OnInit {
           this.skills.set(skills);
           this.cities.set(cities);
           if (!skills.length || !cities.length) {
-            this.referenceError.set('Job posting is temporarily unavailable. Please try again.');
+            this.referenceError.set(this.i18n.translate('createJob.referenceUnavailable'));
           }
           this.isLoading.set(false);
         },
         error: () => {
-          this.referenceError.set('Unable to load skills and cities. Please try again.');
+          this.referenceError.set(this.i18n.translate('createJob.referenceError'));
           this.isLoading.set(false);
         },
       });
@@ -218,12 +257,12 @@ export class CreateJob implements OnInit {
     if (!control.touched || !control.errors) return null;
 
     if (control.hasError('server')) return control.getError('server') as string;
-    if (control.hasError('required')) return 'This field is required.';
+    if (control.hasError('required')) return this.i18n.translate('createJob.requiredError');
     if (control.hasError('maxlength')) {
-      return field === 'title' ? 'Use 120 characters or fewer.' : 'Use 200 characters or fewer.';
+      return field === 'title' ? this.i18n.translate('createJob.titleLimit') : this.i18n.translate('createJob.addressLimit');
     }
-    if (field === 'budget') return 'Enter 0.01–99,999,999.99 MAD, with at most two decimal places.';
-    return 'Enter more than whitespace.';
+    if (field === 'budget') return this.i18n.translate('createJob.budgetError');
+    return this.i18n.translate('createJob.whitespaceError');
   }
 
   submit(): void {
@@ -231,7 +270,7 @@ export class CreateJob implements OnInit {
 
     this.errorMessage.set(null);
     this.form.markAllAsTouched();
-    if (this.form.invalid) return;
+    if (this.form.invalid) { this.focusInvalid(); return; }
 
     const value = this.form.getRawValue();
     if (value.budget === null || value.estimatedDuration === null) return;
@@ -259,24 +298,28 @@ export class CreateJob implements OnInit {
         this.showFailure.set(true);
         if (error.status === 0) {
           this.errorMessage.set(
-            'Unable to confirm whether your job was posted. Check the jobs page before trying again.',
+            this.i18n.translate('createJob.postUncertain'),
           );
           return;
         }
         if (error.status === 401) {
-          this.errorMessage.set('Your session has expired. Please sign in again.');
+          this.errorMessage.set(this.i18n.translate('createJob.sessionExpired'));
           return;
         }
         if (error.status === 403) {
-          this.errorMessage.set('You do not have permission to post a job.');
+          this.errorMessage.set(this.i18n.translate('createJob.postDenied'));
           return;
         }
 
         const body = error.error as JobApiError | undefined;
-        this.errorMessage.set(body?.message ?? 'Unable to post your job. Please try again.');
+        this.errorMessage.set(body?.message ?? this.i18n.translate('createJob.postError'));
         for (const fieldError of body?.fieldErrors ?? []) {
           const control = this.form.get(fieldError.field);
           control?.setErrors({ ...control.errors, server: fieldError.message });
+        }
+        if (body?.fieldErrors?.length) {
+          this.showFailure.set(false);
+          this.focusInvalid();
         }
       },
     });

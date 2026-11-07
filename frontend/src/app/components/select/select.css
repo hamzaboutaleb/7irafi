@@ -8,6 +8,7 @@
 }
 .select-trigger:hover { background: #f9fafb; border-color: #d1d5db; }
 .select-trigger[aria-expanded='true'] { border-color: var(--color-primary-700); }
+.select-trigger[aria-invalid='true'] { border-color: #b91c1c; }
 .select-trigger:focus-visible { outline: 2px solid var(--color-primary-700); outline-offset: 2px; }
 .select-trigger:disabled { opacity: .5; cursor: not-allowed; }
 .select-trigger.compact { min-width: 0; gap: 8px; min-height: 40px; padding: 8px; }
