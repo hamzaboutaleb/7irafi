@@ -2,10 +2,11 @@ import { DOCUMENT } from '@angular/common';
 import { afterNextRender, Component, DestroyRef, inject, Injector, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.js';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ApiError } from '../../types/api.js';
+import { authDestination } from '../../guards/auth-destination.js';
 import { TranslatePipe } from '../../pipes/translate-pipe.js';
 import { I18nService } from '../../services/i18n.js';
 import { TranslationKey } from '../../i18n/language.js';
@@ -23,6 +24,7 @@ export class Register {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private readonly i18n = inject(I18nService);
   private readonly document = inject(DOCUMENT);
@@ -83,7 +85,7 @@ export class Register {
       next: async response => {
         this.authService.saveToken(response.accessToken);
         try {
-          if (await this.router.navigate(['/'])) return;
+          if (await this.router.navigateByUrl(authDestination(this.route.snapshot.queryParamMap.get('returnUrl')))) return;
           this.errorMessage.set('auth.register.failed');
         } catch {
           this.errorMessage.set('auth.register.failed');

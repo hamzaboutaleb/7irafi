@@ -19,7 +19,7 @@
         <button type="submit" class="auth-submit" [disabled]="submitting()">{{ (submitting() ? 'auth.register.submitting' : 'auth.register.submit') | translate }}</button>
         <span class="sr-only" role="status">{{ submitting() ? ('auth.register.submitting' | translate) : '' }}</span>
       </form>
-      <p class="account-link">{{ 'auth.register.hasAccount' | translate }} <a routerLink="/login">{{ 'auth.login.submit' | translate }}</a></p>
+      <p class="account-link">{{ 'auth.register.hasAccount' | translate }} <a routerLink="/login" queryParamsHandling="preserve">{{ 'auth.login.submit' | translate }}</a></p>
     </section>
   </div>
 </main>

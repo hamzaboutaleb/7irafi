@@ -4,8 +4,9 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LucideDynamicIcon, LucideEye, LucideEyeOff } from '@lucide/angular';
 import { AuthService } from '../../services/auth.js';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { authDestination } from '../../guards/auth-destination.js';
 import { TranslatePipe } from '../../pipes/translate-pipe.js';
 import { ApiError } from '../../types/api.js';
 import { I18nService } from '../../services/i18n.js';
@@ -21,6 +22,7 @@ export class Login {
   readonly icons = { show: LucideEye, hide: LucideEyeOff };
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly authService = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly i18n = inject(I18nService);
@@ -69,7 +71,7 @@ export class Login {
       next: async response => {
         this.authService.saveToken(response.accessToken);
         try {
-          if (await this.router.navigate(['/'])) return;
+          if (await this.router.navigateByUrl(authDestination(this.route.snapshot.queryParamMap.get('returnUrl')))) return;
           this.errorMessage.set('auth.login.failed');
         } catch {
           this.errorMessage.set('auth.login.failed');

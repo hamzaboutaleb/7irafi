@@ -1,5 +1,4 @@
-import { Component, signal } from '@angular/core';
-import { TranslationKey } from '../../i18n/language.js';
+import { Component } from '@angular/core';
 import { TranslatePipe } from '../../pipes/translate-pipe.js';
 
 @Component({
@@ -9,9 +8,9 @@ import { TranslatePipe } from '../../pipes/translate-pipe.js';
   styleUrl: './how-it-works.css',
 })
 export class HowItWorks {
-  steps = signal<{ number: number; title: TranslationKey; description: TranslationKey }[]>([
-    { number: 1, title: 'howItWorks.step1.title', description: 'howItWorks.step1.body' },
-    { number: 2, title: 'howItWorks.step2.title', description: 'howItWorks.step2.body' },
-    { number: 3, title: 'howItWorks.step3.title', description: 'howItWorks.step3.body' },
-  ]);
+  readonly steps = [
+    { number: '01', title: 'landing.step1Title', body: 'landing.step1Body' },
+    { number: '02', title: 'landing.step2Title', body: 'landing.step2Body' },
+    { number: '03', title: 'landing.step3Title', body: 'landing.step3Body' },
+  ] as const;
 }

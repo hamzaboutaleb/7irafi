@@ -1,45 +1,22 @@
-import { Component, signal } from '@angular/core';
-import {
-  LucideDynamicIcon,
-  LucideWrench,
-  LucideHammer,
-  LucideZap,
-  LucideSparkles,
-  LucidePaintBucket,
-  LucideTreePine,
-  LucideShapes,
-} from '@lucide/angular';
-import { TranslationKey } from '../../i18n/language.js';
+import { Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { LucideDynamicIcon, LucideWrench, LucideHammer, LucideZap, LucideSparkles, LucidePaintBucket, LucideWashingMachine, LucideArrowRight } from '@lucide/angular';
 import { TranslatePipe } from '../../pipes/translate-pipe.js';
 
 @Component({
   selector: 'app-categories',
-  imports: [LucideDynamicIcon, TranslatePipe],
+  imports: [RouterLink, LucideDynamicIcon, TranslatePipe],
   templateUrl: './categories.html',
   styleUrl: './categories.css',
 })
 export class Categories {
-  private iconMap: Record<string, any> = {
-    Plumbing: LucideWrench,
-    Carpentry: LucideHammer,
-    Electrical: LucideZap,
-    Cleaning: LucideSparkles,
-    Painting: LucidePaintBucket,
-    Gardening: LucideTreePine,
-  };
-
-  // name stays in English because it selects the icon; label is the key shown
-  // to the person, translated in the template.
-  categories = signal<{ name: string; label: TranslationKey }[]>([
-    { name: 'Plumbing', label: 'categories.plumbing' },
-    { name: 'Carpentry', label: 'categories.carpentry' },
-    { name: 'Electrical', label: 'categories.electrical' },
-    { name: 'Cleaning', label: 'categories.cleaning' },
-    { name: 'Painting', label: 'categories.painting' },
-    { name: 'Gardening', label: 'categories.gardening' },
-  ]);
-
-  getIcon(name: string) {
-    return this.iconMap[name] ?? LucideShapes;
-  }
+  readonly arrow = LucideArrowRight;
+  readonly categories = [
+    { code: 'PLUMBING', label: 'categories.plumbing', icon: LucideWrench },
+    { code: 'CLEANING', label: 'categories.cleaning', icon: LucideSparkles },
+    { code: 'APPLIANCE_REPAIR', label: 'landing.applianceRepair', icon: LucideWashingMachine },
+    { code: 'ELECTRICAL', label: 'categories.electrical', icon: LucideZap },
+    { code: 'PAINTING', label: 'categories.painting', icon: LucidePaintBucket },
+    { code: 'CARPENTRY', label: 'categories.carpentry', icon: LucideHammer },
+  ] as const;
 }

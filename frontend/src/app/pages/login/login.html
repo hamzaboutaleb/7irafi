@@ -21,7 +21,7 @@
         <button type="submit" class="auth-submit" [disabled]="submitting()">{{ (submitting() ? 'auth.login.submitting' : 'auth.login.submit') | translate }}</button>
         <span class="sr-only" role="status">{{ submitting() ? ('auth.login.submitting' | translate) : '' }}</span>
       </form>
-      <p class="account-link">{{ 'auth.login.noAccount' | translate }} <a routerLink="/register">{{ 'auth.register.submit' | translate }}</a></p>
+      <p class="account-link">{{ 'auth.login.noAccount' | translate }} <a routerLink="/register" queryParamsHandling="preserve">{{ 'auth.register.submit' | translate }}</a></p>
     </section>
   </div>
 </main>

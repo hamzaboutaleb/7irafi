@@ -10,7 +10,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, forkJoin, map, of, Subscription, switchMap } from 'rxjs';
 import { Navbar } from '../../components/navbar/navbar.js';
 import { Footer } from '../../components/footer/footer.js';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslatePipe } from '../../pipes/translate-pipe.js';
 import { Select } from '../../components/select/select.js';
 import { RatingStars } from '../../components/rating-stars/rating-stars.js';
@@ -24,6 +24,8 @@ import { LucideDynamicIcon, LucideMapPin, LucideWrench, LucideBookmark, LucideX,
   styleUrl: './professionals.css',
 })
 export class Professionals implements OnInit {
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly userService = inject(UserService);
   private readonly network = inject(NetworkService);
   private readonly i18n = inject(I18nService);
@@ -65,7 +67,14 @@ export class Professionals implements OnInit {
 
   constructor() { this.destroyRef.onDestroy(() => this.restoreScroll()); }
 
-  ngOnInit(): void { this.loadFilters(); this.load(); }
+  ngOnInit(): void {
+    this.loadFilters();
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
+      this.selectedCategory.set(params.get('category') || '');
+      this.selectedCity.set(params.get('city') || '');
+      this.pageNumber.set(0); this.load();
+    });
+  }
 
   label(value: string): string { return value.replaceAll('_', ' ').replace(/\S+/g, word => word.charAt(0).toLocaleUpperCase() + word.slice(1).toLocaleLowerCase()); }
   name(person: ProfessionalCard): string {
@@ -103,9 +112,9 @@ export class Professionals implements OnInit {
 
   nextPage(): void { if (this.canGoForward()) { this.pageNumber.update(value => value + 1); this.load(); } }
   prevPage(): void { if (this.canGoBack()) { this.pageNumber.update(value => value - 1); this.load(); } }
-  cityFilter(value: string): void { this.selectedCity.set(value); this.pageNumber.set(0); this.load(); }
-  categoryFilter(value: string): void { this.selectedCategory.set(value); this.pageNumber.set(0); this.load(); }
-  clearAll(): void { this.selectedCity.set(''); this.selectedCategory.set(''); this.pageNumber.set(0); this.load(); }
+  cityFilter(value: string): void { void this.router.navigate([], { relativeTo: this.route, queryParams: { city: value || null }, queryParamsHandling: 'merge', replaceUrl: true }); }
+  categoryFilter(value: string): void { void this.router.navigate([], { relativeTo: this.route, queryParams: { category: value || null }, queryParamsHandling: 'merge', replaceUrl: true }); }
+  clearAll(): void { void this.router.navigate([], { relativeTo: this.route, queryParams: { category: null, city: null }, queryParamsHandling: 'merge', replaceUrl: true }); }
 
   toggleSave(userId: string): void {
     if (this.saving().has(userId)) return;

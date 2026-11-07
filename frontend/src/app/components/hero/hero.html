@@ -1,28 +1,15 @@
-<section class="bg-gradient-to-br from-white to-primary-50 py-32">
-  <div class="max-w-7xl mx-auto px-8 grid grid-cols-2 gap-12 items-center">
-
-    <!-- Left: text + buttons -->
-    <div>
-      <h1 class="text-6xl font-bold text-gray-900 leading-tight max-w-lg">
-        {{ 'hero.title1' | translate }} <span class="bg-gradient-to-r from-primary-500 to-primary-700 bg-clip-text text-transparent">{{ 'hero.title2' | translate }}</span>
-      </h1>
-      <p class="mt-6 text-xl text-gray-600">
-        {{ 'hero.subtitle' | translate }}
-      </p>
-      <div class="mt-10 flex gap-4">
-        <a routerLink="/professionals" class="bg-primary-500 text-white px-8 py-4 rounded-full font-medium hover:bg-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2">
-          {{ 'hero.findPro' | translate }}
-        </a>
-        <a routerLink="/jobs/new" class="border border-primary-500 text-primary-500 px-8 py-4 rounded-full font-medium hover:bg-primary-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2">
-          {{ 'hero.postRequest' | translate }}
-        </a>
-      </div>
+<section class="hero" aria-labelledby="landing-title">
+  <div class="hero-inner">
+    <div class="hero-copy">
+      <h1 id="landing-title">{{ 'landing.headline' | translate }}</h1>
+      <p>{{ 'landing.description' | translate }}</p>
+      <div class="hero-actions"><a routerLink="/jobs/new" class="primary-link">{{ 'myJobs.post' | translate }}<svg [lucideIcon]="icons.arrow" class="directional" aria-hidden="true" /></a><a routerLink="/professionals" class="secondary-link">{{ 'landing.browseProfessionals' | translate }}</a></div>
+      <p class="hero-note">{{ 'landing.heroNote' | translate }}</p>
     </div>
-
-    <!-- Right: illustration -->
-    <div class="flex items-center justify-center">
-      <img src="hero-illustration.png" [attr.alt]="'hero.findPro' | translate" class="w-full max-w-lg" />
-    </div>
-
+    <figure class="product-preview">
+      <figcaption>{{ 'landing.exampleLabel' | translate }}</figcaption>
+      <div class="preview-job"><div class="preview-top"><span>{{ 'jobDetails.overview' | translate }}</span><span class="job-status">{{ 'dashboard.status.OPEN' | translate }}</span></div><h2>{{ 'landing.exampleTitle' | translate }}</h2><p class="preview-location"><svg [lucideIcon]="icons.service" aria-hidden="true" />{{ 'categories.plumbing' | translate }}<span aria-hidden="true">·</span><svg [lucideIcon]="icons.city" aria-hidden="true" />{{ 'landing.exampleCity' | translate }}</p><p class="preview-description">{{ 'landing.exampleDescription' | translate }}</p><div class="preview-budget"><div><span>{{ 'job.budget' | translate }}</span><strong><bdi>{{ budget() }} <span>MAD</span></bdi></strong></div><span>{{ 'createJob.halfDay' | translate }}</span></div></div>
+      <div class="preview-applicants"><h3>{{ 'landing.compareApplicants' | translate }}</h3><div class="example-person"><span class="avatar" aria-hidden="true">AB</span><div><p>Amine Bennani</p><span>{{ 'categories.plumbing' | translate }}</span></div><span class="pending">{{ 'applications.status.PENDING' | translate }}</span></div><div class="example-person"><span class="avatar" aria-hidden="true">YR</span><div><p>Youssef Rachidi</p><span>{{ 'categories.plumbing' | translate }}</span></div><span class="pending">{{ 'applications.status.PENDING' | translate }}</span></div></div>
+    </figure>
   </div>
 </section>
