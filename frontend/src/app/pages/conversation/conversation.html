@@ -1,60 +1,60 @@
-<a routerLink="/conversations" class="thread-back"><svg lucideArrowLeft aria-hidden="true"></svg>{{ 'chat.allMessages' | translate }}</a>
+<a routerLink="/conversations" class="thread-back hidden max-md:inline-flex min-h-11 items-center gap-2 px-4 py-2 text-[13px] leading-5 text-primary-800 [&>svg]:size-4 rtl:[&>svg]:rotate-180 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700"><svg class="size-[18px] shrink-0 stroke-1.5" lucideArrowLeft aria-hidden="true"></svg>{{ 'chat.allMessages' | translate }}</a>
 @if (loading()) {
-  <p role="status" class="thread-state">{{ 'common.loading' | translate }}</p>
+  <p role="status" class="thread-state grid flex-1 place-content-center justify-items-start gap-3 p-6 text-sm leading-6 text-gray-500">{{ 'common.loading' | translate }}</p>
 } @else if (error()) {
-  <div class="thread-state" role="alert">
+  <div class="thread-state grid flex-1 place-content-center justify-items-start gap-3 p-6 text-sm leading-6 text-gray-500" role="alert">
     <p>{{ error() }}</p>
-    <button type="button" class="thread-text-button" (click)="retry()">{{ 'common.retry' | translate }}</button>
+    <button type="button" class="thread-text-button inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 text-[13px] leading-5 font-medium text-primary-800 hover:underline hover:underline-offset-4 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700" (click)="retry()">{{ 'common.retry' | translate }}</button>
   </div>
 } @else {
-  <header class="thread-header">
-    @if (avatarUrl()) { <img [src]="avatarUrl()" alt="" class="thread-avatar" /> }
+  <header class="thread-header flex flex-wrap items-center gap-3 border-b border-gray-100 px-4 py-3 md:flex-nowrap md:px-6 md:py-4">
+    @if (avatarUrl()) { <img [src]="avatarUrl()" alt="" class="thread-avatar size-8 shrink-0 rounded-full object-cover md:size-10" /> }
     @else {
-      <span class="thread-avatar avatar-fallback" aria-hidden="true">
+      <span class="thread-avatar size-8 shrink-0 rounded-full object-cover md:size-10 avatar-fallback grid place-items-center bg-gray-100 text-gray-500" aria-hidden="true">
         @if (otherName(); as name) { {{ name.slice(0, 1).toUpperCase() }} }
-        @else { <svg lucideUserRound></svg> }
+        @else { <svg class="size-[18px] shrink-0 stroke-1.5" lucideUserRound></svg> }
       </span>
     }
-    <div class="thread-person">
+    <div class="thread-person min-w-0 flex-1 [&>h2]:[overflow-wrap:anywhere] [&>h2]:text-base [&>h2]:leading-6 [&>h2]:font-semibold [&>h2]:text-gray-900">
       <h2>{{ displayName() }}</h2>
-      <p class="thread-job">{{ title() ?? ('chat.jobUnavailable' | translate) }}</p>
+      <p class="thread-job mt-0.5 truncate text-[13px] leading-5 text-gray-500">{{ title() ?? ('chat.jobUnavailable' | translate) }}</p>
     </div>
-    <span class="connection-state" role="status">
-      <span class="connection-dot" [class.connected]="connection() === 'connected'" aria-hidden="true"></span>
+    <span class="connection-state inline-flex items-center gap-1.5 text-xs leading-5 text-gray-500 max-md:w-full max-md:ps-11" role="status">
+      <span class="connection-dot size-1.5 shrink-0 rounded-full bg-gray-400 [&.connected]:bg-primary-700" [class.connected]="connection() === 'connected'" aria-hidden="true"></span>
       {{ (connection() === 'connected' ? 'chat.live' : connection() === 'connecting' ? 'chat.reconnecting' : 'chat.disconnected') | translate }}
     </span>
   </header>
-  <div class="job-context">
+  <div class="job-context flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 px-4 text-xs leading-5 text-gray-500 md:px-6">
     <span>{{ (conversation()?.clientId === me ? 'chat.yourPostedJob' : 'chat.yourApplication') | translate }}</span>
-    <button type="button" class="thread-text-button" (click)="jobOpen.set(true)"><svg lucideBriefcaseBusiness aria-hidden="true"></svg>{{ 'chat.viewJob' | translate }}</button>
+    <button type="button" class="thread-text-button inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 text-[13px] leading-5 font-medium text-primary-800 hover:underline hover:underline-offset-4 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700" (click)="jobOpen.set(true)"><svg class="size-[18px] shrink-0 stroke-1.5" lucideBriefcaseBusiness aria-hidden="true"></svg>{{ 'chat.viewJob' | translate }}</button>
   </div>
-  <div #scroller class="message-scroller" role="log" aria-live="polite" aria-relevant="additions" [attr.aria-label]="'chat.title' | translate">
+  <div #scroller class="message-scroller min-h-0 flex-1 overflow-y-auto overscroll-contain bg-[#fafafa] p-4 md:p-6" role="log" aria-live="polite" aria-relevant="additions" [attr.aria-label]="'chat.title' | translate">
     @if (hasOlder()) {
-      <div class="older-messages"><button type="button" class="thread-text-button" (click)="loadOlder()" [disabled]="loadingOlder()">{{ (loadingOlder() ? 'common.loading' : 'chat.loadOlder') | translate }}</button></div>
+      <div class="older-messages mb-4 flex justify-center"><button type="button" class="thread-text-button inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 text-[13px] leading-5 font-medium text-primary-800 hover:underline hover:underline-offset-4 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700" (click)="loadOlder()" [disabled]="loadingOlder()">{{ (loadingOlder() ? 'common.loading' : 'chat.loadOlder') | translate }}</button></div>
     }
-    @if (!messages().length) { <p class="empty-thread">{{ 'chat.noMessages' | translate }}</p> }
-    <ol class="message-list">
+    @if (!messages().length) { <p class="empty-thread mx-auto grid h-full max-w-[360px] place-items-center text-center text-sm leading-6 text-gray-500">{{ 'chat.noMessages' | translate }}</p> }
+    <ol class="message-list grid gap-3">
       @for (message of messages(); track message.id) {
-        <li class="message-row" [class.mine]="isMine(message)">
-          <div class="message-bubble">
-            <p class="message-text" dir="auto">{{ message.text }}</p>
+        <li class="message-row group/message flex [&.mine]:justify-end" [class.mine]="isMine(message)">
+          <div class="message-bubble max-w-[90%] rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-700 md:max-w-[80%] md:px-4 md:py-3 group-[.mine]/message:border-primary-100 group-[.mine]/message:bg-primary-50 group-[.mine]/message:text-primary-900 [&>time]:mt-1 [&>time]:block [&>time]:text-end [&>time]:text-[11px] [&>time]:leading-4 [&>time]:text-gray-500">
+            <p class="message-text whitespace-pre-wrap [overflow-wrap:anywhere] text-sm leading-6" dir="auto">{{ message.text }}</p>
             <time [attr.datetime]="message.sentAt">{{ message.sentAt | date: 'MMM d, HH:mm' }}</time>
           </div>
         </li>
       }
     </ol>
   </div>
-  @if (notice()) { <p role="alert" class="thread-notice">{{ notice() }}</p> }
-  @else if (connection() !== 'connected') { <p role="status" class="thread-notice">{{ 'chat.connectionHint' | translate }}</p> }
-  <div class="composer-area">
-    <form (ngSubmit)="send()" class="message-composer">
+  @if (notice()) { <p role="alert" class="thread-notice border-t border-amber-200 bg-amber-50 px-6 py-3 text-[13px] leading-5 text-amber-800">{{ notice() }}</p> }
+  @else if (connection() !== 'connected') { <p role="status" class="thread-notice border-t border-amber-200 bg-amber-50 px-6 py-3 text-[13px] leading-5 text-amber-800">{{ 'chat.connectionHint' | translate }}</p> }
+  <div class="composer-area group/composer border-t border-gray-200 px-4 py-3 md:px-6 md:pt-4">
+    <form (ngSubmit)="send()" class="message-composer flex min-h-[52px] items-end gap-2 rounded-xl border border-gray-300 p-1 focus-within:border-primary-700 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary-700">
       <label for="draft" class="sr-only">{{ 'chat.writeMessage' | translate }}</label>
-      <textarea #draftInput id="draft" name="draft" rows="1" [value]="draft" [attr.maxlength]="maxLength" dir="auto"
+      <textarea class="h-10 min-h-10 max-h-40 min-w-0 flex-1 resize-none overflow-y-hidden border-0 bg-transparent px-2 py-2.5 text-sm leading-5 text-gray-900 focus:outline-none" #draftInput id="draft" name="draft" rows="1" [value]="draft" [attr.maxlength]="maxLength" dir="auto"
         aria-describedby="send-hint" (input)="updateDraft($event)" (keydown.enter)="onEnter($event)" [placeholder]="'chat.placeholder' | translate"></textarea>
-      <button type="submit" class="send-button" [disabled]="!draft.trim() || connection() !== 'connected'"
-        [attr.aria-label]="'chat.send' | translate" [attr.title]="'chat.send' | translate"><svg lucideSend aria-hidden="true"></svg></button>
+      <button type="submit" class="send-button grid size-10 shrink-0 cursor-pointer place-items-center rounded-lg bg-primary-700 text-white transition-colors duration-150 enabled:hover:bg-primary-800 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700" [disabled]="!draft.trim() || connection() !== 'connected'"
+        [attr.aria-label]="'chat.send' | translate" [attr.title]="'chat.send' | translate"><svg class="size-[18px] shrink-0 stroke-1.5" lucideSend aria-hidden="true"></svg></button>
     </form>
-    <p id="send-hint" class="send-hint">{{ 'chat.sendHint' | translate }}</p>
+    <p id="send-hint" class="send-hint mt-2 hidden text-xs leading-4 text-gray-500 md:group-focus-within/composer:block [@media(pointer:coarse)]:hidden!">{{ 'chat.sendHint' | translate }}</p>
   </div>
 }
 @if (jobOpen() && conversation(); as current) {

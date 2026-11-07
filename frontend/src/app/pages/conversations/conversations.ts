@@ -27,7 +27,7 @@ interface ConversationRow {
   selector: 'app-conversations',
   imports: [RouterLink, RouterLinkActive, RouterOutlet, Navbar, TranslatePipe, LucideSearch, LucideMessageSquare, LucideUserRound],
   templateUrl: './conversations.html',
-  styleUrl: './conversations.css',
+  host: { class: 'block' },
 })
 export class Conversations implements OnInit {
   private readonly chat = inject(ChatService);

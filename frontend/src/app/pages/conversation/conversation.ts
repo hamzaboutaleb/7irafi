@@ -22,7 +22,7 @@ const MAX_LENGTH = 4000;
   selector: 'app-conversation',
   imports: [DatePipe, FormsModule, RouterLink, TranslatePipe, LucideArrowLeft, LucideBriefcaseBusiness, LucideSend, LucideUserRound, JobDetailsModal],
   templateUrl: './conversation.html',
-  styleUrl: './conversation.css',
+  host: { class: 'flex min-h-0 min-w-0 flex-1 flex-col' },
 })
 export class Conversation implements OnInit {
   private readonly chat = inject(ChatService);
