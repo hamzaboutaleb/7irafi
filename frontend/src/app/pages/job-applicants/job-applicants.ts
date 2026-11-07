@@ -23,7 +23,6 @@ import { TranslatePipe } from '../../pipes/translate-pipe.js';
   selector: 'app-job-applicants',
   imports: [TitleCasePipe, RouterLink, Navbar, Footer, TranslatePipe, LucideArrowLeft, LucideBriefcaseBusiness, LucideMapPin, LucideUsersRound, LucideUserRound, LucideWrench, LucideChevronDown, LucideChevronLeft, LucideChevronRight, LucideMessageSquare, LucideCheck],
   templateUrl: './job-applicants.html',
-  styleUrl: './job-applicants.css',
 })
 export class JobApplicants implements OnInit {
   private readonly service = inject(ApplicationService);
