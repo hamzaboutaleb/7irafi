@@ -38,7 +38,7 @@
           @if (ownerState() === 'loading') { <p role="status">{{ 'common.loading' | translate }}</p> }
           @else if (ownerState() === 'error') {
             <p class="owner-unavailable text-gray-500">{{ 'jobDetails.ownerUnavailable' | translate }}</p>
-            <button type="button" class="text-button inline-flex items-center min-h-11 text-primary-800 [font-size:13px] [line-height:20px] font-medium underline [text-underline-offset:4px] cursor-pointer [&:disabled]:[opacity:.5] [&:disabled]:cursor-not-allowed [&:focus-visible]:[outline:2px_solid_var(--color-primary-700)] [&:focus-visible]:[outline-offset:2px]" (click)="loadOwner()">{{ 'common.retry' | translate }}</button>
+            <button type="button" class="text-button ui-underlined-action [&:disabled]:[opacity:.5] [&:disabled]:cursor-not-allowed" (click)="loadOwner()">{{ 'common.retry' | translate }}</button>
           } @else { <p class="owner-name text-gray-700 font-medium">{{ ownerName() }}</p> }
         </div>
         <time class="posted-date text-gray-500 [font-size:12px] [line-height:20px] font-normal shrink-0 [@media(max-width:_639px)]:[&.posted-date]:[flex-basis:calc(100%_-_56px)] [@media(max-width:_639px)]:[&.posted-date]:ms-14" [attr.datetime]="detail.createdAt">{{ dateLabel(detail.createdAt) }}</time>
@@ -80,7 +80,7 @@
             <p role="status" class="muted-text text-gray-500 [font-size:14px] [line-height:24px]">{{ 'reviews.checking' | translate }}</p>
           } @else if (reviewState() === 'error') {
             <p role="alert" class="muted-text text-gray-500 [font-size:14px] [line-height:24px]">{{ 'reviews.checkError' | translate }}</p>
-            <button type="button" class="text-button inline-flex items-center min-h-11 text-primary-800 [font-size:13px] [line-height:20px] font-medium underline [text-underline-offset:4px] cursor-pointer [&:disabled]:[opacity:.5] [&:disabled]:cursor-not-allowed [&:focus-visible]:[outline:2px_solid_var(--color-primary-700)] [&:focus-visible]:[outline-offset:2px]" (click)="loadReview()">{{ 'common.retry' | translate }}</button>
+            <button type="button" class="text-button ui-underlined-action [&:disabled]:[opacity:.5] [&:disabled]:cursor-not-allowed" (click)="loadReview()">{{ 'common.retry' | translate }}</button>
           } @else if (savedReview(); as review) {
             @if (ratingSubmitted()) { <p role="status" class="review-notice mb-3 text-primary-800 [font-size:14px] [line-height:24px]">{{ 'reviews.thanks' | translate }}</p> }
             <div class="saved-review-heading flex items-center justify-between gap-3 [&.saved-review-heading_time]:text-gray-500 [&.saved-review-heading_time]:[font-size:12px]"><app-rating-stars [score]="review.score" /><time [attr.datetime]="review.createdAt">{{ dateLabel(review.createdAt) }}</time></div>
@@ -91,7 +91,7 @@
               (busyChange)="ratingBusy.set($event)" (submitted)="reviewSaved($event)" (reloadRequested)="loadReview()" (cancelled)="ratingOpen.set(false)" />
           } @else {
             <p class="muted-text text-gray-500 [font-size:14px] [line-height:24px]">{{ 'reviews.formHint' | translate }}</p>
-            <button type="button" class="text-button inline-flex items-center min-h-11 text-primary-800 [font-size:13px] [line-height:20px] font-medium underline [text-underline-offset:4px] cursor-pointer [&:disabled]:[opacity:.5] [&:disabled]:cursor-not-allowed [&:focus-visible]:[outline:2px_solid_var(--color-primary-700)] [&:focus-visible]:[outline-offset:2px]" (click)="focusReview(true)">{{ 'reviews.leave' | translate }}</button>
+            <button type="button" class="text-button ui-underlined-action [&:disabled]:[opacity:.5] [&:disabled]:cursor-not-allowed" (click)="focusReview(true)">{{ 'reviews.leave' | translate }}</button>
           }
         </section>
       }
@@ -109,7 +109,7 @@
           </button>
         } @else if (applied()) {
           <p role="status" class="applied-note flex items-center gap-1.5 text-primary-800 [font-size:13px] [line-height:20px]"><svg class="w-4 h-4 shrink-0 [stroke-width:1.5]" lucideCircleCheck aria-hidden="true"></svg>{{ 'jobDetails.applied' | translate }}</p>
-          <a routerLink="/applications" class="text-button inline-flex items-center min-h-11 text-primary-800 [font-size:13px] [line-height:20px] font-medium underline [text-underline-offset:4px] cursor-pointer [&:focus-visible]:[outline:2px_solid_var(--color-primary-700)] [&:focus-visible]:[outline-offset:2px]">{{ 'jobDetails.myApplications' | translate }}</a>
+          <a routerLink="/applications" class="text-button ui-underlined-action">{{ 'jobDetails.myApplications' | translate }}</a>
         } @else if (isOwner()) {
           <a [routerLink]="['/jobs', detail.id, 'applicants']" class="primary-button inline-flex items-center justify-center min-h-11 [padding:8px_20px] [border:1px_solid_transparent] rounded-lg bg-primary-700 text-white [font-size:14px] [line-height:20px] font-medium text-center cursor-pointer [&.primary-button:hover:enabled]:bg-primary-800 [&:focus-visible]:[outline:2px_solid_var(--color-primary-700)] [&:focus-visible]:[outline-offset:2px] [@media(max-width:_639px)]:[&.primary-button]:px-4">{{ 'myJobs.viewApplicants' | translate }}</a>
         } @else if (detail.status !== 'OPEN') {
@@ -118,10 +118,10 @@
           <p role="status" class="action-note text-gray-500 [font-size:13px] [line-height:20px]">{{ 'jobDetails.checkingProfile' | translate }}</p>
         } @else if (eligibility() === 'error') {
           <p role="alert" class="action-note text-gray-500 [font-size:13px] [line-height:20px]">{{ 'jobDetails.profileCheckFailed' | translate }}</p>
-          <button type="button" class="text-button inline-flex items-center min-h-11 text-primary-800 [font-size:13px] [line-height:20px] font-medium underline [text-underline-offset:4px] cursor-pointer [&:disabled]:[opacity:.5] [&:disabled]:cursor-not-allowed [&:focus-visible]:[outline:2px_solid_var(--color-primary-700)] [&:focus-visible]:[outline-offset:2px]" (click)="loadEligibility()">{{ 'common.retry' | translate }}</button>
+          <button type="button" class="text-button ui-underlined-action [&:disabled]:[opacity:.5] [&:disabled]:cursor-not-allowed" (click)="loadEligibility()">{{ 'common.retry' | translate }}</button>
         } @else if (eligibility() === 'ineligible') {
           <p class="action-note text-gray-500 [font-size:13px] [line-height:20px]">{{ 'jobDetails.needsProfile' | translate }}</p>
-          <a routerLink="/professional-profile" class="text-button inline-flex items-center min-h-11 text-primary-800 [font-size:13px] [line-height:20px] font-medium underline [text-underline-offset:4px] cursor-pointer [&:focus-visible]:[outline:2px_solid_var(--color-primary-700)] [&:focus-visible]:[outline-offset:2px]">{{ 'jobDetails.viewProfile' | translate }}</a>
+          <a routerLink="/professional-profile" class="text-button ui-underlined-action">{{ 'jobDetails.viewProfile' | translate }}</a>
         } @else {
           <button type="button" class="primary-button apply-button inline-flex items-center justify-center min-h-11 [padding:8px_20px] [border:1px_solid_transparent] rounded-lg bg-primary-700 text-white [font-size:14px] [line-height:20px] font-medium text-center cursor-pointer [&.primary-button:hover:enabled]:bg-primary-800 [&:disabled]:[opacity:.5] [&:disabled]:cursor-not-allowed [&:focus-visible]:[outline:2px_solid_var(--color-primary-700)] [&:focus-visible]:[outline-offset:2px] [@media(max-width:_639px)]:[&.primary-button]:px-4" (click)="apply()" [disabled]="!canApply()" [attr.aria-busy]="applying()">
             {{ (applying() ? 'jobDetails.applying' : 'jobDetails.apply') | translate }}

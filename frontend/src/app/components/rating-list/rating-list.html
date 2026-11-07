@@ -46,11 +46,11 @@
     </div>
     @if (pagination.totalPages > 1) {
       <nav class="pagination flex items-center justify-center gap-4 mt-6 [border-block-start:1px_solid_#edf0f2] [padding-block-start:1rem]" [attr.aria-label]="'reviews.pages' | translate">
-        <button type="button" class="page-btn grid place-items-center w-11 h-11 [border:1px_solid_#e5e7eb] [border-radius:.6rem] bg-white cursor-pointer [&.page-btn_svg]:[width:1.1rem] [&.page-btn_svg]:[height:1.1rem] [&.page-btn_svg]:[fill:none] [&.page-btn_svg]:[stroke:currentColor] [&.page-btn_svg]:[stroke-width:1.8] rtl:[&.page-btn_svg]:[transform:rotate(180deg)] [&.page-btn:disabled]:[opacity:.4] [&.page-btn:disabled]:cursor-not-allowed [&:focus-visible]:[outline:2px_solid_var(--color-primary-600)] [&:focus-visible]:[outline-offset:3px] [&:focus-visible]:[border-radius:.25rem]" (click)="goToPrevious()" [disabled]="loading || pagination.page === 0" [attr.aria-label]="'common.previous' | translate">
+        <button type="button" class="page-btn ui-page-icon-button" (click)="goToPrevious()" [disabled]="loading || pagination.page === 0" [attr.aria-label]="'common.previous' | translate">
           <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m14 6-6 6 6 6" /></svg>
         </button>
         <span class="page-info [font-size:.8rem] text-gray-500" aria-live="polite">{{ 'reviews.page' | translate:{page: pagination.page + 1, total: pagination.totalPages} }}</span>
-        <button type="button" class="page-btn grid place-items-center w-11 h-11 [border:1px_solid_#e5e7eb] [border-radius:.6rem] bg-white cursor-pointer [&.page-btn_svg]:[width:1.1rem] [&.page-btn_svg]:[height:1.1rem] [&.page-btn_svg]:[fill:none] [&.page-btn_svg]:[stroke:currentColor] [&.page-btn_svg]:[stroke-width:1.8] rtl:[&.page-btn_svg]:[transform:rotate(180deg)] [&.page-btn:disabled]:[opacity:.4] [&.page-btn:disabled]:cursor-not-allowed [&:focus-visible]:[outline:2px_solid_var(--color-primary-600)] [&:focus-visible]:[outline-offset:3px] [&:focus-visible]:[border-radius:.25rem]" (click)="goToNext()" [disabled]="loading || pagination.page + 1 >= pagination.totalPages" [attr.aria-label]="'common.next' | translate">
+        <button type="button" class="page-btn ui-page-icon-button" (click)="goToNext()" [disabled]="loading || pagination.page + 1 >= pagination.totalPages" [attr.aria-label]="'common.next' | translate">
           <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m10 6 6 6-6 6" /></svg>
         </button>
       </nav>

@@ -15,23 +15,23 @@
         </div>
         <div class="conversation-list-content min-h-0 flex-1 overflow-y-auto overscroll-contain">
           @if (loading()) {
-            <p class="list-state grid gap-3 px-4 py-6 text-sm leading-6 text-gray-500" role="status">{{ 'common.loading' | translate }}</p>
+            <p class="list-state ui-list-state" role="status">{{ 'common.loading' | translate }}</p>
           } @else if (error()) {
-            <div class="list-state grid gap-3 px-4 py-6 text-sm leading-6 text-gray-500" role="alert">
+            <div class="list-state ui-list-state" role="alert">
               <p>{{ error() }}</p>
-              <button type="button" class="inbox-text-button inline-flex min-h-11 cursor-pointer items-center justify-self-start font-medium text-primary-800 underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700" (click)="load()">{{ 'common.retry' | translate }}</button>
+              <button type="button" class="inbox-text-button ui-inbox-link" (click)="load()">{{ 'common.retry' | translate }}</button>
             </div>
           } @else if (!rows().length) {
-            <div class="list-state grid gap-3 px-4 py-6 text-sm leading-6 text-gray-500 empty-list justify-items-start [&>svg]:size-8 [&>svg]:text-gray-400 [&>h2]:font-medium [&>h2]:text-gray-700">
+            <div class="list-state ui-list-state empty-list justify-items-start [&>svg]:size-8 [&>svg]:text-gray-400 [&>h2]:font-medium [&>h2]:text-gray-700">
               <svg class="size-[18px] shrink-0 stroke-1.5" lucideMessageSquare aria-hidden="true"></svg>
               <h2>{{ 'chat.empty' | translate }}</h2>
               <p>{{ 'chat.emptyHint' | translate }}</p>
-              <a routerLink="/jobs/my" class="inbox-text-button inline-flex min-h-11 cursor-pointer items-center justify-self-start font-medium text-primary-800 underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700">{{ 'chat.goToMyJobs' | translate }}</a>
+              <a routerLink="/jobs/my" class="inbox-text-button ui-inbox-link">{{ 'chat.goToMyJobs' | translate }}</a>
             </div>
           } @else if (!filteredRows().length) {
-            <div class="list-state grid gap-3 px-4 py-6 text-sm leading-6 text-gray-500" role="status">
+            <div class="list-state ui-list-state" role="status">
               <p>{{ 'chat.noResults' | translate }}</p>
-              <button type="button" class="inbox-text-button inline-flex min-h-11 cursor-pointer items-center justify-self-start font-medium text-primary-800 underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700" (click)="query.set('')">{{ 'chat.clearSearch' | translate }}</button>
+              <button type="button" class="inbox-text-button ui-inbox-link" (click)="query.set('')">{{ 'chat.clearSearch' | translate }}</button>
             </div>
           } @else {
             <ul class="conversation-list divide-y divide-gray-100 px-2 py-1" [attr.aria-label]="'chat.conversations' | translate">

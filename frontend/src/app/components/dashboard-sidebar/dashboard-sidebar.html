@@ -5,7 +5,7 @@
       <p role="status" class="sidebar-message [padding:.5rem_1.5rem_1rem] [color:var(--dashboard-body,_#48545e)] [font-size:.8125rem] [line-height:1.55] [&.sidebar-message_>_.text-button]:mt-1">{{ 'common.loading' | translate }}</p>
     }
     @if (notifications.loadError()) {
-      <div role="alert" class="sidebar-message [padding:.5rem_1.5rem_1rem] [color:var(--dashboard-body,_#48545e)] [font-size:.8125rem] [line-height:1.55] [&.sidebar-message_>_.text-button]:mt-1"><p>{{ 'dashboard.activityError' | translate }}</p><button type="button" class="text-button inline-flex items-center justify-center [gap:.4rem] min-h-11 text-primary-800 [font-size:.8125rem] font-medium cursor-pointer shrink-0 [&.text-button:hover]:underline [&.text-button:hover]:[text-underline-offset:.2rem] [&:focus-visible]:[outline:2px_solid_var(--color-primary-600)] [&:focus-visible]:[outline-offset:4px] [&:focus-visible]:[border-radius:.25rem]" (click)="notifications.load()">{{ 'common.retry' | translate }}</button></div>
+      <div role="alert" class="sidebar-message [padding:.5rem_1.5rem_1rem] [color:var(--dashboard-body,_#48545e)] [font-size:.8125rem] [line-height:1.55] [&.sidebar-message_>_.text-button]:mt-1"><p>{{ 'dashboard.activityError' | translate }}</p><button type="button" class="text-button ui-dashboard-link shrink-0 [&.text-button:hover]:underline [&.text-button:hover]:[text-underline-offset:.2rem]" (click)="notifications.load()">{{ 'common.retry' | translate }}</button></div>
     }
     @if (recentActivity().length) {
       <ul class="activity-list px-6">
@@ -27,11 +27,11 @@
     @if (summaryState === 'loading') {
       <p role="status" class="sidebar-message [padding:.5rem_1.5rem_1rem] [color:var(--dashboard-body,_#48545e)] [font-size:.8125rem] [line-height:1.55] [&.sidebar-message_>_.text-button]:mt-1">{{ 'common.loading' | translate }}</p>
     } @else if (summaryState === 'error') {
-      <div role="alert" class="sidebar-message [padding:.5rem_1.5rem_1rem] [color:var(--dashboard-body,_#48545e)] [font-size:.8125rem] [line-height:1.55] [&.sidebar-message_>_.text-button]:mt-1"><p>{{ 'reviews.summaryError' | translate }}</p><button type="button" class="text-button inline-flex items-center justify-center [gap:.4rem] min-h-11 text-primary-800 [font-size:.8125rem] font-medium cursor-pointer shrink-0 [&.text-button:hover]:underline [&.text-button:hover]:[text-underline-offset:.2rem] [&:focus-visible]:[outline:2px_solid_var(--color-primary-600)] [&:focus-visible]:[outline-offset:4px] [&:focus-visible]:[border-radius:.25rem]" (click)="retrySummary.emit()">{{ 'common.retry' | translate }}</button></div>
+      <div role="alert" class="sidebar-message [padding:.5rem_1.5rem_1rem] [color:var(--dashboard-body,_#48545e)] [font-size:.8125rem] [line-height:1.55] [&.sidebar-message_>_.text-button]:mt-1"><p>{{ 'reviews.summaryError' | translate }}</p><button type="button" class="text-button ui-dashboard-link shrink-0 [&.text-button:hover]:underline [&.text-button:hover]:[text-underline-offset:.2rem]" (click)="retrySummary.emit()">{{ 'common.retry' | translate }}</button></div>
     } @else if (summary; as rating) {
       <div class="reputation-summary mx-6 [margin-block:.75rem_.25rem]"><app-rating-display [summary]="rating" [compact]="true" /></div>
       @if (!rating.totalRatings) { <p class="section-description [margin:.25rem_1.5rem_0] [color:var(--dashboard-muted,_#68747e)] [font-size:.8125rem] [line-height:1.55]">{{ 'dashboard.reputationEmpty' | translate }}</p> }
     }
-    <a routerLink="/profile" fragment="profile-ratings-heading" class="text-button reputation-link inline-flex items-center justify-center [gap:.4rem] min-h-11 text-primary-800 [font-size:.8125rem] font-medium cursor-pointer shrink-0 mx-6 [margin-block:.5rem_.75rem] [&.text-button:hover]:underline [&.text-button:hover]:[text-underline-offset:.2rem] [&:focus-visible]:[outline:2px_solid_var(--color-primary-600)] [&:focus-visible]:[outline-offset:4px] [&:focus-visible]:[border-radius:.25rem]">{{ 'dashboard.viewReviews' | translate }}<svg lucideArrowRight aria-hidden="true" class="arrow-icon w-4 h-4 [stroke-width:1.5]"></svg></a>
+    <a routerLink="/profile" fragment="profile-ratings-heading" class="text-button reputation-link ui-dashboard-link shrink-0 mx-6 [margin-block:.5rem_.75rem] [&.text-button:hover]:underline [&.text-button:hover]:[text-underline-offset:.2rem]">{{ 'dashboard.viewReviews' | translate }}<svg lucideArrowRight aria-hidden="true" class="arrow-icon w-4 h-4 [stroke-width:1.5]"></svg></a>
   </section>
 </aside>

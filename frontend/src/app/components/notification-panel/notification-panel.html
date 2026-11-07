@@ -1,4 +1,4 @@
-<section class="notification-panel group/notifications rounded-xl border border-gray-200 bg-white p-6 [&.compact]:border-0 [&.compact]:p-0" [class.compact]="compact()" [attr.aria-labelledby]="headingId()">
+<section class="notification-panel group/notifications ui-panel [&.compact]:border-0 [&.compact]:p-0" [class.compact]="compact()" [attr.aria-labelledby]="headingId()">
   <header class="notification-header flex items-center justify-between gap-2 group-[.compact]/notifications:border-b group-[.compact]/notifications:border-gray-100 group-[.compact]/notifications:px-3 group-[.compact]/notifications:py-1">
     <h2 class="me-auto text-xl leading-7 font-semibold text-gray-900 group-[.compact]/notifications:text-base group-[.compact]/notifications:leading-6" [id]="headingId()">{{ 'notifications.title' | translate }}</h2>
     @if (unread()) {

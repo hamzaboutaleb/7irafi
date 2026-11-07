@@ -40,24 +40,24 @@
       </div>
     </div>
     @if (isLoading()) {
-      <div class="jobs-grid grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-3" aria-hidden="true">
+      <div class="jobs-grid ui-results-grid" aria-hidden="true">
         @for (placeholder of [1, 2, 3, 4, 5, 6]; track placeholder) {
           <div class="overflow-hidden rounded-xl border border-gray-200 bg-white"><div class="h-40 bg-gray-100"></div><div class="grid gap-4 p-5"><div class="h-5 rounded bg-gray-100"></div><div class="h-5 rounded bg-gray-100"></div><div class="h-8 w-3/5 rounded bg-gray-100"></div></div></div>
         }
       </div>
     } @else if (errorMessage()) {
       <div class="jobs-state error-state grid justify-items-center gap-3 rounded-xl border border-gray-200 bg-white px-6 py-12 text-center text-sm leading-6 text-red-700" role="alert">
-        <p>{{ errorMessage() }}</p><button type="button" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm leading-5 font-medium text-gray-600 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700" (click)="loadJobs()">{{ 'common.retry' | translate }}</button>
+        <p>{{ errorMessage() }}</p><button type="button" class="ui-filter-button" (click)="loadJobs()">{{ 'common.retry' | translate }}</button>
       </div>
     } @else if (!jobs().length) {
       <div class="jobs-state grid justify-items-center gap-3 rounded-xl border border-gray-200 bg-white px-6 py-12 text-center text-sm leading-6 text-gray-500" role="status">
         <svg lucideBriefcaseBusiness class="size-8 shrink-0 stroke-1.5" aria-hidden="true"></svg>
         <h2 class="text-lg leading-6 font-medium text-gray-700">{{ 'jobs.none' | translate }}</h2>
         <p>{{ (chips().length ? 'jobs.emptyFiltered' : 'jobs.emptyDefault') | translate }}</p>
-        @if (chips().length) { <button type="button" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm leading-5 font-medium text-gray-600 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700" (click)="clearFilters()">{{ 'directory.clearFilters' | translate }}</button> }
+        @if (chips().length) { <button type="button" class="ui-filter-button" (click)="clearFilters()">{{ 'directory.clearFilters' | translate }}</button> }
       </div>
     } @else {
-      <ul class="jobs-grid grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
+      <ul class="jobs-grid ui-results-grid">
         @for (job of jobs(); track job.id) {
           <li><app-job-card [job]="job" (viewDetails)="selectedJobId.set(job.id)" /></li>
         }
@@ -66,11 +66,11 @@
 
     @if (!isLoading() && !errorMessage() && totalPages() > 1) {
       <nav [attr.aria-label]="'jobs.pagination' | translate" class="mt-8 flex flex-wrap items-center justify-center gap-4 text-[13px] leading-5 text-gray-500">
-        <button type="button" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm leading-5 font-medium text-gray-600 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700 disabled:cursor-not-allowed disabled:opacity-50" (click)="changePage(currentPage() - 1)" [disabled]="currentPage() === 0">
+        <button type="button" class="ui-filter-button disabled:cursor-not-allowed disabled:opacity-50" (click)="changePage(currentPage() - 1)" [disabled]="currentPage() === 0">
           <svg lucideChevronLeft class="size-4 shrink-0 stroke-1.5 rtl:rotate-180" aria-hidden="true"></svg>{{ 'common.previous' | translate }}
         </button>
         <span aria-live="polite">{{ 'jobs.pageLabel' | translate: { page: currentPage() + 1, total: totalPages() } }}</span>
-        <button type="button" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm leading-5 font-medium text-gray-600 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700 disabled:cursor-not-allowed disabled:opacity-50" (click)="changePage(currentPage() + 1)" [disabled]="currentPage() >= totalPages() - 1">
+        <button type="button" class="ui-filter-button disabled:cursor-not-allowed disabled:opacity-50" (click)="changePage(currentPage() + 1)" [disabled]="currentPage() >= totalPages() - 1">
           {{ 'common.next' | translate }}<svg lucideChevronRight class="size-4 shrink-0 stroke-1.5 rtl:rotate-180" aria-hidden="true"></svg>
         </button>
       </nav>
@@ -103,17 +103,17 @@
     <fieldset class="min-w-0">
       <legend class="mb-2 text-[13px] leading-5 font-medium text-gray-600">{{ 'jobs.budgetMad' | translate }}</legend>
       <div class="flex items-center gap-2 text-gray-400">
-        <input type="number" min="0" class="min-h-11 w-full min-w-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm leading-5 text-gray-700 placeholder:text-gray-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700" [placeholder]="'jobs.min' | translate" [attr.aria-label]="'jobs.minBudget' | translate"
+        <input type="number" min="0" class="ui-filter-input" [placeholder]="'jobs.min' | translate" [attr.aria-label]="'jobs.minBudget' | translate"
           [attr.aria-invalid]="budgetError() ? true : null" [attr.aria-describedby]="budgetError() ? (mobile ? 'mobile-budget-error' : 'budget-error') : null"
           [ngModel]="draft().minBudget" (ngModelChange)="updateFilter('minBudget', $event, true)" (change)="!mobile && applyFilters()" />
         <span aria-hidden="true">–</span>
-        <input type="number" min="0" class="min-h-11 w-full min-w-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm leading-5 text-gray-700 placeholder:text-gray-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700" [placeholder]="'jobs.max' | translate" [attr.aria-label]="'jobs.maxBudget' | translate"
+        <input type="number" min="0" class="ui-filter-input" [placeholder]="'jobs.max' | translate" [attr.aria-label]="'jobs.maxBudget' | translate"
           [attr.aria-invalid]="budgetError() ? true : null" [attr.aria-describedby]="budgetError() ? (mobile ? 'mobile-budget-error' : 'budget-error') : null"
           [ngModel]="draft().maxBudget" (ngModelChange)="updateFilter('maxBudget', $event, true)" (change)="!mobile && applyFilters()" />
       </div>
     </fieldset>
     @if (!mobile) {
-      <button type="button" class="inline-flex min-h-11 items-center justify-self-start justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm leading-5 font-medium text-gray-600 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700 aria-[expanded=true]:border-primary-700 aria-[expanded=true]:text-primary-800" [attr.aria-expanded]="moreFilters()" aria-controls="extra-filters" (click)="moreFilters.set(!moreFilters())">
+      <button type="button" class="ui-filter-button justify-self-start aria-[expanded=true]:border-primary-700 aria-[expanded=true]:text-primary-800" [attr.aria-expanded]="moreFilters()" aria-controls="extra-filters" (click)="moreFilters.set(!moreFilters())">
         <svg lucideSlidersHorizontal class="size-4 shrink-0 stroke-1.5" aria-hidden="true"></svg>{{ 'jobs.moreFilters' | translate }}
       </button>
     }
@@ -142,7 +142,7 @@
   </header>
   <div class="min-h-0 overflow-y-auto p-5"><ng-container *ngTemplateOutlet="filterFields; context: { mobile: true }" /></div>
   <footer class="flex shrink-0 gap-3 border-t border-gray-100 px-5 py-4">
-    <button type="button" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm leading-5 font-medium text-gray-600 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700" (click)="clearFilters(true)">{{ 'common.reset' | translate }}</button>
+    <button type="button" class="ui-filter-button" (click)="clearFilters(true)">{{ 'common.reset' | translate }}</button>
     <button type="button" class="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg border border-transparent bg-primary-700 px-3 py-2 text-sm leading-5 font-medium text-white hover:bg-primary-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700" (click)="showResults()">{{ 'jobs.showResults' | translate }}</button>
   </footer>
 </dialog>

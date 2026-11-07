@@ -1,10 +1,10 @@
 <a routerLink="/conversations" class="thread-back hidden max-md:inline-flex min-h-11 items-center gap-2 px-4 py-2 text-[13px] leading-5 text-primary-800 [&>svg]:size-4 rtl:[&>svg]:rotate-180 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700"><svg class="size-[18px] shrink-0 stroke-1.5" lucideArrowLeft aria-hidden="true"></svg>{{ 'chat.allMessages' | translate }}</a>
 @if (loading()) {
-  <p role="status" class="thread-state grid flex-1 place-content-center justify-items-start gap-3 p-6 text-sm leading-6 text-gray-500">{{ 'common.loading' | translate }}</p>
+  <p role="status" class="thread-state ui-thread-state">{{ 'common.loading' | translate }}</p>
 } @else if (error()) {
-  <div class="thread-state grid flex-1 place-content-center justify-items-start gap-3 p-6 text-sm leading-6 text-gray-500" role="alert">
+  <div class="thread-state ui-thread-state" role="alert">
     <p>{{ error() }}</p>
-    <button type="button" class="thread-text-button inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 text-[13px] leading-5 font-medium text-primary-800 hover:underline hover:underline-offset-4 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700" (click)="retry()">{{ 'common.retry' | translate }}</button>
+    <button type="button" class="thread-text-button ui-thread-link" (click)="retry()">{{ 'common.retry' | translate }}</button>
   </div>
 } @else {
   <header class="thread-header flex flex-wrap items-center gap-3 border-b border-gray-100 px-4 py-3 md:flex-nowrap md:px-6 md:py-4">
@@ -26,11 +26,11 @@
   </header>
   <div class="job-context flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 px-4 text-xs leading-5 text-gray-500 md:px-6">
     <span>{{ (conversation()?.clientId === me ? 'chat.yourPostedJob' : 'chat.yourApplication') | translate }}</span>
-    <button type="button" class="thread-text-button inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 text-[13px] leading-5 font-medium text-primary-800 hover:underline hover:underline-offset-4 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700" (click)="jobOpen.set(true)"><svg class="size-[18px] shrink-0 stroke-1.5" lucideBriefcaseBusiness aria-hidden="true"></svg>{{ 'chat.viewJob' | translate }}</button>
+    <button type="button" class="thread-text-button ui-thread-link" (click)="jobOpen.set(true)"><svg class="size-[18px] shrink-0 stroke-1.5" lucideBriefcaseBusiness aria-hidden="true"></svg>{{ 'chat.viewJob' | translate }}</button>
   </div>
   <div #scroller class="message-scroller min-h-0 flex-1 overflow-y-auto overscroll-contain bg-[#fafafa] p-4 md:p-6" role="log" aria-live="polite" aria-relevant="additions" [attr.aria-label]="'chat.title' | translate">
     @if (hasOlder()) {
-      <div class="older-messages mb-4 flex justify-center"><button type="button" class="thread-text-button inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 text-[13px] leading-5 font-medium text-primary-800 hover:underline hover:underline-offset-4 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700" (click)="loadOlder()" [disabled]="loadingOlder()">{{ (loadingOlder() ? 'common.loading' : 'chat.loadOlder') | translate }}</button></div>
+      <div class="older-messages mb-4 flex justify-center"><button type="button" class="thread-text-button ui-thread-link" (click)="loadOlder()" [disabled]="loadingOlder()">{{ (loadingOlder() ? 'common.loading' : 'chat.loadOlder') | translate }}</button></div>
     }
     @if (!messages().length) { <p class="empty-thread mx-auto grid h-full max-w-[360px] place-items-center text-center text-sm leading-6 text-gray-500">{{ 'chat.noMessages' | translate }}</p> }
     <ol class="message-list grid gap-3">
@@ -44,8 +44,8 @@
       }
     </ol>
   </div>
-  @if (notice()) { <p role="alert" class="thread-notice border-t border-amber-200 bg-amber-50 px-6 py-3 text-[13px] leading-5 text-amber-800">{{ notice() }}</p> }
-  @else if (connection() !== 'connected') { <p role="status" class="thread-notice border-t border-amber-200 bg-amber-50 px-6 py-3 text-[13px] leading-5 text-amber-800">{{ 'chat.connectionHint' | translate }}</p> }
+  @if (notice()) { <p role="alert" class="thread-notice ui-warning-notice">{{ notice() }}</p> }
+  @else if (connection() !== 'connected') { <p role="status" class="thread-notice ui-warning-notice">{{ 'chat.connectionHint' | translate }}</p> }
   <div class="composer-area group/composer border-t border-gray-200 px-4 py-3 md:px-6 md:pt-4">
     <form (ngSubmit)="send()" class="message-composer flex min-h-[52px] items-end gap-2 rounded-xl border border-gray-300 p-1 focus-within:border-primary-700 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary-700">
       <label for="draft" class="sr-only">{{ 'chat.writeMessage' | translate }}</label>
