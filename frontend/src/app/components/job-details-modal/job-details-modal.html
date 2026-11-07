@@ -6,7 +6,7 @@
         <div class="header-meta">
           <span>{{ detail.skill.replaceAll('_', ' ') | titlecase }}</span>
           <span aria-hidden="true">·</span>
-          <span class="location"><svg lucideMapPin aria-hidden="true"></svg>{{ detail.city | titlecase }}</span>
+          <span class="location"><svg lucideMapPin aria-hidden="true"></svg>{{ detail.city.replaceAll('_', ' ') | titlecase }}</span>
           <span class="job-status" [attr.data-status]="detail.status">{{ statusLabel() }}</span>
         </div>
       }

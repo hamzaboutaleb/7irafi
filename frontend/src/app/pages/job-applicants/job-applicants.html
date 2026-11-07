@@ -9,7 +9,7 @@
         <span class="job-mark" aria-hidden="true"><svg lucideBriefcaseBusiness></svg></span>
         <div class="job-summary-copy">
           <h2 id="applicant-job-heading">{{ detail.title }}</h2>
-          <div class="job-meta"><span><svg lucideMapPin aria-hidden="true"></svg>{{ detail.city }}</span><span aria-hidden="true">·</span><span><bdi>{{ budgetLabel() }} MAD</bdi></span></div>
+          <div class="job-meta"><span><svg lucideMapPin aria-hidden="true"></svg>{{ detail.city.replaceAll('_', ' ') | titlecase }}</span><span aria-hidden="true">·</span><span><bdi>{{ budgetLabel() }} MAD</bdi></span></div>
         </div>
         <span class="status-label" [attr.data-status]="detail.status">{{ jobStatusLabel() }}</span>
         <details class="job-context"><summary>{{ 'applications.viewJob' | translate }}<svg lucideChevronDown aria-hidden="true"></svg></summary><p dir="auto">{{ detail.description }}</p></details>

@@ -12,7 +12,7 @@
     </div>
     <div class="job-metadata">
       <p class="job-trade">{{ job().skill.replaceAll('_', ' ') | titlecase }}</p>
-      <p class="job-location"><svg lucideMapPin aria-hidden="true"></svg>{{ job().city | titlecase }}</p>
+      <p class="job-location"><svg lucideMapPin aria-hidden="true"></svg>{{ job().city.replaceAll('_', ' ') | titlecase }}</p>
     </div>
     <div class="job-card-footer">
       <dl class="job-budget">

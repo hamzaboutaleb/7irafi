@@ -1,3 +1,4 @@
+import { TitleCasePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, computed, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -20,7 +21,7 @@ import { TranslatePipe } from '../../pipes/translate-pipe.js';
 
 @Component({
   selector: 'app-job-applicants',
-  imports: [RouterLink, Navbar, Footer, TranslatePipe, LucideArrowLeft, LucideBriefcaseBusiness, LucideMapPin, LucideUsersRound, LucideUserRound, LucideWrench, LucideChevronDown, LucideChevronLeft, LucideChevronRight, LucideMessageSquare, LucideCheck],
+  imports: [TitleCasePipe, RouterLink, Navbar, Footer, TranslatePipe, LucideArrowLeft, LucideBriefcaseBusiness, LucideMapPin, LucideUsersRound, LucideUserRound, LucideWrench, LucideChevronDown, LucideChevronLeft, LucideChevronRight, LucideMessageSquare, LucideCheck],
   templateUrl: './job-applicants.html',
   styleUrl: './job-applicants.css',
 })

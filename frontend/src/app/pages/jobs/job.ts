@@ -102,7 +102,7 @@ export class Job implements OnInit {
   ]);
   readonly cityOptions = computed(() => [
     { value: '', label: this.i18n.translate('directory.allCities') },
-    ...this.cities().map(value => ({ value, label: this.titleCase.transform(value) })),
+    ...this.cities().map(value => ({ value, label: this.titleCase.transform(value.replaceAll('_', ' ')) })),
   ]);
   readonly durationOptions = computed(() => [
     { value: '', label: this.i18n.translate('jobs.anyDuration') },

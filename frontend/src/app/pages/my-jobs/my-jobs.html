@@ -39,7 +39,7 @@
           <li><article class="job-row">
             <div class="job-info">
               <div class="job-title-line"><h2><button type="button" (click)="selectedJobId.set(job.id)">{{ job.title }}</button></h2><span class="job-status" [class.is-open]="job.status === 'OPEN'">{{ statusLabel(job.status) | translate }}</span></div>
-              <div class="job-meta"><span><svg [lucideIcon]="icons.work" aria-hidden="true" />{{ job.skill | titlecase }}</span><span><svg [lucideIcon]="icons.city" aria-hidden="true" />{{ job.city | titlecase }}</span><span>{{ 'myJobs.posted' | translate }} {{ formatDate(job.createdAt) }}</span></div>
+              <div class="job-meta"><span><svg [lucideIcon]="icons.work" aria-hidden="true" />{{ job.skill.replaceAll('_', ' ') | titlecase }}</span><span><svg [lucideIcon]="icons.city" aria-hidden="true" />{{ job.city.replaceAll('_', ' ') | titlecase }}</span><span>{{ 'myJobs.posted' | translate }} {{ formatDate(job.createdAt) }}</span></div>
             </div>
             <p class="job-budget">{{ formatNumber(job.budget) }} <span>MAD</span></p>
             <div class="row-buttons job-controls">
