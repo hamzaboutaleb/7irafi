@@ -1,0 +1,32 @@
+:host { display: block; margin-bottom: 24px; }
+.avatar-card { padding: 24px; border: 1px solid #e5e7eb; border-radius: 12px; background: #fff; }
+.identity-row { display: flex; align-items: center; gap: 16px; min-width: 0; }
+.identity-row.standalone { margin-top: 16px; }
+.avatar-wrapper { position: relative; flex-shrink: 0; width: 64px; height: 64px; }
+.avatar-image, .avatar-initials { width: 100%; height: 100%; border-radius: 50%; }
+.avatar-image { object-fit: cover; border: 1px solid #e5e7eb; }
+.avatar-initials { display: flex; align-items: center; justify-content: center; background: var(--color-primary-50); color: var(--color-primary-800); font-size: 20px; font-weight: 500; }
+.camera-button { position: absolute; inset-inline-end: -10px; bottom: -10px; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; }
+.camera-badge { display: grid; place-items: center; width: 28px; height: 28px; border: 1px solid #d1d5db; border-radius: 50%; background: #fff; color: #4b5563; box-shadow: 0 1px 2px rgb(0 0 0 / 5%); transition: background-color 160ms ease, color 160ms ease; }
+.camera-button:hover .camera-badge { color: var(--color-primary-800); background: var(--color-primary-50); }
+.camera-badge svg { width: 16px; height: 16px; stroke-width: 1.5; }
+.camera-button:focus-visible { outline: 2px solid var(--color-primary-700); outline-offset: 0; }
+.identity-copy { flex: 1; min-width: 0; }
+.avatar-name { overflow-wrap: anywhere; font-size: 20px; line-height: 28px; font-weight: 600; color: #111827; }
+.avatar-email { margin-top: 4px; overflow-wrap: anywhere; font-size: 14px; line-height: 20px; color: #4b5563; }
+.avatar-editor { margin-top: 24px; padding-top: 16px; border-top: 1px solid #f3f4f6; }
+.upload-guidance { font-size: 12px; line-height: 20px; color: #6b7280; }
+.photo-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.photo-button { min-height: 44px; padding: 8px 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; line-height: 20px; font-weight: 500; color: #374151; cursor: pointer; transition: background-color 160ms ease; }
+.photo-button:hover { background: #f9fafb; }
+.photo-button:focus-visible { outline: 2px solid var(--color-primary-700); outline-offset: 2px; }
+.save-photo { background: var(--color-primary-700); border-color: transparent; color: #fff; }
+.save-photo:hover { background: var(--color-primary-800); }
+.cancel-photo { border-color: transparent; }
+.remove-photo { color: #b91c1c; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+.upload-progress { height: 4px; margin-top: 16px; overflow: hidden; border-radius: 4px; background: #f3f4f6; }
+.upload-progress div { height: 100%; background: var(--color-primary-700); }
+.photo-feedback { margin-top: 16px; font-size: 14px; line-height: 20px; color: var(--color-primary-800); }
+.photo-error { color: #b91c1c; }
+@media (prefers-reduced-motion: reduce) { .photo-button, .camera-badge { transition: none; } }

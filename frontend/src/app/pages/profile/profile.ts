@@ -11,8 +11,11 @@ import { NotificationPanel } from '../../components/notification-panel/notificat
 import { Navbar } from '../../components/navbar/navbar';
 import { Footer } from '../../components/footer/footer';
 import { DatePipe } from '@angular/common';
-import { ProfessionalProfile as ProfessionalProfileModel } from '../../types/professional-profile.js';
-import { RouterLink } from "@angular/router";
+import { ProfessionalProfile as ProfessionalProfileModel, ProfessionalOnboardingStatus } from '../../types/professional-profile.js';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { I18nService } from '../../services/i18n.js';
+import { TranslationKey } from '../../i18n/language.js';
+import { LucideDynamicIcon, LucidePencil, LucideUserRound, LucideBriefcaseBusiness, LucideStar, LucideBell } from '@lucide/angular';
 import { TranslatePipe } from '../../pipes/translate-pipe.js';
 import { RatingDisplayComponent } from '../../components/rating-display/rating-display.js';
 import { RatingListComponent } from '../../components/rating-list/rating-list.js';
@@ -23,7 +26,7 @@ type ProfessionalSectionState = 'loading' | 'none' | 'loaded' | 'error';
 
 @Component({
   selector: 'app-profile',
-  imports: [ReactiveFormsModule, Navbar, Footer, DatePipe, RouterLink, AvatarUpload, NotificationPanel, TranslatePipe, RatingDisplayComponent, RatingListComponent, JobDetailsModal],
+  imports: [ReactiveFormsModule, Navbar, Footer, DatePipe, RouterLink, AvatarUpload, NotificationPanel, TranslatePipe, RatingDisplayComponent, RatingListComponent, JobDetailsModal, LucideDynamicIcon, LucidePencil],
   templateUrl: './profile.html',
   styleUrl: './profile.css',
 })
@@ -32,6 +35,25 @@ export class Profile implements OnInit {
   private readonly userService = inject(UserService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly ratingService = inject(RatingService);
+  private readonly i18n = inject(I18nService);
+  private readonly route = inject(ActivatedRoute);
+
+  readonly section = signal<'personal' | 'professional' | 'reviews' | 'notifications'>('personal');
+  readonly sections = [
+    { id: 'personal', label: 'profile.personalInformation', icon: LucideUserRound },
+    { id: 'professional', label: 'profile.professional', icon: LucideBriefcaseBusiness },
+    { id: 'reviews', label: 'reviews.title', icon: LucideStar },
+    { id: 'notifications', label: 'notifications.title', icon: LucideBell },
+  ] as const;
+
+  professionalStatus(status: ProfessionalOnboardingStatus): TranslationKey {
+    const labels: Record<ProfessionalOnboardingStatus, TranslationKey> = {
+      INCOMPLETE: 'profile.status.incomplete',
+      ACTIVE: 'profile.status.active',
+      SUSPENDED: 'profile.status.suspended',
+    };
+    return labels[status];
+  }
 
   readonly ratingSummary = signal<UserRatingSummary | null>(null);
   readonly ratingsLoading = signal(false);
@@ -48,13 +70,15 @@ export class Profile implements OnInit {
   readonly isEditingPersonal = signal(false);
   readonly professionalSection = signal<ProfessionalSectionState>('loading');
   readonly professionalProfile = signal<ProfessionalProfileModel | null>(null);
-
   readonly form = this.formBuilder.nonNullable.group({
     firstName: ['', [Validators.required, Validators.maxLength(50), Validators.minLength(3)]],
     lastName: ['', [Validators.required, Validators.maxLength(50), Validators.minLength(3)]],
   });
 
   ngOnInit(): void {
+    this.route.fragment.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(fragment => {
+      if (fragment === 'profile-ratings-heading') this.section.set('reviews');
+    });
     this.ratingService.reviewsChanged.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.loadRatingSummary());
     this.userService
@@ -73,7 +97,7 @@ export class Profile implements OnInit {
         error: (err: HttpErrorResponse) => {
           const body = err.error as ApiError | undefined;
 
-          this.errorMessage.set(body?.error?.message ?? 'Unable to load your profile.');
+          this.errorMessage.set(body?.error?.message ?? this.i18n.translate('profile.loadError'));
           this.isLoading.set(false);
         },
       });
@@ -160,14 +184,14 @@ export class Profile implements OnInit {
             firstName: response.data.firstName,
             lastName: response.data.lastName,
           });
-          this.successMessage.set('Profile updated successfully.');
+          this.successMessage.set(this.i18n.translate('profile.updated'));
           this.isSaving.set(false);
           this.isEditingPersonal.set(false);
         },
         error: (err: HttpErrorResponse) => {
           const body = err.error as ApiError | undefined;
 
-          this.errorMessage.set(body?.error?.message ?? 'Unable to update your profile.');
+          this.errorMessage.set(body?.error?.message ?? this.i18n.translate('profile.saveError'));
           this.isSaving.set(false);
         },
       });

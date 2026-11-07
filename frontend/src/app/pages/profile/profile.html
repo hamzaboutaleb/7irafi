@@ -1,10 +1,8 @@
 <app-navbar />
-<main class="min-h-screen bg-gray-50 px-4 py-10 sm:px-6">
-  <div class="mx-auto max-w-2xl">
-    <header class="mb-8">
-      <p class="text-sm font-semibold text-primary-600">{{ 'profile.eyebrow' | translate }}</p>
-
-      <h1 class="mt-2 text-3xl font-bold text-gray-900">{{ 'profile.title' | translate }}</h1>
+<main class="profile-page">
+  <div class="profile-container">
+    <header class="profile-heading">
+      <h1 class="text-3xl font-semibold text-gray-900">{{ 'profile.title' | translate }}</h1>
 
       <p class="mt-2 text-gray-600">
         {{ 'profile.subtitle' | translate }}
@@ -13,7 +11,7 @@
 
     @if (isLoading()) {
       <section
-        class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
+        class="profile-panel"
         role="status"
         aria-live="polite"
       >
@@ -40,339 +38,313 @@
       }
 
       @if (profile(); as currentProfile) {
-        <section
-          class="mb-6 flex flex-col gap-5 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-8"
-          aria-labelledby="profile-summary-heading"
-        >
-          <div class="flex min-w-0 items-center gap-4">
-            @if (currentProfile.avatarUrl) {
-              <img
-                [src]="currentProfile.avatarUrl"
-                alt=""
-                class="h-16 w-16 shrink-0 rounded-full border border-gray-200 object-cover"
-              />
-            } @else {
-              <div
-                class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xl font-bold uppercase text-primary-700"
-                aria-hidden="true"
-              >
-                {{ currentProfile.firstName.charAt(0) }}{{ currentProfile.lastName.charAt(0) }}
-              </div>
-            }
+        <app-avatar-upload [profile]="currentProfile" [showIdentity]="true" (profileChange)="profile.set($event)" />
 
-            <div class="min-w-0">
-              <p class="text-sm font-semibold text-primary-600">{{ 'profile.account' | translate }}</p>
-              <h2
-                id="profile-summary-heading"
-                class="mt-1 truncate text-2xl font-bold text-gray-900"
-              >
-                {{ currentProfile.firstName }} {{ currentProfile.lastName }}
-              </h2>
-              <p class="mt-1 break-all text-sm text-gray-600">{{ currentProfile.email }}</p>
-            </div>
-          </div>
-
-          <span
-            class="inline-flex min-h-11 items-center self-start rounded-full bg-primary-50 px-4 py-2 text-sm font-semibold text-primary-700 sm:self-center"
-          >
-            {{ 'profile.personalAccount' | translate }}
-          </span>
-        </section>
-
-        <section class="mb-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8" aria-labelledby="profile-ratings-heading">
-          <h2 id="profile-ratings-heading" class="text-xl font-semibold text-gray-900">{{ 'reviews.title' | translate }}</h2>
-          <p class="mb-5 mt-1 text-sm leading-6 text-gray-500">{{ 'reviews.intro' | translate }}</p>
-          @if (ratingsLoading() && reviewListState() !== 'error') {
-            <div role="status" class="mb-5 h-32 animate-pulse rounded-xl bg-gray-50 motion-reduce:animate-none"><span class="sr-only">{{ 'reviews.loading' | translate }}</span></div>
-          } @else if (ratingsError() && reviewListState() !== 'error') {
-            <div role="alert" class="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-600">
-              <span>{{ 'reviews.summaryError' | translate }}</span>
-              <button type="button" (click)="loadRatingSummary()" class="min-h-11 font-semibold text-primary-800 underline">{{ 'common.retry' | translate }}</button>
-            </div>
-          } @else if (ratingSummary()) {
-            <app-rating-display [summary]="ratingSummary()" />
-          }
-          <div class="flex flex-wrap gap-1 border-b border-gray-200" role="group" [attr.aria-label]="'reviews.type' | translate">
-            <button type="button" (click)="ratingType.set('received')" [attr.aria-pressed]="ratingType() === 'received'" class="min-h-11 cursor-pointer border-b-2 border-transparent px-3 py-3 text-sm font-semibold text-gray-500 hover:text-primary-800 focus-visible:outline-2 focus-visible:outline-primary-600 aria-pressed:border-primary-700 aria-pressed:text-primary-800">{{ 'reviews.aboutMe' | translate }}</button>
-            <button type="button" (click)="ratingType.set('given')" [attr.aria-pressed]="ratingType() === 'given'" class="min-h-11 cursor-pointer border-b-2 border-transparent px-3 py-3 text-sm font-semibold text-gray-500 hover:text-primary-800 focus-visible:outline-2 focus-visible:outline-primary-600 aria-pressed:border-primary-700 aria-pressed:text-primary-800">{{ 'reviews.byMe' | translate }}</button>
-          </div>
-          <app-rating-list [userId]="currentProfile.id" [type]="ratingType()" (stateChange)="reviewListState.set($event)" (retryRequested)="loadRatingSummary()" (viewJob)="reviewJobId.set($event)" />
-        </section>
-
-        <app-notification-panel />
-
-        <app-avatar-upload [profile]="currentProfile" (profileChange)="profile.set($event)" />
-
-        <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
-          <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <h2 class="text-xl font-semibold text-gray-900">{{ 'profile.personalInformation' | translate }}</h2>
-
-              <p class="mt-1 text-sm text-gray-500">{{ 'profile.manage' | translate }}</p>
-            </div>
-
-            @if (!isEditingPersonal()) {
-              <button
-                type="button"
-                (click)="startEditingPersonal()"
-                class="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl border border-primary-600 px-5 py-2.5 text-sm font-semibold text-primary-700 transition-colors duration-200 hover:bg-primary-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
-              >
-                {{ 'profile.edit' | translate }}
+        <div class="profile-layout">
+          <nav class="profile-navigation" [attr.aria-label]="'profile.sections' | translate">
+            @for (item of sections; track item.id) {
+              <button type="button" [class.current]="section() === item.id"
+                [attr.aria-pressed]="section() === item.id" [attr.aria-controls]="'profile-' + item.id + '-panel'"
+                (click)="section.set(item.id)">
+                <svg [lucideIcon]="item.icon" aria-hidden="true"></svg>
+                {{ item.label | translate }}
               </button>
             }
-          </div>
-
-          @if (isEditingPersonal()) {
-            <div class="mt-6">
-              <label for="email" class="mb-1.5 block text-sm font-medium text-gray-700">
-                {{ 'auth.field.emailAddress' | translate }}
-              </label>
-
-              <input
-                id="email"
-                type="email"
-                [value]="currentProfile.email"
-                readonly
-                aria-describedby="email-help"
-                class="w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 text-sm text-gray-700"
-              />
-
-              <p id="email-help" class="mt-1.5 text-xs text-gray-500">
-                {{ 'profile.emailNote' | translate }}
-              </p>
-            </div>
-
-            <form class="mt-6 space-y-6" [formGroup]="form" (ngSubmit)="save()" novalidate>
-              <div class="grid gap-6 sm:grid-cols-2">
+          </nav>
+          <div class="profile-content">
+            <section class="profile-panel" id="profile-personal-panel" [hidden]="section() !== 'personal'" aria-labelledby="personal-heading">
+              <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <label for="firstName" class="mb-1.5 block text-sm font-medium text-gray-700">
-                    {{ 'auth.field.firstName' | translate }}
-                  </label>
+                  <h2 id="personal-heading" class="section-title">{{ 'profile.personalInformation' | translate }}</h2>
 
-                  <input
-                    id="firstName"
-                    type="text"
-                    formControlName="firstName"
-                    autocomplete="given-name"
-                    minlength="3"
-                    maxlength="50"
-                    [attr.aria-invalid]="firstName.invalid && firstName.touched"
-                    [attr.aria-describedby]="
-                      firstName.invalid && firstName.touched ? 'first-name-error' : null
-                    "
-                    [class.border-red-500]="firstName.invalid && firstName.touched"
-                    class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none transition-colors duration-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
-                  />
-
-                  @if (firstName.invalid && firstName.touched) {
-                    <p id="first-name-error" class="mt-1.5 text-sm text-red-600" role="alert">
-                      @if (firstName.hasError('required')) {
-                        First name is required.
-                      } @else if (firstName.hasError('minlength')) {
-                        First name must contain at least 3 characters.
-                      } @else if (firstName.hasError('maxlength')) {
-                        First name cannot exceed 50 characters.
-                      }
-                    </p>
-                  }
+                  <p class="mt-1 text-sm text-gray-500">{{ 'profile.manage' | translate }}</p>
                 </div>
 
-                <div>
-                  <label for="lastName" class="mb-1.5 block text-sm font-medium text-gray-700">
-                    {{ 'auth.field.lastName' | translate }}
-                  </label>
-
-                  <input
-                    id="lastName"
-                    type="text"
-                    formControlName="lastName"
-                    autocomplete="family-name"
-                    minlength="3"
-                    maxlength="50"
-                    [attr.aria-invalid]="lastName.invalid && lastName.touched"
-                    [attr.aria-describedby]="
-                      lastName.invalid && lastName.touched ? 'last-name-error' : null
-                    "
-                    [class.border-red-500]="lastName.invalid && lastName.touched"
-                    class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none transition-colors duration-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
-                  />
-
-                  @if (lastName.invalid && lastName.touched) {
-                    <p id="last-name-error" class="mt-1.5 text-sm text-red-600" role="alert">
-                      @if (lastName.hasError('required')) {
-                        Last name is required.
-                      } @else if (lastName.hasError('minlength')) {
-                        Last name must contain at least 3 characters.
-                      } @else if (lastName.hasError('maxlength')) {
-                        Last name cannot exceed 50 characters.
-                      }
-                    </p>
-                  }
-                </div>
-              </div>
-
-              <div
-                class="flex flex-col-reverse gap-3 border-t border-gray-200 pt-6 sm:flex-row sm:justify-end"
-              >
-                <button
-                  type="button"
-                  (click)="cancelEditingPersonal()"
-                  [disabled]="isSaving()"
-                  class="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-700 transition-colors duration-200 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
-                >{{ 'common.cancel' | translate }}</button>
-
-                <button
-                  type="submit"
-                  [disabled]="isSaving()"
-                  [attr.aria-busy]="isSaving()"
-                  class="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl bg-primary-600 px-6 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  @if (isSaving()) {
-                    Saving…
-                  } @else {
-                    Save changes
-                  }
-                </button>
-              </div>
-            </form>
-          } @else {
-            <dl class="mt-6 grid gap-4 sm:grid-cols-2">
-              <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                <dt class="text-sm font-medium text-gray-500">{{ 'auth.field.firstName' | translate }}</dt>
-                <dd class="mt-1 text-base font-semibold text-gray-900">
-                  {{ currentProfile.firstName }}
-                </dd>
-              </div>
-
-              <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                <dt class="text-sm font-medium text-gray-500">{{ 'auth.field.lastName' | translate }}</dt>
-                <dd class="mt-1 text-base font-semibold text-gray-900">
-                  {{ currentProfile.lastName }}
-                </dd>
-              </div>
-
-              <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 sm:col-span-2">
-                <dt class="text-sm font-medium text-gray-500">{{ 'auth.field.emailAddress' | translate }}</dt>
-                <dd class="mt-1 break-all text-base font-semibold text-gray-900">
-                  {{ currentProfile.email }}
-                </dd>
-              </div>
-
-              <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                <dt class="text-sm font-medium text-gray-500">{{ 'profile.memberSince' | translate }}</dt>
-                <dd class="mt-1 text-base font-semibold text-gray-900">
-                  {{ currentProfile.createdAt | date: 'mediumDate' }}
-                </dd>
-              </div>
-
-              <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                <dt class="text-sm font-medium text-gray-500">{{ 'profile.lastUpdated' | translate }}</dt>
-                <dd class="mt-1 text-base font-semibold text-gray-900">
-                  {{ currentProfile.updatedAt | date: 'MMM d, y, h:mm a' }}
-                </dd>
-              </div>
-            </dl>
-          }
-        </section>
-        <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
-          <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <div class="flex flex-wrap items-center gap-3">
-                <h2 class="text-xl font-semibold text-gray-900">{{ 'profile.professional' | translate }}</h2>
-
-                @if (professionalProfile(); as pro) {
-                  <span
-                    class="inline-flex items-center rounded-full bg-primary-50 px-3 py-1 text-xs font-semibold tracking-wide text-primary-700"
+                @if (!isEditingPersonal()) {
+                  <button
+                    type="button"
+                    (click)="startEditingPersonal()"
+                    class="profile-button"
                   >
-                    {{ pro.onboardingStatus }}
-                  </span>
+                    <svg lucidePencil aria-hidden="true"></svg>{{ 'profile.edit' | translate }}
+                  </button>
                 }
               </div>
 
-              <p class="mt-1 text-sm text-gray-500">
-                {{ 'profile.professionalIntro' | translate }}
-              </p>
-            </div>
+              @if (isEditingPersonal()) {
+                <div class="mt-6">
+                  <label for="email" class="mb-1.5 block text-sm font-medium text-gray-700">
+                    {{ 'auth.field.emailAddress' | translate }}
+                  </label>
 
-            @if (professionalSection() === 'loaded') {
-              <a
-                routerLink="/professional-profile"
-                class="inline-flex min-h-11 items-center justify-center rounded-xl border border-primary-600 px-5 py-2.5 text-sm font-semibold text-primary-700 transition-colors duration-200 hover:bg-primary-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
-              >
-                {{ 'profile.editProfessional' | translate }}
-              </a>
-            }
-          </div>
+                  <input
+                    id="email"
+                    type="email"
+                    [value]="currentProfile.email"
+                    readonly
+                    aria-describedby="email-help"
+                    class="w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 text-sm text-gray-700"
+                  />
 
-          @switch (professionalSection()) {
-            @case ('loading') {
-              <p role="status" aria-live="polite" class="mt-6 text-sm text-gray-600">
-                {{ 'profile.loadingProfessional' | translate }}
-              </p>
-            }
-            @case ('none') {
-              <div class="mt-6 rounded-xl border border-dashed border-gray-300 bg-gray-50 p-6 text-center">
-                <p class="text-sm text-gray-600">
-                  {{ 'profile.notProfessional' | translate }}
-              </p>
+                  <p id="email-help" class="mt-1.5 text-xs text-gray-500">
+                    {{ 'profile.emailNote' | translate }}
+                  </p>
+                </div>
 
-                <a
-                  routerLink="/professional-profile"
-                  class="mt-4 inline-flex min-h-11 items-center justify-center rounded-xl bg-primary-500 px-5 py-2.5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
-                >
-                  {{ 'profile.becomeProfessional' | translate }}
-                </a>
-              </div>
-            }
-            @case ('loaded') {
-              @if (professionalProfile(); as pro) {
-                <dl class="mt-6 grid gap-4 sm:grid-cols-2">
-                  <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 sm:col-span-2">
-                    <dt class="text-sm font-medium text-gray-500">{{ 'profile.biography' | translate }}</dt>
-                    <dd class="mt-1 text-base whitespace-pre-line text-gray-900">
-                      {{ pro.biography }}
+                <form class="mt-6 space-y-6" [formGroup]="form" (ngSubmit)="save()" novalidate>
+                  <div class="grid gap-6 sm:grid-cols-2">
+                    <div>
+                      <label for="firstName" class="mb-1.5 block text-sm font-medium text-gray-700">
+                        {{ 'auth.field.firstName' | translate }}
+                      </label>
+
+                      <input
+                        id="firstName"
+                        type="text"
+                        formControlName="firstName"
+                        autocomplete="given-name"
+                        minlength="3"
+                        maxlength="50"
+                        [attr.aria-invalid]="firstName.invalid && firstName.touched"
+                        [attr.aria-describedby]="
+                          firstName.invalid && firstName.touched ? 'first-name-error' : null
+                        "
+                        [class.border-red-500]="firstName.invalid && firstName.touched"
+                        class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none transition-colors duration-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
+                      />
+
+                      @if (firstName.invalid && firstName.touched) {
+                        <p id="first-name-error" class="mt-1.5 text-sm text-red-600" role="alert">
+                          @if (firstName.hasError('required')) {
+                            {{ 'profile.validation.first.required' | translate }}
+                          } @else if (firstName.hasError('minlength')) {
+                            {{ 'profile.validation.first.minlength' | translate }}
+                          } @else if (firstName.hasError('maxlength')) {
+                            {{ 'profile.validation.first.maxlength' | translate }}
+                          }
+                        </p>
+                      }
+                    </div>
+
+                    <div>
+                      <label for="lastName" class="mb-1.5 block text-sm font-medium text-gray-700">
+                        {{ 'auth.field.lastName' | translate }}
+                      </label>
+
+                      <input
+                        id="lastName"
+                        type="text"
+                        formControlName="lastName"
+                        autocomplete="family-name"
+                        minlength="3"
+                        maxlength="50"
+                        [attr.aria-invalid]="lastName.invalid && lastName.touched"
+                        [attr.aria-describedby]="
+                          lastName.invalid && lastName.touched ? 'last-name-error' : null
+                        "
+                        [class.border-red-500]="lastName.invalid && lastName.touched"
+                        class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none transition-colors duration-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
+                      />
+
+                      @if (lastName.invalid && lastName.touched) {
+                        <p id="last-name-error" class="mt-1.5 text-sm text-red-600" role="alert">
+                          @if (lastName.hasError('required')) {
+                            {{ 'profile.validation.last.required' | translate }}
+                          } @else if (lastName.hasError('minlength')) {
+                            {{ 'profile.validation.last.minlength' | translate }}
+                          } @else if (lastName.hasError('maxlength')) {
+                            {{ 'profile.validation.last.maxlength' | translate }}
+                          }
+                        </p>
+                      }
+                    </div>
+                  </div>
+
+                  <div
+                    class="flex flex-col-reverse gap-3 border-t border-gray-200 pt-6 sm:flex-row sm:justify-end"
+                  >
+                    <button
+                      type="button"
+                      (click)="cancelEditingPersonal()"
+                      [disabled]="isSaving()"
+                      class="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-700 transition-colors duration-200 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+                    >{{ 'common.cancel' | translate }}</button>
+
+                    <button
+                      type="submit"
+                      [disabled]="isSaving()"
+                      [attr.aria-busy]="isSaving()"
+                      class="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-lg bg-primary-700 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-primary-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      @if (isSaving()) {
+                        {{ 'profile.saving' | translate }}
+                      } @else {
+                        {{ 'profile.saveChanges' | translate }}
+                      }
+                    </button>
+                  </div>
+                </form>
+              } @else {
+                <dl class="detail-list">
+                  <div class="detail-row">
+                    <dt class="text-sm font-medium text-gray-500">{{ 'auth.field.firstName' | translate }}</dt>
+                    <dd class="mt-1 text-sm font-medium text-gray-900">
+                      {{ currentProfile.firstName }}
                     </dd>
                   </div>
 
-                  <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                    <dt class="text-sm font-medium text-gray-500">{{ 'profile.servicesProvided' | translate }}</dt>
-                    <dd class="mt-2">
-                      <ul class="flex flex-wrap gap-2">
-                        @for (category of pro.categories; track category.code) {
-                          <li
-                            class="rounded-full border border-primary-100 bg-primary-50 px-3 py-1 text-sm font-medium text-primary-700"
-                          >
-                            {{ category.displayName }}
-                          </li>
-                        }
-                      </ul>
+                  <div class="detail-row">
+                    <dt class="text-sm font-medium text-gray-500">{{ 'auth.field.lastName' | translate }}</dt>
+                    <dd class="mt-1 text-sm font-medium text-gray-900">
+                      {{ currentProfile.lastName }}
                     </dd>
                   </div>
 
-                  <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                    <dt class="text-sm font-medium text-gray-500">{{ 'profile.serviceAreas' | translate }}</dt>
-                    <dd class="mt-2">
-                      <ul class="flex flex-wrap gap-2">
-                        @for (city of pro.cities; track city.code) {
-                          <li
-                            class="rounded-full border border-gray-200 bg-white px-3 py-1 text-sm font-medium text-gray-700"
-                          >
-                            {{ city.displayName }}
-                          </li>
-                        }
-                      </ul>
+                  <div class="detail-row detail-wide">
+                    <dt class="text-sm font-medium text-gray-500">{{ 'auth.field.emailAddress' | translate }}</dt>
+                    <dd class="mt-1 break-all text-sm font-medium text-gray-900">
+                      {{ currentProfile.email }}
+                    </dd>
+                  </div>
+
+                  <div class="detail-row">
+                    <dt class="text-sm font-medium text-gray-500">{{ 'profile.memberSince' | translate }}</dt>
+                    <dd class="mt-1 text-sm font-medium text-gray-900">
+                      {{ currentProfile.createdAt | date: 'mediumDate' }}
+                    </dd>
+                  </div>
+
+                  <div class="detail-row">
+                    <dt class="text-sm font-medium text-gray-500">{{ 'profile.lastUpdated' | translate }}</dt>
+                    <dd class="mt-1 text-sm font-medium text-gray-900">
+                      {{ currentProfile.updatedAt | date: 'MMM d, y, h:mm a' }}
                     </dd>
                   </div>
                 </dl>
               }
-            }
-            @case ('error') {
-              <p role="alert" class="mt-6 text-sm text-red-700">
-                {{ 'profile.professionalError' | translate }}
-              </p>
-            }
-          }
-        </section>
+            </section>
+            <section class="profile-panel" id="profile-professional-panel" [hidden]="section() !== 'professional'" aria-labelledby="professional-heading">
+              <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <div class="flex flex-wrap items-center gap-3">
+                  <h2 id="professional-heading" class="section-title">{{ 'profile.professional' | translate }}</h2>
+
+                    @if (professionalProfile(); as pro) {
+                      <span
+                        class="professional-status" [attr.data-status]="pro.onboardingStatus"
+                      >
+                        {{ professionalStatus(pro.onboardingStatus) | translate }}
+                      </span>
+                    }
+                  </div>
+
+                  <p class="mt-1 text-sm text-gray-500">
+                    {{ 'profile.professionalIntro' | translate }}
+                  </p>
+                </div>
+
+                @if (professionalSection() === 'loaded') {
+                  <a
+                    routerLink="/professional-profile"
+                    class="profile-button"
+                  >
+                    {{ 'profile.editProfessional' | translate }}
+                  </a>
+                }
+              </div>
+
+              @switch (professionalSection()) {
+                @case ('loading') {
+                  <p role="status" aria-live="polite" class="mt-6 text-sm text-gray-600">
+                    {{ 'profile.loadingProfessional' | translate }}
+                  </p>
+                }
+                @case ('none') {
+                  <div class="mt-6 rounded-xl border border-dashed border-gray-300 bg-gray-50 p-6 text-center">
+                    <p class="text-sm text-gray-600">
+                      {{ 'profile.notProfessional' | translate }}
+                  </p>
+
+                    <a
+                      routerLink="/professional-profile"
+                      class="mt-4 inline-flex min-h-11 items-center justify-center rounded-xl bg-primary-700 px-5 py-2.5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
+                    >
+                      {{ 'profile.becomeProfessional' | translate }}
+                    </a>
+                  </div>
+                }
+                @case ('loaded') {
+                  @if (professionalProfile(); as pro) {
+                    <dl class="detail-list">
+                      <div class="detail-row detail-wide">
+                        <dt class="text-sm font-medium text-gray-500">{{ 'profile.biography' | translate }}</dt>
+                        <dd class="mt-1 text-base whitespace-pre-line text-gray-900">
+                          {{ pro.biography }}
+                        </dd>
+                      </div>
+
+                      <div class="detail-row">
+                        <dt class="text-sm font-medium text-gray-500">{{ 'profile.servicesProvided' | translate }}</dt>
+                        <dd class="mt-2">
+                          <ul class="flex flex-wrap gap-2">
+                            @for (category of pro.categories; track category.code) {
+                              <li
+                                class="rounded-full border border-primary-100 bg-primary-50 px-3 py-1 text-sm font-medium text-primary-700"
+                              >
+                                {{ category.displayName }}
+                              </li>
+                            }
+                          </ul>
+                        </dd>
+                      </div>
+
+                      <div class="detail-row">
+                        <dt class="text-sm font-medium text-gray-500">{{ 'profile.serviceAreas' | translate }}</dt>
+                        <dd class="mt-2">
+                          <ul class="flex flex-wrap gap-2">
+                            @for (city of pro.cities; track city.code) {
+                              <li
+                                class="rounded-full border border-gray-200 bg-white px-3 py-1 text-sm font-medium text-gray-700"
+                              >
+                                {{ city.displayName }}
+                              </li>
+                            }
+                          </ul>
+                        </dd>
+                      </div>
+                    </dl>
+                  }
+                }
+                @case ('error') {
+                  <p role="alert" class="mt-6 text-sm text-red-700">
+                    {{ 'profile.professionalError' | translate }}
+                  </p>
+                }
+              }
+            </section>        <section class="profile-panel" id="profile-reviews-panel" [hidden]="section() !== 'reviews'" aria-labelledby="profile-ratings-heading">
+              <h2 id="profile-ratings-heading" class="section-title">{{ 'reviews.title' | translate }}</h2>
+              <p class="mb-5 mt-1 text-sm leading-6 text-gray-500">{{ 'reviews.intro' | translate }}</p>
+              @if (ratingsLoading() && reviewListState() !== 'error') {
+                <div role="status" class="mb-5 h-32 animate-pulse rounded-xl bg-gray-50 motion-reduce:animate-none"><span class="sr-only">{{ 'reviews.loading' | translate }}</span></div>
+              } @else if (ratingsError() && reviewListState() !== 'error') {
+                <div role="alert" class="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-600">
+                  <span>{{ 'reviews.summaryError' | translate }}</span>
+                  <button type="button" (click)="loadRatingSummary()" class="min-h-11 font-semibold text-primary-800 underline">{{ 'common.retry' | translate }}</button>
+                </div>
+              } @else if (ratingSummary()) {
+                <app-rating-display [summary]="ratingSummary()" />
+              }
+              <div class="flex flex-wrap gap-1 border-b border-gray-200" role="group" [attr.aria-label]="'reviews.type' | translate">
+                <button type="button" (click)="ratingType.set('received')" [attr.aria-pressed]="ratingType() === 'received'" class="min-h-11 cursor-pointer border-b-2 border-transparent px-3 py-3 text-sm font-semibold text-gray-500 hover:text-primary-800 focus-visible:outline-2 focus-visible:outline-primary-600 aria-pressed:border-primary-700 aria-pressed:text-primary-800">{{ 'reviews.aboutMe' | translate }}</button>
+                <button type="button" (click)="ratingType.set('given')" [attr.aria-pressed]="ratingType() === 'given'" class="min-h-11 cursor-pointer border-b-2 border-transparent px-3 py-3 text-sm font-semibold text-gray-500 hover:text-primary-800 focus-visible:outline-2 focus-visible:outline-primary-600 aria-pressed:border-primary-700 aria-pressed:text-primary-800">{{ 'reviews.byMe' | translate }}</button>
+              </div>
+              <app-rating-list [userId]="currentProfile.id" [type]="ratingType()" (stateChange)="reviewListState.set($event)" (retryRequested)="loadRatingSummary()" (viewJob)="reviewJobId.set($event)" />
+            </section>
+            <div id="profile-notifications-panel" [hidden]="section() !== 'notifications'">
+              <app-notification-panel />
+            </div>
+          </div>
+        </div>
       }
     }
   </div>
