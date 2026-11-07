@@ -11,7 +11,7 @@ import { LucideDynamicIcon, LucideMapPin, LucideBriefcaseBusiness, LucideWrench,
   selector: 'app-job-card',
   imports: [TitleCasePipe, TranslatePipe, LucideDynamicIcon, LucideMapPin],
   templateUrl: './job-card.html',
-  styleUrl: './job-card.css',
+  host: { class: 'block h-full' },
 })
 export class JobCard {
   private readonly i18n = inject(I18nService);

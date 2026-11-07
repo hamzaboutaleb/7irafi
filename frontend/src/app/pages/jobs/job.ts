@@ -36,7 +36,6 @@ const emptyFilters = (): JobFilters => ({
   selector: 'app-job',
   imports: [FormsModule, NgTemplateOutlet, Navbar, Footer, JobCard, JobDetailsModal, PostingStatusModal, TranslatePipe, Select, LucideSlidersHorizontal, LucideX, LucideBriefcaseBusiness, LucideChevronLeft, LucideChevronRight],
   templateUrl: './job.html',
-  styleUrl: './job.css',
 })
 export class Job implements OnInit {
   private readonly jobService = inject(JobService);
