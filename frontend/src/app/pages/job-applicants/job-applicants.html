@@ -1,120 +1,97 @@
 <app-navbar />
-<main class="min-h-screen bg-gray-50 px-4 py-10 sm:px-6">
-  <section class="mx-auto max-w-5xl">
-    <a routerLink="/jobs/my" class="text-sm font-semibold text-primary-700 underline"><span
-        aria-hidden="true">⇦</span> {{ 'applicants.back' | translate }}</a>
-    <h1 class="mt-5 text-3xl font-bold text-gray-900">{{ 'applicants.title' | translate }}</h1>
+<main class="applicants-page">
+  <section class="applicants-container" aria-labelledby="applicants-heading">
+    <a routerLink="/jobs/my" class="back-link"><svg lucideArrowLeft class="directional-icon" aria-hidden="true"></svg>{{ 'applicants.back' | translate }}</a>
+    <header class="page-heading"><h1 id="applicants-heading">{{ 'applicants.title' | translate }}</h1><p>{{ 'applicants.intro' | translate }}</p></header>
+
     @if (job(); as detail) {
-    <h2 class="mt-2 break-words text-xl text-gray-700">{{ detail.title }}</h2>
-    <p class="mt-1 text-sm text-gray-500">{{ detail.status.toLowerCase() }}</p>
+      <section class="job-summary" aria-labelledby="applicant-job-heading">
+        <span class="job-mark" aria-hidden="true"><svg lucideBriefcaseBusiness></svg></span>
+        <div class="job-summary-copy">
+          <h2 id="applicant-job-heading">{{ detail.title }}</h2>
+          <div class="job-meta"><span><svg lucideMapPin aria-hidden="true"></svg>{{ detail.city }}</span><span aria-hidden="true">·</span><span><bdi>{{ budgetLabel() }} MAD</bdi></span></div>
+        </div>
+        <span class="status-label" [attr.data-status]="detail.status">{{ jobStatusLabel() }}</span>
+        <details class="job-context"><summary>{{ 'applications.viewJob' | translate }}<svg lucideChevronDown aria-hidden="true"></svg></summary><p dir="auto">{{ detail.description }}</p></details>
+      </section>
     }
-    @if (notice()) {
-    <p role="status" class="mb-5 rounded-xl bg-primary-50 p-4 text-primary-800">{{ notice() }}</p>
+
+    @if (notice(); as message) {
+      <div class="page-notice" [attr.data-tone]="noticeTone()" [attr.role]="noticeTone() === 'error' ? 'alert' : 'status'">
+        <p>{{ message | translate }}</p>
+        @if (retryApplication(); as pending) {
+          <div class="notice-actions"><button type="button" class="secondary-button" (click)="load()" [disabled]="loading() || accepting() !== null">{{ 'applicants.refresh' | translate }}</button>
+            <button type="button" class="primary-button" (click)="accept(pending)" [disabled]="loading() || accepting() !== null">{{ (accepting() ? 'applicants.accepting' : 'applicants.retrySame') | translate }}</button></div>
+        }
+      </div>
     }
+
     @if (loading()) {
-    <p role="status" class="text-gray-600">{{ 'applicants.loading' | translate }}</p>
-    } @else if (error()) {
-    <p role="alert" class="rounded-xl bg-red-50 p-4 text-red-700">{{ error() }}</p>
+      <div class="page-state" role="status">{{ 'applicants.loading' | translate }}</div>
+    } @else if (error(); as message) {
+      <div class="page-state" role="alert"><p>{{ message | translate }}</p><button type="button" class="secondary-button" (click)="load()">{{ 'common.retry' | translate }}</button></div>
     } @else if (result(); as page) {
-    @if (page.content.length === 0) {
-    <p class="rounded-2xl border border-gray-200 bg-white p-6 text-gray-600">{{ 'applications.none' | translate }}</p>
-    } @else {
-    <p class="mb-4 text-sm text-gray-500">{{ page.totalElements }} {{ page.totalElements === 1 ? 'applicant' :
-      'applicants' }} · Review their experience before choosing a professional.</p>
-    <ul class="grid grid-cols-1 gap-5 md:grid-cols-2">
-      @for (application of page.content; track application.id) {
-      <li class="min-w-0">
-        <article class="flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          @if (profiles()[application.applicantId]; as profile) {
-          <div class="flex flex-wrap items-start justify-between gap-3">
-            <div class="flex min-w-0 items-center gap-3">
-              @if (profile.avatarUrl) {
-              <img [src]="profile.avatarUrl" alt=""
-                class="h-12 w-12 shrink-0 rounded-full border border-gray-200 object-cover" />
-              } @else {
-              <span aria-hidden="true"
-                class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xl font-semibold text-primary-700">{{
-                profile.firstName.slice(0, 1).toUpperCase() }}</span>
-              }
-              <div class="min-w-0">
-                <h3 class="break-words text-lg font-semibold text-gray-900">{{ profile.firstName }}</h3>
-                <p class="mt-1 flex items-center gap-1.5 text-xs text-gray-500">
-                  <span aria-hidden="true" class="h-2 w-2 rounded-full"
-                    [class]="profile.online ? 'bg-emerald-500' : 'bg-gray-300'"></span>
-                  {{ profile.online ? 'Online now' : 'Offline' }}
-                </p>
-              </div>
-            </div>
-            <span class="rounded-full bg-primary-50 px-3 py-1 text-xs font-semibold text-primary-700">{{
-              labels[application.status] }}</span>
-          </div>
-          <div class="mt-5">
-            <h4 class="text-xs font-semibold uppercase tracking-wide text-gray-500">{{ 'applicants.trades' | translate }}</h4>
-            <div class="mt-2 flex flex-wrap gap-2">
-              @for (category of profile.categories; track category.code) {
-              <span class="rounded-lg bg-gray-100 px-2.5 py-1 text-sm font-medium text-gray-700">{{ category.displayName
-                }}</span>
-              }
-            </div>
-          </div>
-          <div class="mt-4">
-            <h4 class="text-xs font-semibold uppercase tracking-wide text-gray-500">{{ 'profile.serviceAreas' | translate }}</h4>
-            <p class="mt-2 text-sm text-gray-700">
-              @for (city of profile.cities; track city.code; let last = $last) { {{ city.displayName }}{{ last ? '' : '
-              · ' }} }
-            </p>
-          </div>
-          <div class="my-5">
-            <h4 class="text-xs font-semibold uppercase tracking-wide text-gray-500">{{ 'applicants.about' | translate }}</h4>
-            <p class="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-gray-600">{{ profile.biography || 'No
-              biography provided.' }}</p>
-          </div>
-          } @else {
-          <div class="mb-5">
-            <h3 class="font-semibold text-gray-900">{{ 'applicants.profileUnavailable' | translate }}</h3>
-            <p class="mt-2 text-sm leading-6 text-gray-600">{{ 'applicants.profileUnavailableBody' | translate }}</p>
-            <span
-              class="mt-3 inline-block rounded-full bg-primary-50 px-3 py-1 text-xs font-semibold text-primary-700">{{
-              labels[application.status] }}</span>
-            <button type="button" (click)="load()" [disabled]="accepting() !== null"
-              class="ml-3 min-h-11 text-sm font-semibold text-primary-700 underline disabled:opacity-50">{{ '{{ 'applicants.retryProfile' | translate }}</button>
-          </div>
+      <div class="applicant-toolbar"><p role="status">{{ (page.totalElements === 1 ? 'applicants.countOne' : 'applicants.countMany') | translate: { count: page.totalElements } }}</p>
+        @if (page.content.length) { <span>{{ 'applicants.compareHint' | translate }}</span> }</div>
+      @if (!page.content.length) {
+        <div class="page-state empty-state"><svg lucideUsersRound aria-hidden="true"></svg><h2>{{ 'applications.none' | translate }}</h2><p>{{ 'applicants.emptyHint' | translate }}</p></div>
+      } @else {
+        <ul class="applicant-list">
+          @for (application of page.content; track application.id) {
+            <li>
+              <article class="applicant-row" [class.accepted]="application.status === 'ACCEPTED'" [attr.aria-labelledby]="'applicant-name-' + application.id">
+                <div class="applicant-main">
+                  <div class="applicant-identity">
+                    @if (avatarFor(application.applicantId); as avatar) {
+                      <img [src]="avatar" alt="" class="applicant-avatar" (error)="imageFailed(application.applicantId)" />
+                    } @else {
+                      <span class="applicant-avatar avatar-fallback" aria-hidden="true">@if (initialsFor(application.applicantId); as initials) { {{ initials }} } @else { <svg lucideUserRound></svg> }</span>
+                    }
+                    <div class="identity-copy"><h3 [id]="'applicant-name-' + application.id">{{ nameFor(application.applicantId) }}</h3>
+                      <p class="applied-date">{{ 'applicants.appliedOn' | translate: { date: dateLabel(application.createdAt) } }}</p>
+                      @if (profiles()[application.applicantId]; as profile) {
+                        <p class="presence"><span class="presence-dot" [class.online]="profile.online" aria-hidden="true"></span>{{ (profile.online ? 'applicants.online' : 'applicants.offline') | translate }}</p>
+                      }
+                    </div>
+                  </div>
+
+                  @if (profiles()[application.applicantId]; as profile) {
+                    <div class="professional-facts">
+                      <div><svg lucideWrench aria-hidden="true"></svg><span class="sr-only">{{ 'applicants.trades' | translate }}: </span><p>@for (category of profile.categories; track category.code; let last = $last) { {{ category.displayName }}{{ last ? '' : ' · ' }} } @empty { {{ 'applicants.noTrades' | translate }} }</p></div>
+                      <div><svg lucideMapPin aria-hidden="true"></svg><span class="sr-only">{{ 'profile.serviceAreas' | translate }}: </span><p>@for (city of profile.cities; track city.code; let last = $last) { {{ city.displayName }}{{ last ? '' : ' · ' }} } @empty { {{ 'applicants.noCities' | translate }} }</p></div>
+                    </div>
+                    @if (profile.biography) {
+                      <button type="button" class="biography-toggle" [attr.aria-expanded]="expanded().has(application.id)" [attr.aria-controls]="'applicant-bio-' + application.id" (click)="toggleBiography(application.id)">{{ 'applicants.aboutProfessional' | translate }}<svg lucideChevronDown [class.expanded]="expanded().has(application.id)" aria-hidden="true"></svg></button>
+                      @if (expanded().has(application.id)) { <p class="biography" [id]="'applicant-bio-' + application.id" dir="auto">{{ profile.biography }}</p> }
+                    } @else { <p class="no-biography">{{ 'applicants.noBio' | translate }}</p> }
+                  } @else {
+                    <div class="profile-unavailable"><p>{{ 'applicants.profileUnavailable' | translate }}</p><span>{{ 'applicants.profileUnavailableBody' | translate }}</span>
+                      <button type="button" class="text-button" (click)="retryProfile(application.applicantId)" [disabled]="accepting() !== null || refreshingProfiles().has(application.applicantId)">{{ (refreshingProfiles().has(application.applicantId) ? 'common.loading' : 'applicants.retryProfile') | translate }}</button></div>
+                  }
+                </div>
+
+                <div class="applicant-actions">
+                  <span class="status-label" [attr.data-status]="application.status">{{ statusLabel(application.status) }}</span>
+                  <div class="row-buttons">
+                    <button type="button" class="secondary-button message-button" (click)="message(application)" [disabled]="opening() !== null" [attr.aria-label]="'applicants.messageNamed' | translate: { name: nameFor(application.applicantId) }"><svg lucideMessageSquare aria-hidden="true"></svg>{{ (opening() === application.id ? 'applicants.opening' : 'applicants.message') | translate }}</button>
+                    @if (job()?.status === 'OPEN' && application.status === 'PENDING' && !retryApplication()) {
+                      <button type="button" class="primary-button accept-button" (click)="accept(application)" [disabled]="accepting() !== null || !profiles()[application.applicantId]" [attr.aria-busy]="accepting() === application.id" [attr.aria-label]="'applicants.acceptNamed' | translate: { name: nameFor(application.applicantId) }"><svg lucideCheck aria-hidden="true"></svg>{{ (accepting() === application.id ? 'applicants.accepting' : 'applicants.accept') | translate }}</button>
+                    }
+                  </div>
+                  @if (messageError(); as failure) { @if (failure.id === application.id) { <p class="message-error" role="alert">{{ failure.key | translate }}</p> } }
+                </div>
+              </article>
+            </li>
           }
-          <div class="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-4">
-            <p class="text-xs text-gray-500">Applied {{ application.createdAt | date: 'mediumDate' }}</p>
-            <div class="flex flex-wrap items-center gap-2">
-            <button type="button" (click)="message(application)" [disabled]="opening() !== null"
-              class="min-h-11 rounded-xl border border-primary-200 bg-white px-4 py-2.5 text-sm font-semibold text-primary-700 hover:bg-primary-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 disabled:cursor-not-allowed disabled:opacity-50">
-              {{ opening() === application.id ? 'Opening…' : 'Message' }}
-            </button>
-            @if (job()?.status === 'OPEN' && application.status === 'PENDING' && !retryApplication()) {
-            <button type="button" (click)="accept(application)"
-              [disabled]="accepting() !== null || !profiles()[application.applicantId]"
-              class="min-h-11 rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 disabled:cursor-not-allowed disabled:opacity-50">
-              {{ accepting() === application.id ? 'Accepting…' : 'Accept applicant' }}
-            </button>
-            }
-            </div>
-          </div>
-        </article>
-      </li>
+        </ul>
       }
-    </ul>
-    }
-    @if (page.totalPages > 1) {
-    <nav [attr.aria-label]="'applicants.pagination' | translate" class="mt-6 flex items-center justify-center gap-4">
-      <button type="button" (click)="load(page.page - 1)" [disabled]="page.page === 0 || accepting() !== null"
-        class="rounded-xl border border-gray-200 px-4 py-2 disabled:opacity-50">{{ 'common.previous' | translate }}</button>
-      <span class="text-sm text-gray-600">Page {{ page.page + 1 }} of {{ page.totalPages }}</span>
-      <button type="button" (click)="load(page.page + 1)"
-        [disabled]="page.page + 1 >= page.totalPages || accepting() !== null"
-        class="rounded-xl border border-gray-200 px-4 py-2 disabled:opacity-50">{{ 'common.next' | translate }}</button>
-    </nav>
-    }
-    }
-    @if (retryApplication(); as application) {
-    <button type="button" (click)="accept(application)" [disabled]="loading() || accepting() !== null"
-      class="mt-5 rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{{ '{{ 'applicants.retrySame' | translate }}</button>
+      @if (page.totalPages > 1) {
+        <nav [attr.aria-label]="'applicants.pagination' | translate" class="pagination">
+          <button type="button" class="secondary-button" (click)="load(page.page - 1)" [disabled]="page.page === 0 || accepting() !== null"><svg lucideChevronLeft class="directional-icon" aria-hidden="true"></svg>{{ 'common.previous' | translate }}</button>
+          <span>{{ 'jobs.pageLabel' | translate: { page: page.page + 1, total: page.totalPages } }}</span>
+          <button type="button" class="secondary-button" (click)="load(page.page + 1)" [disabled]="page.page + 1 >= page.totalPages || accepting() !== null">{{ 'common.next' | translate }}<svg lucideChevronRight class="directional-icon" aria-hidden="true"></svg></button>
+        </nav>
+      }
     }
   </section>
 </main>
