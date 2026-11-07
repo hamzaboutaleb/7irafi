@@ -1,10 +1,10 @@
-<main class="login-page">
-  <div class="login-content">
+<main class="auth-page">
+  <div class="auth-content">
     <a routerLink="/" class="brand-link" [attr.aria-label]="'auth.login.home' | translate"><img src="logo.svg" alt="7irafy" width="140" height="44" /></a>
-    <section class="login-panel" aria-labelledby="login-title">
+    <section class="auth-panel" aria-labelledby="login-title">
       <header><h1 id="login-title">{{ 'auth.login.screenTitle' | translate }}</h1><p>{{ 'auth.login.subtitle' | translate }}</p></header>
       <form [formGroup]="form" (ngSubmit)="login()" [attr.aria-busy]="submitting()" novalidate>
-        @if (errorMessage(); as error) { <p class="login-error" role="alert">{{ error | translate }}</p> }
+        @if (errorMessage(); as error) { <p class="auth-error" role="alert">{{ error | translate }}</p> }
         <div class="field-group">
           <label for="login-email">{{ 'auth.field.emailAddress' | translate }}</label>
           <input id="login-email" name="email" type="email" inputmode="email" autocomplete="username" autocapitalize="none" spellcheck="false" formControlName="email" required maxlength="255" [readOnly]="submitting()" [attr.aria-invalid]="!!fieldError('email')" [attr.aria-describedby]="fieldError('email') ? 'login-email-error' : null" (input)="errorMessage.set(null)" />
@@ -18,10 +18,10 @@
           </div>
           @if (fieldError('password'); as error) { <p id="login-password-error" class="field-error">{{ error }}</p> }
         </div>
-        <button type="submit" class="login-submit" [disabled]="submitting()">{{ (submitting() ? 'auth.login.submitting' : 'auth.login.submit') | translate }}</button>
+        <button type="submit" class="auth-submit" [disabled]="submitting()">{{ (submitting() ? 'auth.login.submitting' : 'auth.login.submit') | translate }}</button>
         <span class="sr-only" role="status">{{ submitting() ? ('auth.login.submitting' | translate) : '' }}</span>
       </form>
-      <p class="register-link">{{ 'auth.login.noAccount' | translate }} <a routerLink="/register">{{ 'auth.register.submit' | translate }}</a></p>
+      <p class="account-link">{{ 'auth.login.noAccount' | translate }} <a routerLink="/register">{{ 'auth.register.submit' | translate }}</a></p>
     </section>
   </div>
 </main>

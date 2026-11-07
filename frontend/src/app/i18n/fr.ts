@@ -756,4 +756,10 @@ export const fr: Record<keyof typeof en, string> = {
   "auth.login.tooManyAttempts": "Trop de tentatives de connexion. Patientez avant de réessayer.",
   "auth.login.unavailable": "Connexion indisponible pour le moment. Réessayez.",
   "auth.login.failed": "Impossible de se connecter. Réessayez.",
+  "auth.register.passwordHint": "Utilisez au moins 8 caractères",
+  "auth.register.emailTaken": "Cette adresse e-mail est déjà utilisée. Connectez-vous ou utilisez une autre adresse.",
+  "auth.register.fieldInvalid": "Vérifiez cette valeur et réessayez.",
+  "auth.register.failed": "Impossible de créer votre compte. Réessayez.",
+  "auth.register.tooManyAttempts": "Trop de tentatives. Patientez avant de réessayer.",
+  "auth.register.unavailable": "Connexion indisponible pour le moment. Réessayez.",
 };

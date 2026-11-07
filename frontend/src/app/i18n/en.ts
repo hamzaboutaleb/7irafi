@@ -759,4 +759,10 @@ export const en = {
   "auth.login.tooManyAttempts": "Too many login attempts. Please wait and try again.",
   "auth.login.unavailable": "Unable to connect right now. Please try again.",
   "auth.login.failed": "Unable to log in. Please try again.",
+  "auth.register.passwordHint": "Use at least 8 characters",
+  "auth.register.emailTaken": "This email is already registered. Log in or use another email.",
+  "auth.register.fieldInvalid": "Check this value and try again.",
+  "auth.register.failed": "Unable to create your account. Please try again.",
+  "auth.register.tooManyAttempts": "Too many attempts. Please wait and try again.",
+  "auth.register.unavailable": "Unable to connect right now. Please try again.",
 } as const;

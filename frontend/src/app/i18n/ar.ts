@@ -756,4 +756,10 @@ export const ar: Record<keyof typeof en, string> = {
   "auth.login.tooManyAttempts": "محاولات تسجيل دخول كثيرة. انتظر ثم حاول مجددًا.",
   "auth.login.unavailable": "تعذر الاتصال حاليًا. حاول مجددًا.",
   "auth.login.failed": "تعذر تسجيل الدخول. حاول مجددًا.",
+  "auth.register.passwordHint": "استخدم 8 أحرف على الأقل",
+  "auth.register.emailTaken": "هذا البريد الإلكتروني مسجل بالفعل. سجل الدخول أو استخدم بريدًا آخر.",
+  "auth.register.fieldInvalid": "تحقق من هذه القيمة وحاول مجددًا.",
+  "auth.register.failed": "تعذر إنشاء حسابك. حاول مجددًا.",
+  "auth.register.tooManyAttempts": "محاولات كثيرة. انتظر ثم حاول مجددًا.",
+  "auth.register.unavailable": "تعذر الاتصال حاليًا. حاول مجددًا.",
 };
