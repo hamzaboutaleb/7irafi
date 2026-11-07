@@ -371,6 +371,7 @@ export const en = {
   'notifications.title': 'Notifications',
   'notifications.empty': 'Nothing yet. Applications, acceptances and new messages show up here.',
   'notifications.markAllRead': 'Mark all read',
+  'notifications.readAllShort': 'Read all',
 
   'profile.title': 'Profile',
   'profile.subtitle': 'View your account details and manage your personal information.',
@@ -538,4 +539,8 @@ export const en = {
   "profile.picture.tooLarge": "That image is {size} MB. The limit is {limit} MB",
   "profile.picture.uploadError": "Unable to upload that image. Please try again",
   "profile.picture.removeError": "Unable to remove the picture",
+  "notifications.close": "Close notifications",
+  "notifications.loading": "Loading notifications…",
+  "notifications.loadError": "Notifications could not be loaded",
+  "notifications.unread": "Unread",
 } as const;

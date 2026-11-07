@@ -368,6 +368,7 @@ export const ar: Record<keyof typeof en, string> = {
   'notifications.title': 'الإشعارات',
   'notifications.empty': 'لا شيء بعد. ستظهر هنا الطلبات والقبول والرسائل الجديدة.',
   'notifications.markAllRead': 'تعليم الكل كمقروء',
+  'notifications.readAllShort': 'قراءة الكل',
 
   'profile.title': 'الملف الشخصي',
   'profile.subtitle': 'اطّلع على تفاصيل حسابك وأدر معلوماتك الشخصية.',
@@ -535,4 +536,8 @@ export const ar: Record<keyof typeof en, string> = {
   "profile.picture.tooLarge": "حجم الصورة {size} ميغابايت. الحد الأقصى {limit} ميغابايت",
   "profile.picture.uploadError": "تعذر رفع الصورة. حاول مرة أخرى",
   "profile.picture.removeError": "تعذر حذف الصورة",
+  "notifications.close": "إغلاق الإشعارات",
+  "notifications.loading": "جارٍ تحميل الإشعارات…",
+  "notifications.loadError": "تعذر تحميل الإشعارات",
+  "notifications.unread": "غير مقروء",
 };

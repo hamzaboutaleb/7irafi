@@ -1,4 +1,5 @@
 :host { display: block; position: sticky; top: 0; z-index: 50; }
+.mobile-controls { display: flex; align-items: center; gap: 8px; }
 .account-navigation { gap: 4px; }
 .primary-navigation { gap: 8px; }
 .account-navigation { margin-inline-start: auto; }
@@ -22,7 +23,8 @@
 .jobs-divider { height: 1px; margin-block: 8px; background: #e5e7eb; }
 .account-link[aria-expanded='true'] { background: var(--color-primary-50); color: var(--color-primary-800); }
 @media (min-width: 1280px) {
-  .navbar-inner { justify-content: flex-start; column-gap: 48px; flex-wrap: nowrap; }
+  .navbar-inner { justify-content: flex-start; column-gap: 16px; flex-wrap: nowrap; }
+  .primary-navigation { margin-inline-start: 16px; gap: 4px; }
   .primary-navigation, .account-navigation { flex-shrink: 0; }
 }
 .account-link {
@@ -35,14 +37,18 @@
 .account-link:hover { background: #f9fafb; color: var(--color-primary-800); }
 .account-link[aria-current='page'] { background: var(--color-primary-50); color: var(--color-primary-800); }
 .account-link:focus-visible { outline: 2px solid var(--color-primary-700); outline-offset: 2px; }
-.account-tools { display: flex; align-items: center; gap: 8px; margin-inline-start: 20px; padding-inline-start: 24px; border-inline-start: 1px solid #e5e7eb; }
+.account-tools { display: flex; align-items: center; gap: 8px; margin-inline-start: 12px; padding-inline-start: 16px; border-inline-start: 1px solid #e5e7eb; }
+@media (min-width: 1280px) { .account-link { padding-inline: 8px; } }
+@media (min-width: 1280px) and (max-width: 1439px) {
+  .primary-navigation { margin-inline-start: 0; }
+  .account-link { padding-inline: 4px; }
+}
 .logout-button:hover { border-color: #d1d5db; color: #374151; }
 .nav-item-label { display: inline-flex; align-items: center; gap: 8px; }
 .account-link svg, .nav-item-label svg { width: 18px; height: 18px; flex-shrink: 0; stroke-width: 1.5; }
 @media (prefers-reduced-motion: reduce) { .account-link, .jobs-chevron, .jobs-option { transition: none; } }
 .mobile-toggle { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 2.75rem; padding: .6rem .8rem; border: 1px solid #e5e7eb; border-radius: .75rem; color: #374151; font-size: .85rem; font-weight: 600; cursor: pointer; }
 .mobile-toggle svg { width: 1.25rem; height: 1.25rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
-.mobile-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 1.25rem; height: 1.25rem; padding-inline: .3rem; border-radius: 2rem; background: #dc2626; color: white; font-size: .65rem; font-weight: 700; }
 .mobile-panel { max-height: calc(100dvh - 4.25rem); overflow-y: auto; overscroll-behavior: contain; padding: .5rem 1rem 1rem; border-block-start: 1px solid #f1f3f5; background: white; }
 .mobile-panel[hidden] { display: none; }
 .mobile-links { display: grid; gap: .2rem; }
@@ -57,4 +63,4 @@
 .mobile-account .mobile-signup { background: var(--color-primary-700); color: white; }
 .mobile-toggle:focus-visible, .mobile-panel a:focus-visible, .mobile-panel button:focus-visible { outline: 2px solid var(--color-primary-600); outline-offset: 2px; }
 /* Scoped component styles take precedence over utility classes at this breakpoint. */
-@media (min-width: 1280px) { .mobile-toggle, .mobile-panel { display: none; } }
+@media (min-width: 1280px) { .mobile-controls, .mobile-toggle, .mobile-panel { display: none; } }

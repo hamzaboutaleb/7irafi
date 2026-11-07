@@ -6,12 +6,13 @@ import { AuthService } from '../../services/auth';
 import { TranslatePipe } from '../../pipes/translate-pipe.js';
 import { LanguageSwitcher } from '../language-switcher/language-switcher.js';
 import { ChatService } from '../../services/chat.js';
+import { NotificationBell } from '../notification-bell/notification-bell.js';
 import { NotificationService } from '../../services/notification.js';
 import { LucideLayoutDashboard, LucideMessageSquare, LucideUserRound, LucideLogOut, LucideCircleHelp, LucideUsersRound, LucideBriefcaseBusiness, LucideChevronDown, LucideListFilter, LucidePlus, LucideClipboardList } from '@lucide/angular';
 
 @Component({
   selector: 'app-navbar',
-  imports: [RouterLink, RouterLinkActive, TranslatePipe, LanguageSwitcher, LucideLayoutDashboard, LucideMessageSquare, LucideUserRound, LucideLogOut, LucideCircleHelp, LucideUsersRound, LucideBriefcaseBusiness, LucideChevronDown, LucideListFilter, LucidePlus, LucideClipboardList],
+  imports: [RouterLink, RouterLinkActive, TranslatePipe, LanguageSwitcher, NotificationBell, LucideLayoutDashboard, LucideMessageSquare, LucideUserRound, LucideLogOut, LucideCircleHelp, LucideUsersRound, LucideBriefcaseBusiness, LucideChevronDown, LucideListFilter, LucidePlus, LucideClipboardList],
   templateUrl: './navbar.html',
   styleUrl: './navbar.css',
 })
@@ -74,9 +75,6 @@ export class Navbar {
       this.jobsOpen.set(false);
     });
   }
-
-  /** Unread notifications, shown as a red count on the Profile link. */
-  readonly unread = this.notifications.unread;
 
   get isAuthenticated(): boolean {
     return this.authService.getToken() !== null;

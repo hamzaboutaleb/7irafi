@@ -368,6 +368,7 @@ export const fr: Record<keyof typeof en, string> = {
   'notifications.title': 'Notifications',
   'notifications.empty': 'Rien pour le moment. Les candidatures, acceptations et nouveaux messages apparaissent ici.',
   'notifications.markAllRead': 'Tout marquer comme lu',
+  'notifications.readAllShort': 'Tout lire',
 
   'profile.title': 'Profil',
   'profile.subtitle': 'Consultez les détails de votre compte et gérez vos informations personnelles.',
@@ -535,4 +536,8 @@ export const fr: Record<keyof typeof en, string> = {
   "profile.picture.tooLarge": "Cette image fait {size} Mo. La limite est de {limit} Mo",
   "profile.picture.uploadError": "Impossible de téléverser cette image. Réessayez",
   "profile.picture.removeError": "Impossible de supprimer la photo",
+  "notifications.close": "Fermer les notifications",
+  "notifications.loading": "Chargement des notifications…",
+  "notifications.loadError": "Impossible de charger les notifications",
+  "notifications.unread": "Non lue",
 };

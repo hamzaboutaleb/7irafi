@@ -1,0 +1,14 @@
+<button #trigger type="button" class="notification-bell" (click)="toggle()"
+  [attr.aria-label]="'notifications.title' | translate" [attr.aria-expanded]="open()"
+  [attr.aria-controls]="controlId()" [attr.aria-describedby]="unread() ? controlId() + '-count' : null">
+  <svg lucideBell aria-hidden="true"></svg>
+  @if (unread()) {
+    <span class="notification-badge" dir="ltr" aria-hidden="true">{{ unread() > 99 ? '99+' : unread() }}</span>
+    <span class="sr-only" [id]="controlId() + '-count'">{{ 'nav.unread' | translate: { count: unread() } }}</span>
+  }
+</button>
+<div #panel [id]="controlId()" popover="manual" role="region" tabindex="-1"
+  class="notification-popover" [attr.aria-labelledby]="controlId() + '-heading'">
+  <app-notification-panel [compact]="true" [headingId]="controlId() + '-heading'"
+    (activated)="close(true)" (dismissRequested)="close(true)" />
+</div>
