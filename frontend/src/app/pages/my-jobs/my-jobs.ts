@@ -23,7 +23,6 @@ type Action = 'edit' | 'cancel' | 'complete' | 'delete';
   selector: 'app-my-jobs',
   imports: [LucideDynamicIcon, TitleCasePipe, FormsModule, RouterLink, Navbar, Footer, JobDetailsModal, TranslatePipe],
   templateUrl: './my-jobs.html',
-  styleUrl: './my-jobs.css',
 })
 export class MyJobs implements OnInit {
   private readonly i18n = inject(I18nService);

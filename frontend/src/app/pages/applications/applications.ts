@@ -28,7 +28,6 @@ interface ApplicationRow extends JobApplication {
   selector: 'app-applications',
   imports: [TitleCasePipe, RouterLink, Navbar, Footer, JobDetailsModal, TranslatePipe, LucideDynamicIcon],
   templateUrl: './applications.html',
-  styleUrl: './applications.css',
 })
 export class Applications implements OnInit {
   private readonly service = inject(ApplicationService);
