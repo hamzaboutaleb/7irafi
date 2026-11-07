@@ -10,7 +10,7 @@
     @if (canRetry()) {
       <button type="button" (click)="retry.emit()" [disabled]="busy()"
         class="cursor-pointer rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 disabled:opacity-50">
-        {{ busy() ? 'Uploading…' : 'Retry photos' }}
+        {{ (busy() ? 'jobs.uploadingPhotos' : 'jobs.retryPhotos') | translate }}
       </button>
     }
     <button type="button" autofocus (click)="dialog.close()" [disabled]="busy()"

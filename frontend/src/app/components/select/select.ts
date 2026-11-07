@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, computed, inject, input, output, signal, viewChild } from '@angular/core';
+import { Component, DestroyRef, ElementRef, HostListener, computed, inject, input, output, signal, viewChild } from '@angular/core';
 import { LucideCheck, LucideChevronDown } from '@lucide/angular';
 
 export interface SelectOption<T extends string = string> {
@@ -34,6 +34,15 @@ export class Select<T extends string = string> {
   private search = '';
   private searchedAt = 0;
 
+  constructor() {
+    const document = this.host.nativeElement.ownerDocument;
+    const onScroll = (event: Event) => {
+      if (this.open() && event.target !== this.panel().nativeElement) this.positionPanel();
+    };
+    document.addEventListener('scroll', onScroll, true);
+    inject(DestroyRef).onDestroy(() => document.removeEventListener('scroll', onScroll, true));
+  }
+
   toggle(): void {
     if (this.open()) this.close();
     else this.show();
@@ -49,8 +58,15 @@ export class Select<T extends string = string> {
     const panel = this.panel().nativeElement;
     // The top layer keeps menus clear of scrolling mobile navigation and dialogs.
     panel.showPopover();
+    this.positionPanel();
+    this.revealActive();
+  }
+
+  private positionPanel(): void {
+    const panel = this.panel().nativeElement;
     const rect = this.trigger().nativeElement.getBoundingClientRect();
     const viewport = this.host.nativeElement.ownerDocument.documentElement;
+    if (rect.bottom < 0 || rect.top > viewport.clientHeight) { this.close(); return; }
     const width = Math.min(Math.max(rect.width, 176), viewport.clientWidth - 16);
     const rtl = getComputedStyle(this.host.nativeElement).direction === 'rtl';
     panel.style.width = `${width}px`;
@@ -60,7 +76,6 @@ export class Select<T extends string = string> {
     const upwards = below < Math.min(panel.scrollHeight, 240) && above > below;
     panel.style.maxHeight = `${Math.max(0, Math.min(280, upwards ? above : below))}px`;
     panel.style.top = `${upwards ? rect.top - panel.getBoundingClientRect().height - 8 : rect.bottom + 8}px`;
-    this.revealActive();
   }
 
   close(): void {
@@ -133,7 +148,6 @@ export class Select<T extends string = string> {
   }
 
   @HostListener('window:resize')
-  @HostListener('window:scroll')
   viewportChanged(): void {
     if (this.open()) this.close();
   }

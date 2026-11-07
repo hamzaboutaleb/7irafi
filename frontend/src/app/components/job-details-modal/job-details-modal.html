@@ -1,240 +1,150 @@
-<dialog
-  #dialog
-  (close)="closed.emit()"
-  (cancel)="protectSubmission($event)"
-  aria-labelledby="job-details-title"
-  class="fixed inset-0 m-auto h-dvh max-h-dvh w-screen max-w-none overflow-y-auto border-0 bg-white p-0 text-gray-900 shadow-xl backdrop:bg-gray-900/50 sm:h-auto sm:max-h-[calc(100dvh-3rem)] sm:w-[calc(100%-3rem)] sm:max-w-3xl sm:rounded-2xl"
->
-  <header class="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-gray-100 bg-white p-5 sm:px-6">
-    <h2 id="job-details-title" class="min-w-0 flex-1 text-xl font-semibold [overflow-wrap:anywhere]">
-      {{ job()?.title || 'Job details' }}
-    </h2>
-    <button
-      type="button"
-      [disabled]="ratingBusy()"
-      autofocus
-      (click)="dialog.close()"
-      class="shrink-0 cursor-pointer rounded-xl border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
-    >{{ 'common.close' | translate }}</button>
+<dialog #dialog class="details-dialog" (close)="closed.emit()" (cancel)="protectSubmission($event)" aria-labelledby="job-details-title">
+  <header class="details-header">
+    <div class="details-heading">
+      <h2 id="job-details-title">{{ job()?.title || ('jobDetails.title' | translate) }}</h2>
+      @if (job(); as detail) {
+        <div class="header-meta">
+          <span>{{ detail.skill.replaceAll('_', ' ') | titlecase }}</span>
+          <span aria-hidden="true">·</span>
+          <span class="location"><svg lucideMapPin aria-hidden="true"></svg>{{ detail.city | titlecase }}</span>
+          <span class="job-status" [attr.data-status]="detail.status">{{ statusLabel() }}</span>
+        </div>
+      }
+    </div>
+    <button type="button" class="icon-button close-details" [disabled]="busy()" autofocus (click)="dialog.close()"
+      [attr.aria-label]="'common.close' | translate"><svg lucideX aria-hidden="true"></svg></button>
   </header>
 
-  <div class="p-5 sm:p-6" [attr.aria-busy]="isLoading()">
+  <div class="details-body" [attr.aria-busy]="isLoading()">
     @if (isLoading()) {
-      <p role="status" class="text-sm text-gray-600">{{ 'jobDetails.loading' | translate }}</p>
+      <p role="status" class="details-state">{{ 'jobDetails.loading' | translate }}</p>
     } @else if (errorMessage()) {
-      <p role="alert" class="rounded-xl bg-red-50 p-4 text-sm text-red-700">{{ errorMessage() }}</p>
-      <button
-        type="button"
-        (click)="loadDetails()"
-        class="mt-4 cursor-pointer rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
-      >
-        {{ 'common.retry' | translate }}
-      </button>
+      <div role="alert" class="details-state"><p>{{ errorMessage() }}</p><button type="button" class="secondary-button" (click)="loadDetails()">{{ 'common.retry' | translate }}</button></div>
     } @else if (job(); as detail) {
-      @if (rateeId(); as recipientId) {
-        <section class="mb-6 rounded-2xl border border-primary-100 bg-primary-50/40 p-5" aria-labelledby="job-rating-heading" [attr.aria-busy]="reviewState() === 'loading'">
-          <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <h3 id="job-rating-heading" class="font-semibold text-gray-900">{{ (savedReview() ? 'reviews.saved' : isOwner() ? 'reviews.professional' : 'reviews.client') | translate }}</h3>
-            <span class="rounded-full bg-white px-3 py-1 text-xs font-medium text-primary-800">{{ 'reviews.completedJob' | translate }}</span>
-          </div>
-          @if (reviewState() === 'loading') {
-            <p role="status" class="text-sm text-gray-600">{{ 'reviews.checking' | translate }}</p>
-          } @else if (reviewState() === 'error') {
-            <p role="alert" class="text-sm text-gray-600">{{ 'reviews.checkError' | translate }}</p>
-            <button type="button" (click)="loadReview()" class="mt-2 min-h-11 text-sm font-semibold text-primary-800 underline">{{ 'common.retry' | translate }}</button>
-          } @else if (savedReview(); as review) {
-            @if (ratingSubmitted()) { <p role="status" class="mb-3 text-sm text-primary-800">{{ 'reviews.thanks' | translate }}</p> }
-            <div class="flex flex-wrap items-center justify-between gap-3">
-              <app-rating-stars [score]="review.score" />
-              <time [attr.datetime]="review.createdAt" class="text-xs text-gray-500">{{ review.createdAt | date:'mediumDate' }}</time>
+      <dl class="details-summary" [attr.aria-label]="'jobDetails.overview' | translate">
+        <div class="summary-budget"><dt>{{ 'job.budget' | translate }}</dt><dd><bdi>{{ budgetLabel() }} <span>MAD</span></bdi></dd></div>
+        <div><dt><svg lucideClock aria-hidden="true"></svg>{{ 'jobs.duration' | translate }}</dt><dd>{{ durationLabel() }}</dd></div>
+        <div><dt><svg lucideSun aria-hidden="true"></svg>{{ 'jobs.preferredTime' | translate }}</dt><dd>{{ timeLabel() }}</dd></div>
+      </dl>
+
+      <section class="owner-row" aria-labelledby="owner-heading">
+        @if (owner()?.avatarUrl && !ownerImageFailed()) {
+          <img [src]="owner()!.avatarUrl" alt="" class="owner-avatar" (error)="ownerImageFailed.set(true)" />
+        } @else { <span class="owner-avatar avatar-fallback" aria-hidden="true"><svg lucideUserRound></svg></span> }
+        <div class="owner-copy">
+          <h3 id="owner-heading">{{ 'jobDetails.postedBy' | translate }}</h3>
+          @if (ownerState() === 'loading') { <p role="status">{{ 'common.loading' | translate }}</p> }
+          @else if (ownerState() === 'error') {
+            <p class="owner-unavailable">{{ 'jobDetails.ownerUnavailable' | translate }}</p>
+            <button type="button" class="text-button" (click)="loadOwner()">{{ 'common.retry' | translate }}</button>
+          } @else { <p class="owner-name">{{ ownerName() }}</p> }
+        </div>
+        <time class="posted-date" [attr.datetime]="detail.createdAt">{{ dateLabel(detail.createdAt) }}</time>
+      </section>
+
+      <section class="detail-section description-section" aria-labelledby="description-heading">
+        <h3 id="description-heading">{{ 'job.description' | translate }}</h3>
+        <p class="job-description" dir="auto">{{ detail.description }}</p>
+        @if (detail.addressLine) {
+          <dl class="address-detail"><dt><svg lucideMapPin aria-hidden="true"></svg>{{ 'job.address' | translate }}</dt><dd>{{ detail.addressLine }}</dd></dl>
+        }
+      </section>
+
+      @if (images().length) {
+        <section class="detail-section gallery-section" aria-labelledby="gallery-heading">
+          <div class="section-heading"><h3 id="gallery-heading">{{ 'jobDetails.photos' | translate }}</h3><span>{{ 'jobDetails.imageCount' | translate: { current: selectedImage() + 1, total: images().length } }}</span></div>
+          <button type="button" class="gallery-preview" (click)="openImage()" aria-haspopup="dialog" [attr.aria-label]="'jobDetails.viewFullImage' | translate">
+            <img [src]="imageUrl()" [alt]="detail.title" (error)="onImageError($event)" />
+            <span class="expand-photo"><svg lucideMaximize2 aria-hidden="true"></svg>{{ 'jobDetails.viewFullImage' | translate }}</span>
+          </button>
+          @if (images().length > 1) {
+            <div class="gallery-thumbnails" role="group" [attr.aria-label]="'jobDetails.images' | translate">
+              @for (image of images(); track image.id; let index = $index) {
+                <button type="button" (click)="selectedImage.set(index)" [attr.aria-pressed]="selectedImage() === index" [attr.aria-label]="'jobDetails.showImage' | translate: { number: index + 1 }">
+                  <img [src]="image.url" alt="" loading="lazy" (error)="onImageError($event)" />
+                </button>
+              }
             </div>
-            @if (review.rateeName) { <p class="mt-3 text-sm font-medium text-gray-700">{{ 'reviews.for' | translate:{name: review.rateeName} }}</p> }
-            @if (review.comment) { <p class="mt-3 whitespace-pre-wrap text-sm leading-7 text-gray-600 [overflow-wrap:anywhere]">{{ review.comment }}</p> }
-          } @else if (ratingOpen()) {
-            <app-rating-form [jobId]="detail.id" [rateeId]="recipientId" [jobTitle]="detail.title" [recipientName]="recipientName()"
-              (busyChange)="ratingBusy.set($event)" (submitted)="reviewSaved($event)"
-              (reloadRequested)="loadReview()" (cancelled)="ratingOpen.set(false)" />
-          } @else {
-            <p class="mb-4 text-sm text-gray-600">{{ 'reviews.formHint' | translate }}</p>
-            <button type="button" (click)="ratingOpen.set(true)" class="min-h-11 rounded-xl bg-primary-700 px-5 py-3 text-sm font-semibold text-white hover:bg-primary-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600">{{ 'reviews.leave' | translate }}</button>
           }
         </section>
       }
 
-      <button
-        type="button"
-        (click)="openImage()"
-        [disabled]="!detail.images.length"
-        aria-haspopup="dialog"
-        [attr.aria-label]="'jobDetails.viewFullImage' | translate"
-        class="group relative block w-full cursor-zoom-in rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 disabled:cursor-default"
-      >
-        <img
-          [src]="imageUrl()"
-          [alt]="detail.title"
-          (error)="onImageError($event)"
-          class="h-64 w-full rounded-xl bg-gray-50 object-contain sm:h-80"
-        />
-        @if (detail.images.length) {
-          <span aria-hidden="true" class="absolute bottom-3 right-3 flex items-center gap-2 rounded-lg bg-gray-900/75 px-3 py-2 text-xs font-semibold text-white group-hover:bg-gray-900">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5" />
-            </svg>
-            {{ 'jobDetails.viewFullImage' | translate }}
-          </span>
-        }
-      </button>
-
-      @if (detail.images.length > 1) {
-        <div role="group" [attr.aria-label]="'jobDetails.images' | translate" class="mt-3 flex gap-3 overflow-x-auto p-1">
-          @for (image of detail.images; track image.id; let index = $index) {
-            <button
-              type="button"
-              (click)="selectedImage.set(index)"
-              [attr.aria-label]="'jobDetails.showImage' | translate: { number: index + 1 }"
-              [attr.aria-pressed]="selectedImage() === index"
-              [class.ring-2]="selectedImage() === index"
-              [class.ring-primary-500]="selectedImage() === index"
-              class="shrink-0 cursor-pointer rounded-lg ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
-            >
-              <img
-                [src]="image.url"
-                alt=""
-                loading="lazy"
-                (error)="onImageError($event)"
-                class="h-16 w-20 rounded-lg object-cover"
-              />
-            </button>
+      @if (rateeId(); as recipientId) {
+        <section #reviewSection class="detail-section review-section" aria-labelledby="job-rating-heading" [attr.aria-busy]="reviewState() === 'loading'">
+          <div class="section-heading"><h3 id="job-rating-heading" tabindex="-1">{{ (savedReview() ? 'reviews.saved' : isOwner() ? 'reviews.professional' : 'reviews.client') | translate }}</h3></div>
+          @if (reviewState() === 'loading') {
+            <p role="status" class="muted-text">{{ 'reviews.checking' | translate }}</p>
+          } @else if (reviewState() === 'error') {
+            <p role="alert" class="muted-text">{{ 'reviews.checkError' | translate }}</p>
+            <button type="button" class="text-button" (click)="loadReview()">{{ 'common.retry' | translate }}</button>
+          } @else if (savedReview(); as review) {
+            @if (ratingSubmitted()) { <p role="status" class="review-notice">{{ 'reviews.thanks' | translate }}</p> }
+            <div class="saved-review-heading"><app-rating-stars [score]="review.score" /><time [attr.datetime]="review.createdAt">{{ dateLabel(review.createdAt) }}</time></div>
+            @if (review.rateeName) { <p class="review-recipient">{{ 'reviews.for' | translate: { name: review.rateeName } }}</p> }
+            @if (review.comment) { <p class="review-comment" dir="auto">{{ review.comment }}</p> }
+          } @else if (ratingOpen()) {
+            <app-rating-form [jobId]="detail.id" [rateeId]="recipientId" [jobTitle]="detail.title" [recipientName]="recipientName()"
+              (busyChange)="ratingBusy.set($event)" (submitted)="reviewSaved($event)" (reloadRequested)="loadReview()" (cancelled)="ratingOpen.set(false)" />
+          } @else {
+            <p class="muted-text">{{ 'reviews.formHint' | translate }}</p>
+            <button type="button" class="text-button" (click)="focusReview(true)">{{ 'reviews.leave' | translate }}</button>
           }
-        </div>
-      }
-
-      <div class="mt-6 flex items-center justify-between gap-3">
-        <p class="text-xl font-semibold">{{ detail.budget | number: '1.0-2' }} MAD</p>
-        <span class="rounded-full bg-primary-50 px-3 py-1 text-xs font-semibold text-primary-700">
-          {{ detail.status | titlecase }}
-        </span>
-      </div>
-
-      <dl class="mt-5 grid grid-cols-2 gap-4 text-sm [overflow-wrap:anywhere]">
-        <div>
-          <dt class="text-gray-500">{{ 'job.skill' | translate }}</dt>
-          <dd class="mt-1 font-semibold">{{ detail.skill }}</dd>
-        </div>
-        <div>
-          <dt class="text-gray-500">{{ 'job.city' | translate }}</dt>
-          <dd class="mt-1 font-semibold">{{ detail.city }}</dd>
-        </div>
-        <div>
-          <dt class="text-gray-500">{{ 'jobs.duration' | translate }}</dt>
-          <dd class="mt-1 font-semibold">{{ durationLabels[detail.estimatedDuration] }}</dd>
-        </div>
-        <div>
-          <dt class="text-gray-500">{{ 'jobs.preferredTime' | translate }}</dt>
-          <dd class="mt-1 font-semibold">{{ detail.preferredTime | titlecase }}</dd>
-        </div>
-        <div>
-          <dt class="text-gray-500">{{ 'jobDetails.posted' | translate }}</dt>
-          <dd class="mt-1 font-semibold">{{ detail.createdAt | date: 'mediumDate' }}</dd>
-        </div>
-        @if (detail.addressLine) {
-          <div>
-            <dt class="text-gray-500">{{ 'job.address' | translate }}</dt>
-            <dd class="mt-1 break-words font-semibold">{{ detail.addressLine }}</dd>
-          </div>
-        }
-      </dl>
-
-      <section class="mt-6 border-t border-gray-100 pt-5">
-        <h3 class="font-semibold">{{ 'job.description' | translate }}</h3>
-        <p class="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed text-gray-600">{{ detail.description }}</p>
-      </section>
-
-      @if (!rateeId()) {
-      <footer class="mt-6 border-t border-gray-100 pt-5">
-        @if (applied()) {
-          <p role="status" class="text-sm font-semibold text-primary-700">{{ 'jobDetails.applied' | translate }}</p>
-          <a routerLink="/applications" class="mt-3 inline-block text-sm font-semibold text-primary-700 underline">{{ 'jobDetails.myApplications' | translate }}</a>
-        } @else if (isOwner()) {
-          <a [routerLink]="['/jobs', detail.id, 'applicants']" class="inline-block rounded-xl bg-primary-600 px-5 py-3 text-sm font-semibold text-white">{{ 'myJobs.viewApplicants' | translate }}</a>
-        } @else if (detail.status !== 'OPEN') {
-          <p class="text-sm text-gray-600">{{ 'jobDetails.closed' | translate }}</p>
-        } @else if (eligibility() === 'loading') {
-          <p role="status" class="text-sm text-gray-600">{{ 'jobDetails.checkingProfile' | translate }}</p>
-        } @else if (eligibility() === 'error') {
-          <p role="alert" class="text-sm text-red-700">{{ 'jobDetails.profileCheckFailed' | translate }}</p>
-          <button type="button" (click)="loadEligibility()" class="mt-3 text-sm font-semibold text-primary-700 underline">{{ 'common.retry' | translate }}</button>
-        } @else if (eligibility() === 'ineligible') {
-          <p class="text-sm text-gray-600">{{ 'jobDetails.needsProfile' | translate }}</p>
-          <a routerLink="/professional-profile" class="mt-3 inline-block text-sm font-semibold text-primary-700 underline">{{ 'jobDetails.viewProfile' | translate }}</a>
-        } @else {
-          <button type="button" (click)="apply()" [disabled]="!canApply()"
-            class="w-full cursor-pointer rounded-xl bg-primary-600 px-5 py-3 text-sm font-semibold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto">
-            {{ applying() ? 'Applying...' : 'Apply to job' }}
-          </button>
-        }
-        @if (applyError()) {
-          <p role="alert" class="mt-3 text-sm text-red-700">{{ applyError() }}</p>
-        }
-      </footer>
+        </section>
       }
     }
   </div>
-</dialog>
 
-<dialog
-  #imageDialog
-  (keydown.arrowleft)="$event.preventDefault(); changeImage(-1)"
-  (keydown.arrowright)="$event.preventDefault(); changeImage(1)"
-  aria-labelledby="job-image-title"
-  class="fixed inset-0 m-0 h-dvh max-h-none w-screen max-w-none overflow-hidden border-0 bg-gray-950 p-0 text-white backdrop:bg-gray-950/90"
->
-  @if (job(); as detail) {
-    <div class="flex h-full min-h-0 flex-col">
-      <header class="flex shrink-0 items-center justify-between gap-4 border-b border-white/10 p-4 sm:px-6">
-        <div class="min-w-0">
-          <h2 id="job-image-title" class="truncate text-sm font-semibold sm:text-base">{{ detail.title }}</h2>
-          <p role="status" aria-live="polite" aria-atomic="true" class="mt-1 text-xs text-gray-300">
-            {{ 'jobDetails.imageCount' | translate: { current: selectedImage() + 1, total: detail.images.length } }}
-          </p>
-        </div>
-        <button
-          type="button"
-          autofocus
-          (click)="imageDialog.close()"
-          class="inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-        >
-          <span aria-hidden="true" class="text-xl leading-none">×</span>
-          {{ 'common.close' | translate }}
-        </button>
-      </header>
-
-      <div class="relative flex min-h-0 flex-1 items-center justify-center p-3 sm:p-6">
-        <img
-          [src]="imageUrl()"
-          [alt]="detail.title"
-          (error)="onImageError($event)"
-          class="h-full w-full object-contain"
-        />
-        @if (detail.images.length > 1) {
-          <button
-            type="button"
-            (click)="changeImage(-1)"
-            [attr.aria-label]="'jobDetails.previousImage' | translate"
-            class="absolute left-3 top-1/2 flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-gray-900/80 text-white shadow-lg hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white sm:left-6 sm:h-12 sm:w-12"
-          >
-            <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></svg>
-          </button>
-          <button
-            type="button"
-            (click)="changeImage(1)"
-            [attr.aria-label]="'jobDetails.nextImage' | translate"
-            class="absolute right-3 top-1/2 flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-gray-900/80 text-white shadow-lg hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white sm:right-6 sm:h-12 sm:w-12"
-          >
-            <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+  @if (!isLoading() && !errorMessage() && job(); as detail) {
+    <footer class="details-footer">
+      <div class="footer-budget"><span>{{ 'job.budget' | translate }}</span><strong><bdi>{{ budgetLabel() }} <span>MAD</span></bdi></strong></div>
+      <div class="footer-action">
+        @if (rateeId()) {
+          <p class="action-note">{{ 'reviews.completedJob' | translate }}</p>
+          @if (ratingOpen() && !savedReview()) {
+            <button type="button" class="secondary-button" (click)="focusReview()" [disabled]="ratingBusy()">{{ 'jobDetails.continueReview' | translate }}</button>
+          } @else {
+            <button type="button" class="primary-button" (click)="focusReview(true)" [disabled]="ratingBusy() || reviewState() === 'loading'">
+              {{ (savedReview() ? 'reviews.viewReview' : 'reviews.leave') | translate }}
+            </button>
+          }
+        } @else if (applied()) {
+          <p role="status" class="applied-note"><svg lucideCircleCheck aria-hidden="true"></svg>{{ 'jobDetails.applied' | translate }}</p>
+          <a routerLink="/applications" class="text-button">{{ 'jobDetails.myApplications' | translate }}</a>
+        } @else if (isOwner()) {
+          <a [routerLink]="['/jobs', detail.id, 'applicants']" class="primary-button">{{ 'myJobs.viewApplicants' | translate }}</a>
+        } @else if (detail.status !== 'OPEN') {
+          <p class="action-note">{{ 'jobDetails.closed' | translate }}</p>
+        } @else if (eligibility() === 'loading') {
+          <p role="status" class="action-note">{{ 'jobDetails.checkingProfile' | translate }}</p>
+        } @else if (eligibility() === 'error') {
+          <p role="alert" class="action-note">{{ 'jobDetails.profileCheckFailed' | translate }}</p>
+          <button type="button" class="text-button" (click)="loadEligibility()">{{ 'common.retry' | translate }}</button>
+        } @else if (eligibility() === 'ineligible') {
+          <p class="action-note">{{ 'jobDetails.needsProfile' | translate }}</p>
+          <a routerLink="/professional-profile" class="text-button">{{ 'jobDetails.viewProfile' | translate }}</a>
+        } @else {
+          <button type="button" class="primary-button apply-button" (click)="apply()" [disabled]="!canApply()" [attr.aria-busy]="applying()">
+            {{ (applying() ? 'jobDetails.applying' : 'jobDetails.apply') | translate }}
           </button>
         }
+        @if (applyError()) { <p role="alert" class="application-error">{{ applyError() }}</p> }
       </div>
+    </footer>
+  }
+</dialog>
+
+<dialog #imageDialog class="image-dialog fixed inset-0 m-0 h-dvh max-h-none w-screen max-w-none overflow-hidden border-0 bg-gray-900 p-0 text-white open:flex open:flex-col backdrop:bg-gray-900/90" (keydown.arrowleft)="$event.preventDefault(); changeImage(-1)" (keydown.arrowright)="$event.preventDefault(); changeImage(1)" aria-labelledby="job-image-title">
+  @if (job(); as detail) {
+    <header class="flex shrink-0 items-center justify-between gap-4 border-b border-white/10 px-4 py-3 sm:px-6">
+      <div class="min-w-0"><h2 id="job-image-title" class="truncate text-sm font-medium leading-6">{{ detail.title }}</h2><p role="status" aria-live="polite" aria-atomic="true" class="text-xs leading-5 text-gray-300">{{ 'jobDetails.imageCount' | translate: { current: selectedImage() + 1, total: images().length } }}</p></div>
+      <button type="button" class="icon-button image-close" autofocus (click)="imageDialog.close()" [attr.aria-label]="'common.close' | translate"><svg lucideX aria-hidden="true"></svg></button>
+    </header>
+    <div class="relative min-h-0 flex-1 p-3 sm:p-6">
+      @if (images().length) { <img [src]="imageUrl()" [alt]="detail.title" (error)="onImageError($event)" class="h-full w-full object-contain" /> }
+      @if (images().length > 1) {
+        <button type="button" class="image-nav absolute top-1/2 grid h-11 w-11 -translate-y-1/2 cursor-pointer place-items-center rounded-lg bg-gray-900/80 text-white start-4" (click)="changeImage(-1)" [attr.aria-label]="'jobDetails.previousImage' | translate"><svg lucideChevronLeft aria-hidden="true"></svg></button>
+        <button type="button" class="image-nav absolute top-1/2 grid h-11 w-11 -translate-y-1/2 cursor-pointer place-items-center rounded-lg bg-gray-900/80 text-white end-4" (click)="changeImage(1)" [attr.aria-label]="'jobDetails.nextImage' | translate"><svg lucideChevronRight aria-hidden="true"></svg></button>
+      }
     </div>
   }
 </dialog>

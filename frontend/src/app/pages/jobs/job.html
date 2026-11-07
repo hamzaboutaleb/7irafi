@@ -1,174 +1,148 @@
 <app-navbar />
-
-<main class="min-h-screen bg-gray-50 px-4 py-10 sm:px-6">
-  <section class="mx-auto max-w-5xl">
-    <header class="mb-7">
-      <p class="mt-2 text-gray-600">{{ 'jobs.subtitle' | translate }}</p>
+<main class="jobs-page">
+  <section class="jobs-container" aria-labelledby="jobs-heading">
+    <header class="jobs-heading">
+      <h1 id="jobs-heading">{{ 'jobs.findWork' | translate }}</h1>
+      <p>{{ 'jobs.subtitle' | translate }}</p>
     </header>
 
-    <div class="mb-6 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
-      <button type="button" class="filter-button w-full md:hidden" (click)="openFilters()"
-        aria-haspopup="dialog">Filters @if (chips().length) { ({{ chips().length }}) }</button>
-      <div class="hidden md:block">
-        <ng-container *ngTemplateOutlet="filterFields; context: { mobile: false }" />
-      </div>
+    <section class="filters-panel" [attr.aria-label]="'jobs.filter' | translate">
+      <button type="button" class="filter-button mobile-filter-toggle" (click)="openFilters()" aria-haspopup="dialog">
+        <svg lucideSlidersHorizontal aria-hidden="true"></svg>{{ 'jobs.filter' | translate }}
+        @if (chips().length) { <span class="filter-count">{{ chips().length }}</span> }
+      </button>
+      <div class="desktop-filters"><ng-container *ngTemplateOutlet="filterFields; context: { mobile: false }" /></div>
       @if (optionsError()) {
-        <p class="mt-3 text-sm text-red-700">{{ 'jobs.filtersPartial' | translate }}
-          <button type="button" class="underline" (click)="loadOptions()">{{ 'common.retry' | translate }}</button>
+        <p class="filter-notice" role="status">{{ 'jobs.filtersPartial' | translate }}
+          <button type="button" class="text-button" (click)="loadOptions()">{{ 'common.retry' | translate }}</button>
         </p>
       }
       @if (chips().length) {
-        <div class="mt-4 flex flex-wrap items-center gap-2" aria-label="{{ 'jobs.activeFilters' | translate }}">
+        <div class="active-filters" [attr.aria-label]="'jobs.activeFilters' | translate">
           @for (chip of chips(); track chip.key) {
-            <button type="button" class="rounded-full bg-primary-50 px-3 py-1.5 text-sm font-medium text-primary-700 hover:bg-primary-100 focus-visible:outline-2"
-              [attr.aria-label]="'Remove filter: ' + chip.label" (click)="removeFilter(chip.key)">
-              {{ chip.label | titlecase }} <span aria-hidden="true" class="ml-2">×</span>
+            <button type="button" class="filter-chip" [attr.aria-label]="'jobs.removeFilter' | translate: { label: chip.label }" (click)="removeFilter(chip.key)">
+              {{ chip.label }}<svg lucideX aria-hidden="true"></svg>
             </button>
           }
-          <button type="button" class="px-2 py-1.5 text-sm font-medium text-gray-600 underline" (click)="clearFilters()">{{ 'common.clearAll' | translate }}</button>
+          <button type="button" class="text-button" (click)="clearFilters()">{{ 'common.clearAll' | translate }}</button>
         </div>
       }
-    </div>
+    </section>
 
-    <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
-      <p class="text-sm text-gray-600" role="status">
-        @if (isLoading()) { Finding jobs… } @else if (!errorMessage()) {
-          <span class="font-semibold text-gray-900">{{ totalJobs() }}</span> {{ totalJobs() === 1 ? 'job' : 'jobs' }} found
-        }
+    <div class="results-toolbar">
+      <p class="results-count" role="status">
+        @if (isLoading()) { {{ 'jobs.finding' | translate }} }
+        @else if (!errorMessage()) { {{ (totalJobs() === 1 ? 'jobs.resultOne' : 'jobs.resultMany') | translate: { count: totalJobs() } }} }
       </p>
-      <label class="flex items-center gap-2 text-sm text-gray-600">{{ 'jobs.sortBy' | translate }}
-        <select class="filter-control !w-auto" [ngModel]="sort()" (ngModelChange)="changeSort($event)">
-          <option value="createdAt,desc">{{ 'jobs.newest' | translate }}</option>
-          <option value="budget,desc">{{ 'jobs.budgetHigh' | translate }}</option>
-          <option value="budget,asc">{{ 'jobs.budgetLow' | translate }}</option>
-        </select>
-      </label>
+      <div class="sort-control">
+        <label for="jobs-sort">{{ 'jobs.sortBy' | translate }}</label>
+        <app-select controlId="jobs-sort" [label]="'jobs.sortBy' | translate" [options]="sortOptions()" [value]="sort()" (valueChange)="changeSort($event)" />
+      </div>
     </div>
     @if (isLoading()) {
-      <div class="grid grid-cols-1 gap-6 md:grid-cols-3" aria-hidden="true">
-        @for (placeholder of [1, 2, 3]; track placeholder) {
-          <div class="h-[480px] motion-safe:animate-pulse rounded-2xl border border-gray-200 bg-white p-5">
-            <div class="h-60 rounded-xl bg-gray-100"></div>
-            <div class="mt-5 h-6 w-3/4 rounded bg-gray-100"></div>
-            <div class="mt-4 h-4 w-1/2 rounded bg-gray-100"></div>
-          </div>
+      <div class="jobs-grid" aria-hidden="true">
+        @for (placeholder of [1, 2, 3, 4, 5, 6]; track placeholder) {
+          <div class="job-skeleton"><div class="skeleton-image"></div><div class="skeleton-content"><div></div><div></div><div></div></div></div>
         }
       </div>
     } @else if (errorMessage()) {
-      <p class="rounded-lg bg-red-50 p-4 text-sm text-red-700">{{ errorMessage() }} <button type="button" class="ml-2 underline" (click)="loadJobs()">{{ 'common.retry' | translate }}</button></p>
-    } @else if (jobs().length === 0) {
-      <div class="rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-16 text-center">
-        <h2 class="text-lg font-semibold text-gray-900">{{ 'jobs.none' | translate }}</h2>
-        <p class="mt-2 text-sm text-gray-600">@if (chips().length) { Try a different city, trade, or wider budget. } @else { Check back soon for new opportunities. }</p>
-        @if (chips().length) {
-          <button type="button" class="filter-button mt-5" (click)="clearFilters()">{{ 'directory.clearFilters' | translate }}</button>
-        }
+      <div class="jobs-state error-state" role="alert">
+        <p>{{ errorMessage() }}</p><button type="button" class="filter-button" (click)="loadJobs()">{{ 'common.retry' | translate }}</button>
+      </div>
+    } @else if (!jobs().length) {
+      <div class="jobs-state" role="status">
+        <svg lucideBriefcaseBusiness aria-hidden="true"></svg>
+        <h2>{{ 'jobs.none' | translate }}</h2>
+        <p>{{ (chips().length ? 'jobs.emptyFiltered' : 'jobs.emptyDefault') | translate }}</p>
+        @if (chips().length) { <button type="button" class="filter-button" (click)="clearFilters()">{{ 'directory.clearFilters' | translate }}</button> }
       </div>
     } @else {
-      <ul class="grid grid-cols-1 gap-6 md:grid-cols-3">
+      <ul class="jobs-grid">
         @for (job of jobs(); track job.id) {
-          <li class="min-w-0">
-            <app-job-card [job]="job" (viewDetails)="selectedJobId.set(job.id)" />
-          </li>
+          <li><app-job-card [job]="job" (viewDetails)="selectedJobId.set(job.id)" /></li>
         }
       </ul>
     }
 
-    @if (!isLoading() && !errorMessage() && totalPages() > 0) {
-      <nav [attr.aria-label]="'jobs.pagination' | translate" class="mt-8 flex flex-wrap items-center justify-center gap-4">
-        <button
-          type="button"
-          (click)="changePage(currentPage() - 1)"
-          [disabled]="isLoading() || currentPage() === 0"
-          class="cursor-pointer rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-primary-600"
-        >{{ 'common.previous' | translate }}</button>
-
-        <span class="text-sm text-gray-600" aria-live="polite">
-          Page {{ currentPage() + 1 }} of {{ totalPages() }}
-        </span>
-
-        <button
-          type="button"
-          (click)="changePage(currentPage() + 1)"
-          [disabled]="isLoading() || currentPage() >= totalPages() - 1"
-          class="cursor-pointer rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-primary-600"
-        >{{ 'common.next' | translate }}</button>
+    @if (!isLoading() && !errorMessage() && totalPages() > 1) {
+      <nav [attr.aria-label]="'jobs.pagination' | translate" class="jobs-pagination">
+        <button type="button" class="filter-button" (click)="changePage(currentPage() - 1)" [disabled]="currentPage() === 0">
+          <svg lucideChevronLeft class="directional-icon" aria-hidden="true"></svg>{{ 'common.previous' | translate }}
+        </button>
+        <span aria-live="polite">{{ 'jobs.pageLabel' | translate: { page: currentPage() + 1, total: totalPages() } }}</span>
+        <button type="button" class="filter-button" (click)="changePage(currentPage() + 1)" [disabled]="currentPage() >= totalPages() - 1">
+          {{ 'common.next' | translate }}<svg lucideChevronRight class="directional-icon" aria-hidden="true"></svg>
+        </button>
       </nav>
     }
   </section>
 </main>
-
 <app-footer />
 
 @if (postingResult.result(); as result) {
   <app-posting-status-modal
-    [heading]="result.failed.length ? 'Job posted with missing photos' : 'Job posted'"
-    [message]="postingResult.busy() ? 'Uploading your remaining photos…' : result.failed.length ? 'Your job was posted, but some photos failed. Retry them before closing this message, or close to continue without them.' : 'Your job has been posted successfully.'"
+    [heading]="(result.failed.length ? 'jobs.postedPartial' : 'createJob.posted') | translate"
+    [message]="(postingResult.busy() ? 'jobs.uploadingRemaining' : result.failed.length ? 'jobs.photosFailed' : 'jobs.postedSuccess') | translate"
     [errors]="photoErrors()" [canRetry]="result.failed.length > 0" [busy]="postingResult.busy()"
     (retry)="retryPhotos()" (closed)="postingResult.clear()" />
 }
-
-@if (selectedJobId(); as jobId) {
-  <app-job-details-modal [jobId]="jobId" (closed)="selectedJobId.set(null)" />
-}
+@if (selectedJobId(); as jobId) { <app-job-details-modal [jobId]="jobId" (closed)="selectedJobId.set(null)" /> }
 
 <ng-template #filterFields let-mobile="mobile">
-  <div class="grid grid-cols-1 gap-4 md:grid-cols-[1fr_1fr_1.5fr_auto] md:items-end">
-    <label class="filter-label">{{ 'jobs.trade' | translate }}<select class="filter-control" [ngModel]="draft().skill" (ngModelChange)="updateFilter('skill', $event, mobile)">
-        <option value="">{{ 'jobs.allTrades' | translate }}</option>
-        @for (skill of skills(); track skill) { <option [value]="skill">{{ skill | titlecase }}</option> }
-      </select>
-    </label>
-    <label class="filter-label">{{ 'job.city' | translate }}<select class="filter-control" [ngModel]="draft().city" (ngModelChange)="updateFilter('city', $event, mobile)">
-        <option value="">{{ 'directory.allCities' | translate }}</option>
-        @for (city of cities(); track city) { <option [value]="city">{{ city }}</option> }
-      </select>
-    </label>
-    <fieldset>
-      <legend class="filter-label mb-2">{{ 'jobs.budgetMad' | translate }}</legend>
-      <div class="flex items-center gap-2">
-        <input type="number" min="0" class="filter-control min-w-0" [attr.placeholder]="'jobs.min' | translate" [attr.aria-label]="'jobs.minBudget' | translate"
+  <div class="filter-fields">
+    <div class="filter-field">
+      <label [attr.for]="mobile ? 'mobile-jobs-trade' : 'jobs-trade'">{{ 'jobs.trade' | translate }}</label>
+      <app-select class="field-select" [controlId]="mobile ? 'mobile-jobs-trade' : 'jobs-trade'" [label]="'jobs.trade' | translate"
+        [options]="tradeOptions()" [value]="draft().skill" (valueChange)="updateFilter('skill', $event, mobile)" />
+    </div>
+    <div class="filter-field">
+      <label [attr.for]="mobile ? 'mobile-jobs-city' : 'jobs-city'">{{ 'job.city' | translate }}</label>
+      <app-select class="field-select" [controlId]="mobile ? 'mobile-jobs-city' : 'jobs-city'" [label]="'job.city' | translate"
+        [options]="cityOptions()" [value]="draft().city" (valueChange)="updateFilter('city', $event, mobile)" />
+    </div>
+    <fieldset class="budget-field">
+      <legend>{{ 'jobs.budgetMad' | translate }}</legend>
+      <div class="budget-range">
+        <input type="number" min="0" class="filter-control" [placeholder]="'jobs.min' | translate" [attr.aria-label]="'jobs.minBudget' | translate"
           [attr.aria-invalid]="budgetError() ? true : null" [attr.aria-describedby]="budgetError() ? (mobile ? 'mobile-budget-error' : 'budget-error') : null"
           [ngModel]="draft().minBudget" (ngModelChange)="updateFilter('minBudget', $event, true)" (change)="!mobile && applyFilters()" />
-        <span class="text-gray-400" aria-hidden="true">–</span>
-        <input type="number" min="0" class="filter-control min-w-0" [attr.placeholder]="'jobs.max' | translate" [attr.aria-label]="'jobs.maxBudget' | translate"
+        <span aria-hidden="true">–</span>
+        <input type="number" min="0" class="filter-control" [placeholder]="'jobs.max' | translate" [attr.aria-label]="'jobs.maxBudget' | translate"
           [attr.aria-invalid]="budgetError() ? true : null" [attr.aria-describedby]="budgetError() ? (mobile ? 'mobile-budget-error' : 'budget-error') : null"
           [ngModel]="draft().maxBudget" (ngModelChange)="updateFilter('maxBudget', $event, true)" (change)="!mobile && applyFilters()" />
       </div>
     </fieldset>
     @if (!mobile) {
-      <button type="button" class="filter-button" [attr.aria-expanded]="moreFilters()" aria-controls="extra-filters" (click)="moreFilters.set(!moreFilters())">{{ 'jobs.moreFilters' | translate }} <span aria-hidden="true">{{ moreFilters() ? '−' : '+' }}</span></button>
+      <button type="button" class="filter-button more-filters" [attr.aria-expanded]="moreFilters()" aria-controls="extra-filters" (click)="moreFilters.set(!moreFilters())">
+        <svg lucideSlidersHorizontal aria-hidden="true"></svg>{{ 'jobs.moreFilters' | translate }}
+      </button>
     }
   </div>
-  @if (budgetError()) { <p [id]="mobile ? 'mobile-budget-error' : 'budget-error'" class="mt-3 text-sm text-red-700" role="alert">{{ budgetError() }}</p> }
+  @if (budgetError(); as message) { <p [id]="mobile ? 'mobile-budget-error' : 'budget-error'" class="budget-error" role="alert">{{ message | translate }}</p> }
   @if (mobile || moreFilters()) {
-    <div [id]="mobile ? 'mobile-extra-filters' : 'extra-filters'" class="mt-4 grid grid-cols-1 gap-4 border-t border-gray-100 pt-4 md:grid-cols-2">
-      <label class="filter-label">{{ 'jobs.duration' | translate }}
-        <select class="filter-control" [ngModel]="draft().duration" (ngModelChange)="updateFilter('duration', $event, mobile)">
-          <option value="">{{ 'jobs.anyDuration' | translate }}</option>
-          @for (duration of durations; track duration.value) { <option [value]="duration.value">{{ duration.label }}</option> }
-        </select>
-      </label>
-      <label class="filter-label">{{ 'jobs.preferredTime' | translate }}
-        <select class="filter-control" [ngModel]="draft().preferredTime" (ngModelChange)="updateFilter('preferredTime', $event, mobile)">
-          <option value="">{{ 'jobs.anyTime' | translate }}</option>
-          @for (time of times; track time) { <option [value]="time">{{ time | titlecase }}</option> }
-        </select>
-      </label>
+    <div [id]="mobile ? 'mobile-extra-filters' : 'extra-filters'" class="extra-filters">
+      <div class="filter-field">
+        <label [attr.for]="mobile ? 'mobile-jobs-duration' : 'jobs-duration'">{{ 'jobs.duration' | translate }}</label>
+        <app-select class="field-select" [controlId]="mobile ? 'mobile-jobs-duration' : 'jobs-duration'" [label]="'jobs.duration' | translate"
+          [options]="durationOptions()" [value]="draft().duration" (valueChange)="updateFilter('duration', $event, mobile)" />
+      </div>
+      <div class="filter-field">
+        <label [attr.for]="mobile ? 'mobile-jobs-time' : 'jobs-time'">{{ 'jobs.preferredTime' | translate }}</label>
+        <app-select class="field-select" [controlId]="mobile ? 'mobile-jobs-time' : 'jobs-time'" [label]="'jobs.preferredTime' | translate"
+          [options]="timeOptions()" [value]="draft().preferredTime" (valueChange)="updateFilter('preferredTime', $event, mobile)" />
+      </div>
     </div>
   }
 </ng-template>
 
 <dialog #filterDialog class="filter-sheet" aria-labelledby="filter-heading" (cancel)="closeFilters()">
-  <div class="flex items-center justify-between border-b border-gray-100 p-5">
-    <h2 id="filter-heading" class="text-xl font-semibold text-gray-900">{{ 'jobs.filter' | translate }}</h2>
-    <button type="button" class="filter-button" [attr.aria-label]="'jobs.closeFilters' | translate" (click)="closeFilters()">×</button>
-  </div>
-  <div class="overflow-y-auto p-5">
-    <ng-container *ngTemplateOutlet="filterFields; context: { mobile: true }" />
-  </div>
-  <div class="flex gap-3 border-t border-gray-100 bg-white p-5">
+  <header class="filter-sheet-header">
+    <h2 id="filter-heading">{{ 'jobs.filter' | translate }}</h2>
+    <button type="button" class="close-filters" [attr.aria-label]="'jobs.closeFilters' | translate" (click)="closeFilters()"><svg lucideX aria-hidden="true"></svg></button>
+  </header>
+  <div class="filter-sheet-body"><ng-container *ngTemplateOutlet="filterFields; context: { mobile: true }" /></div>
+  <footer class="filter-sheet-footer">
     <button type="button" class="filter-button" (click)="clearFilters(true)">{{ 'common.reset' | translate }}</button>
-    <button type="button" class="flex-1 rounded-xl bg-primary-600 px-5 py-3 font-semibold text-white hover:bg-primary-700 focus-visible:outline-2 focus-visible:outline-offset-2" (click)="showResults()">{{ 'jobs.showResults' | translate }}</button>
-  </div>
+    <button type="button" class="filter-button primary-button" (click)="showResults()">{{ 'jobs.showResults' | translate }}</button>
+  </footer>
 </dialog>

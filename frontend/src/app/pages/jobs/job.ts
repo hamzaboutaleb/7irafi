@@ -14,6 +14,10 @@ import { EstimatedDuration, JobListItem, PreferredTime } from '../../types/job.j
 import { JobPostingResult } from '../../services/job-posting-result.js';
 import { PostingStatusModal } from '../../components/posting-status-modal/posting-status-modal.js';
 import { TranslatePipe } from '../../pipes/translate-pipe.js';
+import { Select } from '../../components/select/select.js';
+import { I18nService } from '../../services/i18n.js';
+import { TranslationKey } from '../../i18n/language.js';
+import { LucideSlidersHorizontal, LucideX, LucideBriefcaseBusiness, LucideChevronLeft, LucideChevronRight } from '@lucide/angular';
 
 interface JobFilters {
   skill: string;
@@ -30,13 +34,15 @@ const emptyFilters = (): JobFilters => ({
 
 @Component({
   selector: 'app-job',
-  imports: [FormsModule, NgTemplateOutlet, TitleCasePipe, Navbar, Footer, JobCard, JobDetailsModal, PostingStatusModal, TranslatePipe],
+  imports: [FormsModule, NgTemplateOutlet, Navbar, Footer, JobCard, JobDetailsModal, PostingStatusModal, TranslatePipe, Select, LucideSlidersHorizontal, LucideX, LucideBriefcaseBusiness, LucideChevronLeft, LucideChevronRight],
   templateUrl: './job.html',
   styleUrl: './job.css',
 })
 export class Job implements OnInit {
   private readonly jobService = inject(JobService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly i18n = inject(I18nService);
+  private readonly titleCase = new TitleCasePipe();
   readonly postingResult = inject(JobPostingResult);
   readonly photoErrors = computed(() => this.postingResult.result()?.failed.map(
     (photo) => `${photo.file.name}: ${photo.error}`,
@@ -63,7 +69,7 @@ export class Job implements OnInit {
   readonly sort = signal('createdAt,desc');
   readonly totalJobs = signal(0);
   readonly moreFilters = signal(false);
-  readonly budgetError = signal<string | null>(null);
+  readonly budgetError = signal<TranslationKey | null>(null);
   readonly filterDialog = viewChild.required<ElementRef<HTMLDialogElement>>('filterDialog');
   private request?: Subscription;
   private readonly document = inject(DOCUMENT);
@@ -80,19 +86,46 @@ export class Job implements OnInit {
     }
   }
   readonly durations = [
-    { value: 'HALF_DAY', label: 'Half day' },
-    { value: 'FULL_DAY', label: 'Full day' },
-    { value: 'MULTI_DAY', label: 'Multiple days' },
-  ];
-  readonly times = ['MORNING', 'AFTERNOON', 'EVENING', 'ANYTIME'];
+    { value: 'HALF_DAY', label: 'createJob.halfDay' },
+    { value: 'FULL_DAY', label: 'createJob.fullDay' },
+    { value: 'MULTI_DAY', label: 'createJob.multipleDays' },
+  ] as const;
+  readonly times = [
+    { value: 'MORNING', label: 'createJob.morning' },
+    { value: 'AFTERNOON', label: 'createJob.afternoon' },
+    { value: 'EVENING', label: 'createJob.evening' },
+    { value: 'ANYTIME', label: 'createJob.anytime' },
+  ] as const;
+  readonly tradeOptions = computed(() => [
+    { value: '', label: this.i18n.translate('jobs.allTrades') },
+    ...this.skills().map(value => ({ value, label: this.titleCase.transform(value.replaceAll('_', ' ')) })),
+  ]);
+  readonly cityOptions = computed(() => [
+    { value: '', label: this.i18n.translate('directory.allCities') },
+    ...this.cities().map(value => ({ value, label: this.titleCase.transform(value) })),
+  ]);
+  readonly durationOptions = computed(() => [
+    { value: '', label: this.i18n.translate('jobs.anyDuration') },
+    ...this.durations.map(option => ({ value: option.value, label: this.i18n.translate(option.label) })),
+  ]);
+  readonly timeOptions = computed(() => [
+    { value: '', label: this.i18n.translate('jobs.anyTime') },
+    ...this.times.map(option => ({ value: option.value, label: this.i18n.translate(option.label) })),
+  ]);
+  readonly sortOptions = computed(() => [
+    { value: 'createdAt,desc', label: this.i18n.translate('jobs.newest') },
+    { value: 'budget,desc', label: this.i18n.translate('jobs.budgetHigh') },
+    { value: 'budget,asc', label: this.i18n.translate('jobs.budgetLow') },
+  ]);
   readonly chips = computed(() => {
     const f = this.filters();
     return (Object.keys(f) as (keyof JobFilters)[])
       .filter(key => f[key] !== '' && f[key] !== null)
-      .map(key => ({ key, label: key === 'minBudget' ? `From ${f[key]} MAD`
-        : key === 'maxBudget' ? `Up to ${f[key]} MAD`
-        : key === 'duration' ? this.durations.find(d => d.value === f[key])!.label
-        : String(f[key]).replaceAll('_', ' ').toLowerCase() }));
+      .map(key => ({ key, label: key === 'minBudget' ? this.i18n.translate('jobs.budgetFrom', { amount: f[key]! })
+        : key === 'maxBudget' ? this.i18n.translate('jobs.budgetTo', { amount: f[key]! })
+        : key === 'duration' ? this.durationOptions().find(option => option.value === f[key])!.label
+        : key === 'preferredTime' ? this.timeOptions().find(option => option.value === f[key])!.label
+        : this.titleCase.transform(String(f[key]).replaceAll('_', ' ')) }));
   });
 
   updateFilter(key: keyof JobFilters, value: string | number | null, mobile: boolean): void {
@@ -104,11 +137,11 @@ export class Job implements OnInit {
     const f = this.draft();
     const budgets = [f.minBudget, f.maxBudget];
     if (budgets.some(value => value !== null && (!Number.isFinite(value) || value < 0))) {
-      this.budgetError.set('Enter a valid budget of 0 MAD or more.');
+      this.budgetError.set('jobs.invalidBudget');
       return false;
     }
     if (f.minBudget !== null && f.maxBudget !== null && f.minBudget > f.maxBudget) {
-      this.budgetError.set('Maximum budget must be at least the minimum.');
+      this.budgetError.set('jobs.budgetOrder');
       return false;
     }
     this.budgetError.set(null);
@@ -204,9 +237,9 @@ export class Job implements OnInit {
 
   private getErrorMessage(err: HttpErrorResponse): string {
     if (err.status === 0) {
-      return 'The server cannot be reached. Make sure the API gateway is running.';
+      return this.i18n.translate('jobs.networkError');
     }
 
-    return err.error?.message ?? err.error?.error?.message ?? 'Unable to load jobs.';
+    return err.error?.message ?? err.error?.error?.message ?? this.i18n.translate('jobs.loadError');
   }
 }

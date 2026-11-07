@@ -1,48 +1,33 @@
-<article class="relative flex h-full min-h-[480px] w-full min-w-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-  <button type="button" (click)="viewDetails.emit()" aria-haspopup="dialog"
-    [attr.aria-label]="'View details for ' + job().title"
-    class="absolute inset-0 z-10 cursor-pointer rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400"></button>
-  <img [src]="imageUrl()" [alt]="imageUrl() === placeholderUrl ? 'Job image placeholder' : job().title"
-    (error)="onImageError()" loading="lazy" class="mb-4 h-60 w-full shrink-0 rounded-xl object-cover" />
-
-  <div class="flex items-start justify-between gap-3">
-    <h2 class="h-14 min-w-0 flex-1 overflow-hidden text-lg font-semibold leading-7 text-gray-900">
-      <span class="line-clamp-2 [overflow-wrap:anywhere]">{{ job().title }}</span>
-    </h2>
-    <span class="shrink-0 rounded-full bg-primary-50 px-3 py-1 text-xs font-semibold text-primary-700">
-      {{ job().status === 'COMPLETED' ? (job().status | titlecase) : applicationLabel() || (job().status | titlecase) }}
-    </span>
-  </div>
-
-  <dl class="mt-5 grid grid-cols-2 gap-3 text-sm">
-    <div class="min-w-0">
-      <dt class="text-gray-500">{{ 'job.skill' | translate }}</dt>
-      <dd class="mt-1 truncate font-semibold text-gray-900">{{ job().skill }}</dd>
-    </div>
-
-    <div class="min-w-0">
-      <dt class="text-gray-500">{{ 'job.city' | translate }}</dt>
-      <dd class="mt-1 truncate font-semibold text-gray-900">{{ job().city }}</dd>
-    </div>
-
-    <div class="min-w-0">
-      <dt class="text-gray-500">{{ 'job.budget' | translate }}</dt>
-      <dd class="mt-1 truncate font-semibold text-gray-900">
-        {{ job().budget | number: '1.0-2' }} MAD
-      </dd>
-    </div>
-
-    <div class="min-w-0">
-      <dt class="text-gray-500">{{ appliedAt() ? 'Applied' : 'Posted' }}</dt>
-      <dd class="mt-1 truncate font-semibold text-gray-900">
-        {{ (appliedAt() || job().createdAt) | date: 'mediumDate' }}
-      </dd>
-    </div>
-  </dl>
-  @if (canReview()) {
-    <button type="button" (click)="reviewRequested.emit()" aria-haspopup="dialog"
-      class="relative z-20 mt-4 min-h-11 w-full cursor-pointer rounded-xl bg-primary-700 px-4 py-3 text-sm font-semibold text-white hover:bg-primary-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600">
-      {{ (reviewed() ? 'reviews.viewReview' : 'reviews.reviewJob') | translate }}
-    </button>
+<article class="job-card">
+  <button type="button" class="job-open" (click)="viewDetails.emit()" aria-haspopup="dialog"
+    [attr.aria-label]="'jobs.viewDetails' | translate: { title: job().title }"></button>
+  @if (imageUrl(); as image) {
+    <img [src]="image" [alt]="job().title" (error)="onImageError()" loading="lazy" class="job-image" />
   }
+  <div class="job-card-body">
+    <div class="job-card-heading">
+      @if (!imageUrl()) { <span class="trade-icon" aria-hidden="true"><svg [lucideIcon]="tradeIcon()"></svg></span> }
+      <h2>{{ job().title }}</h2>
+      <span class="job-status" [attr.data-status]="job().status === 'COMPLETED' ? 'COMPLETED' : applicationStatus() || job().status">{{ statusLabel() }}</span>
+    </div>
+    <div class="job-metadata">
+      <p class="job-trade">{{ job().skill.replaceAll('_', ' ') | titlecase }}</p>
+      <p class="job-location"><svg lucideMapPin aria-hidden="true"></svg>{{ job().city | titlecase }}</p>
+    </div>
+    <div class="job-card-footer">
+      <dl class="job-budget">
+        <dt>{{ 'job.budget' | translate }}</dt>
+        <dd><bdi>{{ budgetLabel() }} <span>MAD</span></bdi></dd>
+      </dl>
+      <dl class="job-date">
+        <dt>{{ (appliedAt() ? 'jobs.appliedOn' : 'jobDetails.posted') | translate }}</dt>
+        <dd><time [attr.datetime]="appliedAt() || job().createdAt">{{ dateLabel() }}</time></dd>
+      </dl>
+    </div>
+    @if (canReview()) {
+      <button type="button" class="review-button" (click)="reviewRequested.emit()" aria-haspopup="dialog">
+        {{ (reviewed() ? 'reviews.viewReview' : 'reviews.reviewJob') | translate }}
+      </button>
+    }
+  </div>
 </article>
