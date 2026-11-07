@@ -12,7 +12,7 @@ export const en = {
   'nav.howItWorks': 'How it works',
   'nav.professionals': 'Professionals',
   'nav.jobs': 'Jobs',
-  'nav.jobs.list': 'List jobs',
+  'nav.jobs.list': 'Browse jobs',
   'nav.jobs.post': 'Post job',
   'nav.jobs.mine': 'My jobs',
   'nav.applications': 'Applications',

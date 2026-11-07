@@ -7,10 +7,11 @@ import { TranslatePipe } from '../../pipes/translate-pipe.js';
 import { LanguageSwitcher } from '../language-switcher/language-switcher.js';
 import { ChatService } from '../../services/chat.js';
 import { NotificationService } from '../../services/notification.js';
+import { LucideLayoutDashboard, LucideMessageSquare, LucideUserRound, LucideLogOut, LucideCircleHelp, LucideUsersRound, LucideBriefcaseBusiness, LucideChevronDown, LucideListFilter, LucidePlus, LucideClipboardList } from '@lucide/angular';
 
 @Component({
   selector: 'app-navbar',
-  imports: [RouterLink, RouterLinkActive, TranslatePipe, LanguageSwitcher],
+  imports: [RouterLink, RouterLinkActive, TranslatePipe, LanguageSwitcher, LucideLayoutDashboard, LucideMessageSquare, LucideUserRound, LucideLogOut, LucideCircleHelp, LucideUsersRound, LucideBriefcaseBusiness, LucideChevronDown, LucideListFilter, LucidePlus, LucideClipboardList],
   templateUrl: './navbar.html',
   styleUrl: './navbar.css',
 })

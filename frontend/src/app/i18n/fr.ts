@@ -9,7 +9,7 @@ export const fr: Record<keyof typeof en, string> = {
   'nav.howItWorks': 'Comment ça marche',
   'nav.professionals': 'Artisans',
   'nav.jobs': 'Missions',
-  'nav.jobs.list': 'Voir les missions',
+  'nav.jobs.list': 'Parcourir les missions',
   'nav.jobs.post': 'Publier une mission',
   'nav.jobs.mine': 'Mes missions',
   'nav.applications': 'Candidatures',
