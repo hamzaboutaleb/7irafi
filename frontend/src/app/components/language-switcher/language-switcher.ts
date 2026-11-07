@@ -10,7 +10,7 @@ import { LucideGlobe } from '@lucide/angular';
   selector: 'app-language-switcher',
   imports: [TranslatePipe, Select, LucideGlobe],
   templateUrl: './language-switcher.html',
-  styles: [':host { display: inline-flex; } svg { width: 18px; height: 18px; flex-shrink: 0; stroke-width: 1.5; color: #6b7280; }'],
+  host: { class: 'inline-flex' },
 })
 export class LanguageSwitcher {
   private readonly i18n = inject(I18nService);

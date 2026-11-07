@@ -3,13 +3,11 @@ import { Landing } from './pages/landing/landing';
 import { HowItWorksPage } from './pages/how-it-works/how-it-works-page.js';
 import { StatusPage } from './pages/status/status-page.js';
 import { Login } from './pages/login/login.js';
-import { Dashboard } from './pages/dashboard/dashboard.js';
 import { authGuard } from './guards/auth-guard.js';
 import { guestGuard } from './guards/guest-guard.js';
 import { Register } from './pages/register/register.js';
 import { Profile } from './pages/profile/profile.js';
 import { ProfessionalProfile } from './pages/professional-profile/professional-profile.js';
-import { Professionals } from './pages/professionals/professionals.js';
 import { PrivacyPolicy } from './pages/privacy-policy/privacy-policy.js';
 import { TermsOfService } from './pages/terms-of-service/terms-of-service.js';
 import { Job } from './pages/jobs/job.js';
@@ -29,7 +27,7 @@ export const routes: Routes = [
   },
   {
     path: 'dashboard', title: 'pageTitle.dashboard',
-    component: Dashboard,
+    loadComponent: () => import('./pages/dashboard/dashboard.js').then((m) => m.Dashboard),
     canActivate: [authGuard],
   },
   {
@@ -49,7 +47,7 @@ export const routes: Routes = [
   },
   {
     path: 'professionals', title: 'pageTitle.professionals',
-    component: Professionals,
+    loadComponent: () => import('./pages/professionals/professionals.js').then((m) => m.Professionals),
     canActivate: [authGuard],
   },
   {

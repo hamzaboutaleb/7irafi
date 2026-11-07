@@ -7,24 +7,16 @@ import { I18nService } from '../../services/i18n.js';
   selector: 'app-rating-stars',
   imports: [LucideStar],
   template: `
-    <span class="stars" role="img" [attr.aria-label]="label">
+    <span class="stars inline-flex [gap:.18rem]" role="img" [attr.aria-label]="label">
       @for (star of stars; track star) {
-        <span class="star" aria-hidden="true">
-          <svg lucideStar class="star-outline"></svg>
-          <span class="fill" [style.width.%]="fillPercentage(star)"><svg lucideStar></svg></span>
+        <span class="star relative block [width:1.15rem] [height:1.15rem]" aria-hidden="true">
+          <svg lucideStar class="star-outline [width:1.15rem] [height:1.15rem] [stroke-width:1.7] text-gray-300 [fill:#f3f4f6]"></svg>
+          <span class="fill absolute [inset-block:0] start-0 overflow-hidden [color:#b7790b] [&.fill_svg]:absolute [&.fill_svg]:start-0 [&.fill_svg]:[fill:#f5b841]" [style.width.%]="fillPercentage(star)"><svg class="[width:1.15rem] [height:1.15rem] [stroke-width:1.7]" lucideStar></svg></span>
         </span>
       }
     </span>
   `,
-  styles: `
-    :host { display: inline-flex; vertical-align: middle; }
-    .stars { display: inline-flex; gap: .18rem; }
-    .star { position: relative; display: block; width: 1.15rem; height: 1.15rem; }
-    svg { width: 1.15rem; height: 1.15rem; stroke-width: 1.7; }
-    .star-outline { color: #d1d5db; fill: #f3f4f6; }
-    .fill { position: absolute; inset-block: 0; inset-inline-start: 0; overflow: hidden; color: #b7790b; }
-    .fill svg { position: absolute; inset-inline-start: 0; fill: #f5b841; }
-  `,
+  host: { class: 'inline-flex [vertical-align:middle]' },
 })
 export class RatingStars {
   @Input() score = 0;

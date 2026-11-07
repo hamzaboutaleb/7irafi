@@ -1,4 +1,4 @@
-<button #trigger type="button" class="select-trigger" [class.compact]="compact()" role="combobox"
+<button #trigger type="button" class="select-trigger flex items-center justify-between gap-3 w-full min-w-32 min-h-11 [padding:8px_12px] [border:1px_solid_#e5e7eb] rounded-lg bg-white text-gray-700 [font:inherit] [font-size:14px] font-medium cursor-pointer [transition:border-color_160ms_ease,_background-color_160ms_ease] [&.select-trigger:hover]:bg-gray-50 [&.select-trigger:hover]:border-gray-300 [&.select-trigger[aria-expanded='true']]:border-primary-700 [&.select-trigger[aria-invalid='true']]:border-red-700 [&.select-trigger:focus-visible]:[outline:2px_solid_var(--color-primary-700)] [&.select-trigger:focus-visible]:[outline-offset:2px] [&.select-trigger:disabled]:[opacity:.5] [&.select-trigger:disabled]:cursor-not-allowed [&.select-trigger.compact]:min-w-0 [&.select-trigger.compact]:gap-2 [&.select-trigger.compact]:min-h-10 [&.select-trigger.compact]:p-2 [@media(prefers-reduced-motion:_reduce)]:[&.select-trigger]:[transition:none]" [class.compact]="compact()" role="combobox"
   [id]="controlId()" [disabled]="disabled()" [attr.aria-label]="label()"
   [attr.aria-invalid]="invalid()" [attr.aria-describedby]="describedBy()"
   aria-haspopup="listbox" [attr.aria-expanded]="open()"
@@ -6,19 +6,19 @@
   [attr.aria-activedescendant]="open() ? controlId() + '-option-' + active() : null"
   (click)="toggle()" (keydown)="onKeydown($event)">
   <ng-content select="[selectIcon]" />
-  <span class="select-value" [attr.lang]="selected()?.lang" [attr.dir]="displayLabel() ? 'ltr' : selected()?.direction">{{ displayLabel() ?? selected()?.label }}</span>
-  <svg lucideChevronDown class="chevron" [class.expanded]="open()" aria-hidden="true"></svg>
+  <span class="select-value overflow-hidden [text-overflow:ellipsis] whitespace-nowrap" [attr.lang]="selected()?.lang" [attr.dir]="displayLabel() ? 'ltr' : selected()?.direction">{{ displayLabel() ?? selected()?.label }}</span>
+  <svg lucideChevronDown class="chevron w-4 h-4 shrink-0 [stroke-width:1.5] text-gray-500 [transition:transform_160ms_ease] [&.chevron.expanded]:[transform:rotate(180deg)] [@media(prefers-reduced-motion:_reduce)]:[&.chevron]:[transition:none]" [class.expanded]="open()" aria-hidden="true"></svg>
 </button>
-<div #panel popover="manual" class="select-panel" role="listbox"
+<div #panel popover="manual" class="select-panel fixed inset-auto m-0 [box-sizing:border-box] p-1 overflow-y-auto overscroll-contain [border:1px_solid_#e5e7eb] rounded-xl bg-white text-gray-700 [box-shadow:0_8px_24px_rgb(0_0_0_/_8%)]" role="listbox"
   [id]="controlId() + '-options'" [attr.aria-label]="label()">
   @for (option of options(); track option.value; let index = $index) {
-    <div class="select-option" role="option" [id]="controlId() + '-option-' + index"
+    <div class="select-option flex items-center justify-between gap-4 min-h-11 [padding:8px_12px] rounded-lg [font-size:14px] [line-height:20px] cursor-pointer [&.select-option.active]:bg-gray-100 [&.select-option.active]:[outline:1px_solid_#d1d5db] [&.select-option.active]:[outline-offset:-1px] [&.select-option.selected]:text-primary-800 [&.select-option.selected]:font-medium [&.select-option.selected.active]:bg-primary-50 [&.select-option.selected.active]:outline-primary-200 [&.select-option[aria-disabled='true']]:[opacity:.5] [&.select-option[aria-disabled='true']]:cursor-not-allowed" role="option" [id]="controlId() + '-option-' + index"
       [attr.aria-selected]="option.value === value()" [attr.aria-disabled]="!!option.disabled"
       [class.active]="index === active()" [class.selected]="option.value === value()"
       (pointermove)="!option.disabled && active.set(index)"
       (pointerdown)="$event.preventDefault()" (click)="choose(index)">
       <span [attr.lang]="option.lang" [attr.dir]="option.direction">{{ option.label }}</span>
-      @if (option.value === value()) { <svg lucideCheck aria-hidden="true"></svg> }
+      @if (option.value === value()) { <svg class="w-4 h-4 shrink-0 [stroke-width:1.5]" lucideCheck aria-hidden="true"></svg> }
     </div>
   }
 </div>

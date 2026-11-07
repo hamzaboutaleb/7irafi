@@ -25,7 +25,7 @@ type LoadState = 'idle' | 'loading' | 'loaded' | 'error';
   imports: [DatePipe, DecimalPipe, RouterLink, LucideArrowRight, LucideCircleCheck, LucideStar, LucideUsersRound, Navbar, Footer, JobDetailsModal, DashboardSidebar, TranslatePipe],
   providers: [DashboardData],
   templateUrl: './dashboard.html',
-  styleUrl: './dashboard.css',
+  host: { class: 'block' },
 })
 export class Dashboard implements OnInit {
   private readonly users = inject(UserService);

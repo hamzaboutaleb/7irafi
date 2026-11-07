@@ -39,7 +39,6 @@ import { RatingFormComponent } from '../rating-form/rating-form.js';
   selector: 'app-job-details-modal',
   imports: [TitleCasePipe, RouterLink, TranslatePipe, RatingFormComponent, RatingStars, LucideX, LucideMapPin, LucideClock, LucideSun, LucideUserRound, LucideMaximize2, LucideCircleCheck, LucideChevronLeft, LucideChevronRight],
   templateUrl: './job-details-modal.html',
-  styleUrl: './job-details-modal.css',
 })
 export class JobDetailsModal implements OnInit, AfterViewInit, OnDestroy {
   private readonly jobService = inject(JobService);

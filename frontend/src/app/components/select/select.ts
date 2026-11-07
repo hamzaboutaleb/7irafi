@@ -14,7 +14,7 @@ export interface SelectOption<T extends string = string> {
   selector: 'app-select',
   imports: [LucideCheck, LucideChevronDown],
   templateUrl: './select.html',
-  styleUrl: './select.css',
+  host: { class: 'inline-block max-w-full' },
 })
 export class Select<T extends string = string> {
   readonly controlId = input.required<string>();

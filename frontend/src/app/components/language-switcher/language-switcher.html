@@ -1,5 +1,5 @@
 <app-select [controlId]="controlId()" [label]="'nav.language' | translate"
   [options]="options" [value]="current()" [compact]="true" [displayLabel]="current().toUpperCase()"
   (valueChange)="change($event)">
-  <svg selectIcon lucideGlobe aria-hidden="true"></svg>
+  <svg class="w-4.5 h-4.5 shrink-0 [stroke-width:1.5] text-gray-500" selectIcon lucideGlobe aria-hidden="true"></svg>
 </app-select>

@@ -12,7 +12,7 @@ import { RatingDisplayComponent } from '../rating-display/rating-display.js';
   selector: 'app-dashboard-sidebar',
   imports: [DatePipe, RouterLink, LucideArrowRight, TranslatePipe, RatingDisplayComponent],
   templateUrl: './dashboard-sidebar.html',
-  styleUrl: './dashboard-sidebar.css',
+  host: { class: 'block min-w-0' },
 })
 export class DashboardSidebar {
   @Input() summary: UserRatingSummary | null = null;

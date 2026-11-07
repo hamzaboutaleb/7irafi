@@ -1,60 +1,60 @@
 <app-navbar />
-<main class="dashboard-page">
-  <div class="dashboard-container">
-    <header class="welcome-row">
+<main class="dashboard-page [--dashboard-ink:#17212b] [--dashboard-body:#48545e] [--dashboard-muted:#68747e] [--dashboard-line:#e3e8ec] [--dashboard-soft-line:#edf1f3] [min-height:calc(100dvh_-_5rem)] [background:#f7f9fa] [padding:2.5rem_1.5rem_4rem] [@media(max-width:_600px)]:[&.dashboard-page]:[padding:1.5rem_1rem_3rem]">
+  <div class="dashboard-container max-w-288 mx-auto">
+    <header class="welcome-row flex items-center justify-between flex-wrap gap-4 [@media(max-width:_600px)]:[&.welcome-row]:items-start [@media(max-width:_600px)]:[&.welcome-row_>_.primary-button]:w-full">
       <div>
-        <h1>{{ (view() === 'hiring' ? 'dashboard.hiringHeading' : 'dashboard.workingHeading') | translate }}</h1>
-        <p class="welcome-description">{{ (view() === 'hiring' ? 'dashboard.hiringHint' : 'dashboard.workingHint') | translate }}</p>
+        <h1 class="[color:var(--dashboard-ink)] [font-size:clamp(1.75rem,_3vw,_2rem)] font-medium [line-height:1.3] [overflow-wrap:anywhere]">{{ (view() === 'hiring' ? 'dashboard.hiringHeading' : 'dashboard.workingHeading') | translate }}</h1>
+        <p class="welcome-description mt-2 max-w-144 [color:var(--dashboard-muted)] [font-size:.875rem] [line-height:1.6]">{{ (view() === 'hiring' ? 'dashboard.hiringHint' : 'dashboard.workingHint') | translate }}</p>
       </div>
-      <a [routerLink]="primaryRoute()" class="primary-button">
+      <a [routerLink]="primaryRoute()" class="primary-button inline-flex items-center justify-center gap-2 min-h-11 [padding:.65rem_1rem] [border-radius:.625rem] [font-size:.875rem] font-medium text-center text-white bg-primary-700 [&.primary-button:hover]:bg-primary-800 [&:focus-visible]:[outline:2px_solid_var(--color-primary-600)] [&:focus-visible]:[outline-offset:4px] [&:focus-visible]:[border-radius:.25rem]">
         @if (view() === 'hiring') {
-          <span aria-hidden="true" class="primary-icon">+</span>
+          <span aria-hidden="true" class="primary-icon [font-size:1.1rem] [line-height:1]">+</span>
         } @else {
-          <svg lucideArrowRight aria-hidden="true" class="arrow-icon"></svg>
+          <svg lucideArrowRight aria-hidden="true" class="arrow-icon w-4 h-4 [stroke-width:1.5]"></svg>
         }
         {{ primaryLabel() | translate }}
       </a>
     </header>
 
-    <div class="view-row">
-      <div class="view-switch" role="group" [attr.aria-label]="'dashboard.viewLabel' | translate">
-        <button type="button" (click)="selectView('hiring')" [attr.aria-pressed]="view() === 'hiring'">{{ 'dashboard.hiring' | translate }}</button>
-        <button type="button" (click)="selectView('working')" [attr.aria-pressed]="view() === 'working'">{{ 'dashboard.working' | translate }}</button>
+    <div class="view-row flex items-center gap-4 flex-wrap [margin-block:1.5rem_1rem] [@media(max-width:_600px)]:[&.view-row]:gap-3 [@media(max-width:_600px)]:[&.view-row]:mt-5">
+      <div class="view-switch inline-flex shrink-0 gap-1 p-1 [border:1px_solid_var(--dashboard-line)] [border-radius:.625rem] [background:#eef2f3] [&.view-switch_button]:min-h-11 [&.view-switch_button]:[padding:.5rem_1rem] [&.view-switch_button]:[border-radius:.4rem] [&.view-switch_button]:[color:var(--dashboard-body)] [&.view-switch_button]:[font-size:.875rem] [&.view-switch_button]:font-medium [&.view-switch_button]:cursor-pointer [&.view-switch_button[aria-pressed=true]]:[color:var(--dashboard-ink)] [&.view-switch_button[aria-pressed=true]]:bg-white [&.view-switch_button[aria-pressed=true]]:[box-shadow:0_1px_2px_#16222e12]" role="group" [attr.aria-label]="'dashboard.viewLabel' | translate">
+        <button class="[&:disabled]:[opacity:.5] [&:disabled]:cursor-not-allowed [&:focus-visible]:[outline:2px_solid_var(--color-primary-600)] [&:focus-visible]:[outline-offset:4px] [&:focus-visible]:[border-radius:.25rem]" type="button" (click)="selectView('hiring')" [attr.aria-pressed]="view() === 'hiring'">{{ 'dashboard.hiring' | translate }}</button>
+        <button class="[&:disabled]:[opacity:.5] [&:disabled]:cursor-not-allowed [&:focus-visible]:[outline:2px_solid_var(--color-primary-600)] [&:focus-visible]:[outline-offset:4px] [&:focus-visible]:[border-radius:.25rem]" type="button" (click)="selectView('working')" [attr.aria-pressed]="view() === 'working'">{{ 'dashboard.working' | translate }}</button>
       </div>
     </div>
 
     @if (profileState() === 'loading' || profileState() === 'idle') {
-      <div class="dashboard-loading" role="status">
-        <span class="sr-only">{{ 'common.loading' | translate }}</span>
-        <div class="skeleton-panel" aria-hidden="true"></div>
-        <div class="skeleton-panel" aria-hidden="true"></div>
+      <div class="dashboard-loading grid [grid-template-columns:2fr_1fr] gap-6 [@media(max-width:_600px)]:[&.dashboard-loading]:[grid-template-columns:minmax(0,_1fr)]" role="status">
+        <span class="sr-only absolute [width:1px] [height:1px] p-0 overflow-hidden [clip-path:inset(50%)] whitespace-nowrap">{{ 'common.loading' | translate }}</span>
+        <div class="skeleton-panel h-80 [border:1px_solid_var(--dashboard-line)] [border-radius:.875rem] [background:#edf1f3]" aria-hidden="true"></div>
+        <div class="skeleton-panel h-80 [border:1px_solid_var(--dashboard-line)] [border-radius:.875rem] [background:#edf1f3]" aria-hidden="true"></div>
       </div>
     } @else if (profileState() === 'error') {
-      <div class="notice" role="alert">
+      <div class="notice flex items-center justify-between flex-wrap [gap:.5rem_1rem] [padding:.75rem_1rem] [border:1px_solid_var(--dashboard-line)] [border-radius:.625rem] bg-white [color:var(--dashboard-body)] [font-size:.8125rem] [line-height:1.5] [&.notice_p]:[flex:1_1_15rem]" role="alert">
         <p>{{ 'dashboard.profileError' | translate }}</p>
-        <button type="button" class="text-button" (click)="loadProfile()">{{ 'common.retry' | translate }}</button>
+        <button type="button" class="text-button inline-flex items-center justify-center [gap:.4rem] min-h-11 text-primary-800 [font-size:.8125rem] font-medium cursor-pointer shrink-0 [&.text-button:hover]:underline [&.text-button:hover]:[text-underline-offset:.2rem] [&:disabled]:[opacity:.5] [&:disabled]:cursor-not-allowed [&:focus-visible]:[outline:2px_solid_var(--color-primary-600)] [&:focus-visible]:[outline-offset:4px] [&:focus-visible]:[border-radius:.25rem]" (click)="loadProfile()">{{ 'common.retry' | translate }}</button>
       </div>
     } @else {
-      <div class="dashboard-grid">
-        <div class="main-column" [attr.aria-busy]="workState() === 'loading'">
+      <div class="dashboard-grid grid [grid-template-columns:minmax(0,_1fr)_minmax(17rem,_21rem)] gap-6 items-start [@media(max-width:_900px)]:[&.dashboard-grid]:[grid-template-columns:minmax(0,_1fr)]">
+        <div class="main-column grid min-w-0 gap-4" [attr.aria-busy]="workState() === 'loading'">
           @if (workState() === 'error' || snapshot()?.partial) {
-            <div class="notice" role="alert">
+            <div class="notice flex items-center justify-between flex-wrap [gap:.5rem_1rem] [padding:.75rem_1rem] [border:1px_solid_var(--dashboard-line)] [border-radius:.625rem] bg-white [color:var(--dashboard-body)] [font-size:.8125rem] [line-height:1.5] [&.notice_p]:[flex:1_1_15rem]" role="alert">
               <p>{{ (workState() === 'error' ? 'dashboard.workError' : 'dashboard.partial') | translate }}</p>
-              <button type="button" class="text-button" (click)="loadView(true)" [disabled]="workState() === 'loading'">{{ 'common.retry' | translate }}</button>
+              <button type="button" class="text-button inline-flex items-center justify-center [gap:.4rem] min-h-11 text-primary-800 [font-size:.8125rem] font-medium cursor-pointer shrink-0 [&.text-button:hover]:underline [&.text-button:hover]:[text-underline-offset:.2rem] [&:disabled]:[opacity:.5] [&:disabled]:cursor-not-allowed [&:focus-visible]:[outline:2px_solid_var(--color-primary-600)] [&:focus-visible]:[outline-offset:4px] [&:focus-visible]:[border-radius:.25rem]" (click)="loadView(true)" [disabled]="workState() === 'loading'">{{ 'common.retry' | translate }}</button>
             </div>
           }
 
           @if (snapshot(); as data) {
             @if (data.actions.length) {
-              <section class="panel attention-panel" aria-labelledby="attention-heading">
-                <header class="panel-header">
-                  <h2 id="attention-heading">{{ 'dashboard.attention' | translate }}</h2>
-                  <span class="attention-count" aria-hidden="true">{{ data.actions.length }}</span>
+              <section class="panel attention-panel overflow-hidden [border:1px_solid_var(--dashboard-line)] [border-radius:.875rem] bg-white" aria-labelledby="attention-heading">
+                <header class="panel-header flex items-center justify-between gap-4 [padding:1.25rem_1.5rem_1rem] [@media(max-width:_600px)]:[&.panel-header]:items-start [@media(max-width:_600px)]:[&.panel-header]:px-4">
+                  <h2 class="[color:var(--dashboard-ink)] [font-size:1rem] font-medium [line-height:1.5]" id="attention-heading">{{ 'dashboard.attention' | translate }}</h2>
+                  <span class="attention-count [color:var(--dashboard-muted)] [font-size:.8125rem] tabular-nums" aria-hidden="true">{{ data.actions.length }}</span>
                 </header>
-                <ul class="attention-list">
+                <ul class="attention-list px-6 [@media(max-width:_600px)]:[&.attention-list]:px-4">
                   @for (action of data.actions; track action.kind + action.jobId) {
-                    <li class="attention-item">
-                      <span class="action-icon" aria-hidden="true">
+                    <li class="attention-item flex items-center gap-3 py-3.5 [border-block-start:1px_solid_var(--dashboard-soft-line)] [&.attention-item_>_.action-link]:max-w-40 [&.attention-item_>_.action-link]:text-end [@media(max-width:_600px)]:[&.attention-item]:flex-wrap [@media(max-width:_600px)]:[&.attention-item]:[gap:.5rem_.75rem] [@media(max-width:_600px)]:[&.attention-item_>_.action-link]:ms-9 [@media(max-width:_600px)]:[&.attention-item_>_.action-link]:max-w-none">
+                      <span class="action-icon grid shrink-0 place-items-center w-6 h-6 [color:var(--dashboard-muted)] [&.action-icon_svg]:w-5 [&.action-icon_svg]:h-5 [&.action-icon_svg]:[fill:none] [&.action-icon_svg]:[stroke:currentColor] [&.action-icon_svg]:[stroke-width:1.5] [&.action-icon_svg]:[stroke-linecap:round] [&.action-icon_svg]:[stroke-linejoin:round]" aria-hidden="true">
                         @if (action.kind === 'review') {
                           <svg lucideStar></svg>
                         } @else if (action.kind === 'applicants') {
@@ -63,8 +63,8 @@
                           <svg lucideCircleCheck></svg>
                         }
                       </span>
-                      <div class="attention-copy">
-                        <h3>{{ action.title }}</h3>
+                      <div class="attention-copy flex-1 min-w-0 [&.attention-copy_p]:mt-0.5 [&.attention-copy_p]:[color:var(--dashboard-muted)] [&.attention-copy_p]:[font-size:.8125rem] [&.attention-copy_p]:[line-height:1.5] [@media(max-width:_600px)]:[&.attention-copy]:[flex-basis:calc(100%_-_2.25rem)]">
+                        <h3 class="[color:var(--dashboard-ink)] [font-size:.875rem] font-medium [line-height:1.5] [overflow-wrap:anywhere]">{{ action.title }}</h3>
                         <p>
                           @if (action.kind === 'applicants') {
                             {{ (action.count === 1 ? 'dashboard.oneApplicant' : 'dashboard.applicantsCount') | translate:{count: action.count || 0} }}
@@ -74,10 +74,10 @@
                         </p>
                       </div>
                       @if (action.kind === 'applicants') {
-                        <a [routerLink]="['/jobs', action.jobId, 'applicants']" class="action-link">{{ 'dashboard.viewApplicants' | translate }}<svg lucideArrowRight aria-hidden="true" class="arrow-icon"></svg></a>
+                        <a [routerLink]="['/jobs', action.jobId, 'applicants']" class="action-link inline-flex items-center justify-center [gap:.4rem] min-h-11 text-primary-800 [font-size:.8125rem] font-medium cursor-pointer [&.action-link:hover]:underline [&.action-link:hover]:[text-underline-offset:.2rem] [&:focus-visible]:[outline:2px_solid_var(--color-primary-600)] [&:focus-visible]:[outline-offset:4px] [&:focus-visible]:[border-radius:.25rem]">{{ 'dashboard.viewApplicants' | translate }}<svg lucideArrowRight aria-hidden="true" class="arrow-icon w-4 h-4 [stroke-width:1.5]"></svg></a>
                       } @else {
-                        <button type="button" class="action-link" aria-haspopup="dialog" (click)="openJob(action.jobId, action.kind === 'review')">
-                          {{ (action.kind === 'review' ? 'reviews.leave' : 'reviews.viewJob') | translate }}<svg lucideArrowRight aria-hidden="true" class="arrow-icon"></svg>
+                        <button type="button" class="action-link inline-flex items-center justify-center [gap:.4rem] min-h-11 text-primary-800 [font-size:.8125rem] font-medium cursor-pointer [&.action-link:hover]:underline [&.action-link:hover]:[text-underline-offset:.2rem] [&:disabled]:[opacity:.5] [&:disabled]:cursor-not-allowed [&:focus-visible]:[outline:2px_solid_var(--color-primary-600)] [&:focus-visible]:[outline-offset:4px] [&:focus-visible]:[border-radius:.25rem]" aria-haspopup="dialog" (click)="openJob(action.jobId, action.kind === 'review')">
+                          {{ (action.kind === 'review' ? 'reviews.leave' : 'reviews.viewJob') | translate }}<svg lucideArrowRight aria-hidden="true" class="arrow-icon w-4 h-4 [stroke-width:1.5]"></svg>
                         </button>
                       }
                     </li>
@@ -87,64 +87,64 @@
             }
           }
 
-          <section class="panel jobs-panel" aria-labelledby="current-jobs-heading">
-            <header class="panel-header">
+          <section class="panel jobs-panel overflow-hidden [border:1px_solid_var(--dashboard-line)] [border-radius:.875rem] bg-white" aria-labelledby="current-jobs-heading">
+            <header class="panel-header flex items-center justify-between gap-4 [padding:1.25rem_1.5rem_1rem] [@media(max-width:_600px)]:[&.panel-header]:items-start [@media(max-width:_600px)]:[&.panel-header]:px-4">
               <div>
-                <h2 id="current-jobs-heading">{{ (view() === 'hiring' ? 'dashboard.currentJobs' : 'dashboard.recentWork') | translate }}</h2>
-                @if (view() === 'working') { <p class="section-description">{{ 'dashboard.workingPreview' | translate }}</p> }
+                <h2 class="[color:var(--dashboard-ink)] [font-size:1rem] font-medium [line-height:1.5]" id="current-jobs-heading">{{ (view() === 'hiring' ? 'dashboard.currentJobs' : 'dashboard.recentWork') | translate }}</h2>
+                @if (view() === 'working') { <p class="section-description mt-1 [color:var(--dashboard-muted)] [font-size:.8125rem] [line-height:1.55]">{{ 'dashboard.workingPreview' | translate }}</p> }
               </div>
-              <a [routerLink]="view() === 'hiring' ? '/jobs/my' : '/applications'" class="text-button">{{ 'dashboard.viewAll' | translate }}<svg lucideArrowRight aria-hidden="true" class="arrow-icon"></svg></a>
+              <a [routerLink]="view() === 'hiring' ? '/jobs/my' : '/applications'" class="text-button inline-flex items-center justify-center [gap:.4rem] min-h-11 text-primary-800 [font-size:.8125rem] font-medium cursor-pointer shrink-0 [&.text-button:hover]:underline [&.text-button:hover]:[text-underline-offset:.2rem] [&:focus-visible]:[outline:2px_solid_var(--color-primary-600)] [&:focus-visible]:[outline-offset:4px] [&:focus-visible]:[border-radius:.25rem]">{{ 'dashboard.viewAll' | translate }}<svg lucideArrowRight aria-hidden="true" class="arrow-icon w-4 h-4 [stroke-width:1.5]"></svg></a>
             </header>
 
             @if ((workState() === 'loading' || workState() === 'idle') && !snapshot()) {
-              <div class="job-skeletons" role="status">
-                <span class="sr-only">{{ 'dashboard.loadingWork' | translate }}</span>
-                @for (line of [1, 2, 3]; track line) { <div class="job-skeleton" aria-hidden="true"><span></span><span></span><span></span></div> }
+              <div class="job-skeletons px-6 [@media(max-width:_600px)]:[&.job-skeletons]:px-4" role="status">
+                <span class="sr-only absolute [width:1px] [height:1px] p-0 overflow-hidden [clip-path:inset(50%)] whitespace-nowrap">{{ 'dashboard.loadingWork' | translate }}</span>
+                @for (line of [1, 2, 3]; track line) { <div class="job-skeleton grid gap-3 py-5 [border-block-start:1px_solid_var(--dashboard-soft-line)] [&.job-skeleton_span]:h-3 [&.job-skeleton_span]:[border-radius:.25rem] [&.job-skeleton_span]:[background:#edf1f3] [&.job-skeleton_span:first-child]:[width:50%] [&.job-skeleton_span:first-child]:h-4 [&.job-skeleton_span:last-child]:[width:30%]" aria-hidden="true"><span></span><span></span><span></span></div> }
               </div>
             } @else if (snapshot(); as data) {
               @if (data.jobs.length) {
-                <ul class="job-list" [class.refreshing]="workState() === 'loading'">
+                <ul class="job-list px-6 [&.refreshing]:[opacity:.65] [@media(max-width:_600px)]:[&.job-list]:px-4" [class.refreshing]="workState() === 'loading'">
                   @for (row of data.jobs; track row.id) {
-                    <li class="job-item">
-                      <div class="job-topline">
-                        <div class="job-copy">
-                          <h3>
+                    <li class="job-item py-4 [border-block-start:1px_solid_var(--dashboard-soft-line)]">
+                      <div class="job-topline grid [grid-template-columns:minmax(0,_1fr)_minmax(7rem,_auto)] items-start [gap:.5rem_1rem] [@media(max-width:_600px)]:[&.job-topline]:[grid-template-columns:minmax(0,_1fr)] [@media(max-width:_600px)]:[&.job-topline]:gap-2">
+                        <div class="job-copy min-w-0">
+                          <h3 class="[color:var(--dashboard-ink)] [font-size:.875rem] font-medium [line-height:1.5] [overflow-wrap:anywhere]">
                             @if (row.job; as job) {
-                              <button type="button" class="job-title" aria-haspopup="dialog" (click)="openJob(job.id)">{{ job.title }}</button>
+                              <button type="button" class="job-title text-start cursor-pointer [&.job-title:hover]:text-primary-700 [&.job-title:hover]:underline [&.job-title:hover]:[text-underline-offset:.2rem] [&:disabled]:[opacity:.5] [&:disabled]:cursor-not-allowed [&:focus-visible]:[outline:2px_solid_var(--color-primary-600)] [&:focus-visible]:[outline-offset:4px] [&:focus-visible]:[border-radius:.25rem]" aria-haspopup="dialog" (click)="openJob(job.id)">{{ job.title }}</button>
                             } @else { {{ 'dashboard.jobUnavailable' | translate }} }
                           </h3>
                           @if (row.job; as job) {
-                            <p class="job-meta"><span>{{ job.skill }}</span><span aria-hidden="true">·</span><span>{{ job.city }}</span></p>
+                            <p class="job-meta flex flex-wrap items-baseline [gap:.25rem_.4rem] mt-1 [color:var(--dashboard-muted)] [font-size:.8125rem] [line-height:1.5] [overflow-wrap:anywhere]"><span>{{ job.skill }}</span><span aria-hidden="true">·</span><span>{{ job.city }}</span></p>
                           }
                         </div>
                         @if (row.job) {
-                          <div class="job-side-info">
-                            <span class="budget">{{ row.job.budget | number:'1.0-2' }} <span>MAD</span></span>
-                            <span class="status-badge" [attr.data-status]="row.job.status"><span aria-hidden="true"></span>{{ statusLabel(row) | translate }}</span>
+                          <div class="job-side-info grid justify-items-end gap-1 [@media(max-width:_600px)]:[&.job-side-info]:flex [@media(max-width:_600px)]:[&.job-side-info]:items-center [@media(max-width:_600px)]:[&.job-side-info]:justify-between [@media(max-width:_600px)]:[&.job-side-info]:gap-3">
+                            <span class="budget inline-flex items-baseline gap-1 [color:var(--dashboard-ink)] [font-size:.875rem] font-medium tabular-nums whitespace-nowrap [&.budget_span]:[color:var(--dashboard-muted)] [&.budget_span]:[font-size:.75rem] [&.budget_span]:font-normal">{{ row.job.budget | number:'1.0-2' }} <span>MAD</span></span>
+                            <span class="status-badge inline-flex items-center [gap:.35rem] max-w-48 [color:var(--dashboard-muted)] [font-size:.75rem] [line-height:1.4] text-end [&.status-badge_>_span]:[width:.4rem] [&.status-badge_>_span]:[height:.4rem] [&.status-badge_>_span]:[flex:0_0_auto] [&.status-badge_>_span]:rounded-full [&.status-badge_>_span]:[background:#99a3aa] [&.status-badge[data-status=OPEN]_>_span]:bg-primary-600 [&.status-badge[data-status=ASSIGNED]_>_span]:[background:#b7790b] [@media(max-width:_600px)]:[&.status-badge]:[max-width:60%]" [attr.data-status]="row.job.status"><span aria-hidden="true"></span>{{ statusLabel(row) | translate }}</span>
                           </div>
                         }
                       </div>
-                      <div class="job-bottomline">
+                      <div class="job-bottomline flex items-center justify-between flex-wrap [gap:.25rem_.75rem] mt-1 [&.job-bottomline_time]:[color:var(--dashboard-muted)] [&.job-bottomline_time]:[font-size:.75rem] [@media(max-width:_600px)]:[&.job-bottomline]:[gap:.25rem_.5rem]">
                         <time [attr.datetime]="row.appliedAt || row.job?.createdAt">{{ (row.appliedAt || row.job?.createdAt) | date:'mediumDate' }}</time>
                         @if (canReview(row)) {
-                          <button type="button" class="action-link" aria-haspopup="dialog" (click)="openJob(row.id, true)">{{ (ratings.hasReviewed(row.id) ? 'reviews.viewReview' : 'reviews.reviewJob') | translate }}<svg lucideArrowRight aria-hidden="true" class="arrow-icon"></svg></button>
+                          <button type="button" class="action-link inline-flex items-center justify-center [gap:.4rem] min-h-11 text-primary-800 [font-size:.8125rem] font-medium cursor-pointer [&.action-link:hover]:underline [&.action-link:hover]:[text-underline-offset:.2rem] [&:disabled]:[opacity:.5] [&:disabled]:cursor-not-allowed [&:focus-visible]:[outline:2px_solid_var(--color-primary-600)] [&:focus-visible]:[outline-offset:4px] [&:focus-visible]:[border-radius:.25rem]" aria-haspopup="dialog" (click)="openJob(row.id, true)">{{ (ratings.hasReviewed(row.id) ? 'reviews.viewReview' : 'reviews.reviewJob') | translate }}<svg lucideArrowRight aria-hidden="true" class="arrow-icon w-4 h-4 [stroke-width:1.5]"></svg></button>
                         } @else if (view() === 'hiring' && row.job) {
-                          <a [routerLink]="row.job.status === 'OPEN' ? ['/jobs', row.id, 'applicants'] : ['/jobs/my']" class="action-link">{{ (row.job.status === 'OPEN' ? 'dashboard.viewApplicants' : 'dashboard.manageJob') | translate }}<svg lucideArrowRight aria-hidden="true" class="arrow-icon"></svg></a>
+                          <a [routerLink]="row.job.status === 'OPEN' ? ['/jobs', row.id, 'applicants'] : ['/jobs/my']" class="action-link inline-flex items-center justify-center [gap:.4rem] min-h-11 text-primary-800 [font-size:.8125rem] font-medium cursor-pointer [&.action-link:hover]:underline [&.action-link:hover]:[text-underline-offset:.2rem] [&:focus-visible]:[outline:2px_solid_var(--color-primary-600)] [&:focus-visible]:[outline-offset:4px] [&:focus-visible]:[border-radius:.25rem]">{{ (row.job.status === 'OPEN' ? 'dashboard.viewApplicants' : 'dashboard.manageJob') | translate }}<svg lucideArrowRight aria-hidden="true" class="arrow-icon w-4 h-4 [stroke-width:1.5]"></svg></a>
                         } @else {
-                          <a routerLink="/applications" class="action-link">{{ 'dashboard.viewApplication' | translate }}<svg lucideArrowRight aria-hidden="true" class="arrow-icon"></svg></a>
+                          <a routerLink="/applications" class="action-link inline-flex items-center justify-center [gap:.4rem] min-h-11 text-primary-800 [font-size:.8125rem] font-medium cursor-pointer [&.action-link:hover]:underline [&.action-link:hover]:[text-underline-offset:.2rem] [&:focus-visible]:[outline:2px_solid_var(--color-primary-600)] [&:focus-visible]:[outline-offset:4px] [&:focus-visible]:[border-radius:.25rem]">{{ 'dashboard.viewApplication' | translate }}<svg lucideArrowRight aria-hidden="true" class="arrow-icon w-4 h-4 [stroke-width:1.5]"></svg></a>
                         }
                       </div>
                     </li>
                   }
                 </ul>
               } @else {
-                <div class="empty-work">
-                  <span class="empty-work-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="14" rx="2" /><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12a20 20 0 0 0 18 0m-9 0v3" /></svg></span>
-                  <h3>{{ emptyTitle() | translate }}</h3>
+                <div class="empty-work flex flex-col items-center [padding:1.5rem_2rem_2rem] text-center [&.empty-work_h3]:[font-size:1rem] [&.empty-work_p]:max-w-96 [&.empty-work_p]:[margin-block:.5rem_1rem] [&.empty-work_p]:[color:var(--dashboard-muted)] [&.empty-work_p]:[font-size:.875rem] [&.empty-work_p]:[line-height:1.6] [&.empty-work_.text-button]:mt-2 [@media(max-width:_600px)]:[&.empty-work]:px-4">
+                  <span class="empty-work-icon grid place-items-center w-8 h-8 mb-3 [color:var(--dashboard-muted)] [&.empty-work-icon_svg]:w-6 [&.empty-work-icon_svg]:h-6 [&.empty-work-icon_svg]:[fill:none] [&.empty-work-icon_svg]:[stroke:currentColor] [&.empty-work-icon_svg]:[stroke-width:1.5] [&.empty-work-icon_svg]:[stroke-linecap:round] [&.empty-work-icon_svg]:[stroke-linejoin:round]" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="14" rx="2" /><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12a20 20 0 0 0 18 0m-9 0v3" /></svg></span>
+                  <h3 class="[color:var(--dashboard-ink)] [font-size:.875rem] font-medium [line-height:1.5] [overflow-wrap:anywhere]">{{ emptyTitle() | translate }}</h3>
                   <p>{{ emptyHint() | translate }}</p>
-                  <a [routerLink]="primaryRoute()" class="primary-button">{{ primaryLabel() | translate }}</a>
+                  <a [routerLink]="primaryRoute()" class="primary-button inline-flex items-center justify-center gap-2 min-h-11 [padding:.65rem_1rem] [border-radius:.625rem] [font-size:.875rem] font-medium text-center text-white bg-primary-700 [&.primary-button:hover]:bg-primary-800 [&:focus-visible]:[outline:2px_solid_var(--color-primary-600)] [&:focus-visible]:[outline-offset:4px] [&:focus-visible]:[border-radius:.25rem]">{{ primaryLabel() | translate }}</a>
                   @if (view() === 'hiring') {
-                    <button type="button" class="text-button" (click)="selectView('working')">{{ 'dashboard.offerServices' | translate }}</button>
+                    <button type="button" class="text-button inline-flex items-center justify-center [gap:.4rem] min-h-11 text-primary-800 [font-size:.8125rem] font-medium cursor-pointer shrink-0 [&.text-button:hover]:underline [&.text-button:hover]:[text-underline-offset:.2rem] [&:disabled]:[opacity:.5] [&:disabled]:cursor-not-allowed [&:focus-visible]:[outline:2px_solid_var(--color-primary-600)] [&:focus-visible]:[outline-offset:4px] [&:focus-visible]:[border-radius:.25rem]" (click)="selectView('working')">{{ 'dashboard.offerServices' | translate }}</button>
                   }
                 </div>
               }
@@ -153,16 +153,16 @@
 
           @if (view() === 'working') {
             @if (professionalState() === 'error') {
-              <div class="notice" role="alert"><p>{{ 'dashboard.professionalError' | translate }}</p><button type="button" class="text-button" (click)="loadProfessional()">{{ 'common.retry' | translate }}</button></div>
+              <div class="notice flex items-center justify-between flex-wrap [gap:.5rem_1rem] [padding:.75rem_1rem] [border:1px_solid_var(--dashboard-line)] [border-radius:.625rem] bg-white [color:var(--dashboard-body)] [font-size:.8125rem] [line-height:1.5] [&.notice_p]:[flex:1_1_15rem]" role="alert"><p>{{ 'dashboard.professionalError' | translate }}</p><button type="button" class="text-button inline-flex items-center justify-center [gap:.4rem] min-h-11 text-primary-800 [font-size:.8125rem] font-medium cursor-pointer shrink-0 [&.text-button:hover]:underline [&.text-button:hover]:[text-underline-offset:.2rem] [&:disabled]:[opacity:.5] [&:disabled]:cursor-not-allowed [&:focus-visible]:[outline:2px_solid_var(--color-primary-600)] [&:focus-visible]:[outline-offset:4px] [&:focus-visible]:[border-radius:.25rem]" (click)="loadProfessional()">{{ 'common.retry' | translate }}</button></div>
             } @else if (professionalState() === 'loading') {
-              <p role="status" class="section-description">{{ 'dashboard.loadingProfile' | translate }}</p>
+              <p role="status" class="section-description mt-1 [color:var(--dashboard-muted)] [font-size:.8125rem] [line-height:1.55]">{{ 'dashboard.loadingProfile' | translate }}</p>
             } @else if (!activeProfessional() && snapshot()?.jobs?.length) {
-              <section class="professional-prompt" aria-labelledby="professional-heading">
+              <section class="professional-prompt flex flex-wrap items-center gap-4 [padding:1.25rem_1.5rem] [border:1px_solid_var(--color-primary-100)] [border-radius:.875rem] bg-primary-50 [&.professional-prompt_>_div]:[flex:1_1_15rem] [&.professional-prompt_p]:mt-1 [&.professional-prompt_p]:[color:var(--dashboard-body)] [&.professional-prompt_p]:[font-size:.8125rem] [&.professional-prompt_p]:[line-height:1.6]" aria-labelledby="professional-heading">
                 <div>
-                  <h2 id="professional-heading">{{ (professional()?.onboardingStatus === 'SUSPENDED' ? 'dashboard.suspendedTitle' : 'dashboard.setupTitle') | translate }}</h2>
+                  <h2 class="[color:var(--dashboard-ink)] [font-size:1rem] font-medium [line-height:1.5]" id="professional-heading">{{ (professional()?.onboardingStatus === 'SUSPENDED' ? 'dashboard.suspendedTitle' : 'dashboard.setupTitle') | translate }}</h2>
                   <p>{{ (professional()?.onboardingStatus === 'SUSPENDED' ? 'dashboard.suspendedHint' : 'dashboard.setupHint') | translate }}</p>
                 </div>
-                <a routerLink="/professional-profile" class="secondary-button">{{ (professional()?.onboardingStatus === 'SUSPENDED' ? 'dashboard.professionalProfile' : 'dashboard.setupAction') | translate }}<svg lucideArrowRight aria-hidden="true" class="arrow-icon"></svg></a>
+                <a routerLink="/professional-profile" class="secondary-button inline-flex items-center justify-center gap-2 min-h-11 [padding:.65rem_1rem] [border-radius:.625rem] [font-size:.875rem] font-medium text-center text-primary-800 bg-white [border:1px_solid_var(--dashboard-line)] [&.secondary-button:hover]:bg-primary-50 [&:focus-visible]:[outline:2px_solid_var(--color-primary-600)] [&:focus-visible]:[outline-offset:4px] [&:focus-visible]:[border-radius:.25rem]">{{ (professional()?.onboardingStatus === 'SUSPENDED' ? 'dashboard.professionalProfile' : 'dashboard.setupAction') | translate }}<svg lucideArrowRight aria-hidden="true" class="arrow-icon w-4 h-4 [stroke-width:1.5]"></svg></a>
               </section>
             }
           }
