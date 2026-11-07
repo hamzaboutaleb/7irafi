@@ -1,46 +1,73 @@
 <app-navbar />
-<main class="min-h-screen bg-gray-50 px-4 py-10 sm:px-6">
-  <section class="mx-auto max-w-3xl">
-    <h1 class="text-3xl font-bold text-gray-900">{{ 'chat.title' | translate }}</h1>
-    <p class="mt-2 text-gray-600">{{ 'chat.subtitle' | translate }}</p>
-
-    @if (loading()) {
-    <p role="status" class="mt-8 text-gray-600">{{ 'common.loading' | translate }}</p>
-    } @else if (error()) {
-    <p role="alert" class="mt-8 rounded-xl bg-red-50 p-4 text-red-700">{{ error() }}</p>
-    <button type="button" (click)="load()" class="mt-4 min-h-11 font-semibold text-primary-700 underline">{{ 'common.retry' | translate }}</button>
-    } @else if (rows().length === 0) {
-    <div class="mt-8 rounded-2xl border border-gray-200 bg-white p-6">
-      <p class="text-gray-700">{{ 'chat.empty' | translate }}</p>
-      <p class="mt-2 text-sm leading-6 text-gray-500">{{ 'chat.emptyHint' | translate }}</p>
-      <a routerLink="/jobs/my" class="mt-4 inline-block font-semibold text-primary-700 underline">{{ 'chat.goToMyJobs' | translate }}</a>
-    </div>
-    } @else {
-    <ul class="mt-8 space-y-3">
-      @for (row of rows(); track row.conversation.id) {
-      <li>
-        <a [routerLink]="['/conversations', row.conversation.id]"
-          class="flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-colors duration-200 hover:border-primary-200 hover:bg-primary-50/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400">
-          <span aria-hidden="true"
-            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary-100 text-lg font-semibold text-primary-700">
-            {{ (row.otherName ?? row.jobTitle).slice(0, 1).toUpperCase() }}
-          </span>
-          <div class="min-w-0 flex-1">
-            <h2 class="truncate font-semibold text-gray-900">{{ row.jobTitle }}</h2>
-            <p class="mt-1 truncate text-sm text-gray-600">
-              @if (row.iAmClient) {
-              {{ 'chat.withApplicant' | translate: { name: row.otherName ?? '' } }}
-              } @else {
-              {{ 'chat.withOwner' | translate }}
+<main class="inbox-page" [class.thread-open]="selectedId()">
+  <div class="inbox-container">
+    <header class="inbox-heading">
+      <h1>{{ 'chat.title' | translate }}</h1>
+      <p>{{ 'chat.subtitle' | translate }}</p>
+    </header>
+    <section class="inbox-shell" [class.has-selection]="selectedId()" [attr.aria-label]="'chat.title' | translate">
+      <aside class="inbox-list" [attr.aria-label]="'chat.conversations' | translate">
+        <div class="inbox-search">
+          <label for="conversation-search" class="sr-only">{{ 'chat.search' | translate }}</label>
+          <svg lucideSearch aria-hidden="true"></svg>
+          <input id="conversation-search" type="search" autocomplete="off" [value]="query()"
+            (input)="query.set($any($event.target).value)" [placeholder]="'chat.search' | translate" />
+        </div>
+        <div class="conversation-list-content">
+          @if (loading()) {
+            <p class="list-state" role="status">{{ 'common.loading' | translate }}</p>
+          } @else if (error()) {
+            <div class="list-state" role="alert">
+              <p>{{ error() }}</p>
+              <button type="button" class="inbox-text-button" (click)="load()">{{ 'common.retry' | translate }}</button>
+            </div>
+          } @else if (!rows().length) {
+            <div class="list-state empty-list">
+              <svg lucideMessageSquare aria-hidden="true"></svg>
+              <h2>{{ 'chat.empty' | translate }}</h2>
+              <p>{{ 'chat.emptyHint' | translate }}</p>
+              <a routerLink="/jobs/my" class="inbox-text-button">{{ 'chat.goToMyJobs' | translate }}</a>
+            </div>
+          } @else if (!filteredRows().length) {
+            <div class="list-state" role="status">
+              <p>{{ 'chat.noResults' | translate }}</p>
+              <button type="button" class="inbox-text-button" (click)="query.set('')">{{ 'chat.clearSearch' | translate }}</button>
+            </div>
+          } @else {
+            <ul class="conversation-list" [attr.aria-label]="'chat.conversations' | translate">
+              @for (row of filteredRows(); track row.conversation.id) {
+                <li>
+                  <a [routerLink]="['/conversations', row.conversation.id]" routerLinkActive="selected"
+                    ariaCurrentWhenActive="page" class="conversation-row">
+                    @if (row.avatarUrl) {
+                      <img [src]="row.avatarUrl" alt="" class="conversation-avatar" />
+                    } @else {
+                      <span class="conversation-avatar initials" aria-hidden="true">
+                        @if (row.otherName) { {{ row.otherName.slice(0, 1).toUpperCase() }} }
+                        @else { <svg lucideUserRound aria-hidden="true"></svg> }
+                      </span>
+                    }
+                    <span class="conversation-labels">
+                      <span class="conversation-name">{{ nameFor(row) }}</span>
+                      <span class="conversation-job">{{ row.jobTitle ?? ('chat.jobUnavailable' | translate) }}</span>
+                    </span>
+                  </a>
+                </li>
               }
-            </p>
+            </ul>
+          }
+        </div>
+      </aside>
+      <div class="thread-pane">
+        <router-outlet />
+        @if (!selectedId()) {
+          <div class="thread-placeholder">
+            <svg lucideMessageSquare aria-hidden="true"></svg>
+            <h2>{{ 'chat.selectConversation' | translate }}</h2>
+            <p>{{ 'chat.selectHint' | translate }}</p>
           </div>
-          <span class="shrink-0 text-xs text-gray-400">{{ row.conversation.createdAt | date: 'mediumDate' }}</span>
-        </a>
-      </li>
-      }
-    </ul>
-    }
-  </section>
+        }
+      </div>
+    </section>
+  </div>
 </main>
-<app-footer />

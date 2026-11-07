@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { ApiSuccess, Page } from '../types/api.js';
-import { UserProfile, UpdateUserProfileRequest } from '../types/user.js';
+import { UserProfile, PublicUserProfile, UpdateUserProfileRequest } from '../types/user.js';
 import {
   ServiceCategory,
   ServiceCity,
@@ -20,6 +20,10 @@ export class UserService {
 
   getCurrentUser() {
     return this.http.get<ApiSuccess<UserProfile>>('users/me');
+  }
+
+  getPublicUserProfile(userId: string) {
+    return this.http.get<ApiSuccess<PublicUserProfile>>(`users/${userId}/profile`);
   }
 
   updateCurrentUser(request: UpdateUserProfileRequest) {

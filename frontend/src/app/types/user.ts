@@ -1,3 +1,15 @@
+import { ServiceCategory, ServiceCity } from './professional-profile.js';
+
+/** Profile fields available to other signed-in users, including job owners. */
+export interface PublicUserProfile {
+  id: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl: string | null;
+  categories: ServiceCategory[];
+  cities: ServiceCity[];
+}
+
 export interface UserProfile {
   id: string;
   email: string;
