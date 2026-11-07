@@ -751,4 +751,12 @@ export const en = {
   "createJob.photoTypeError": "{name}: choose a JPEG, PNG, or WebP photo.",
   "createJob.photoSizeError": "{name}: choose a non-empty photo no larger than 10 MB.",
   "createJob.photoCountError": "{name}: you can add up to 10 photos.",
+  "auth.login.screenTitle": "Log in to 7irafy",
+  "auth.login.home": "7irafy home",
+  "auth.login.showPassword": "Show password",
+  "auth.login.hidePassword": "Hide password",
+  "auth.login.invalidCredentials": "The email or password is incorrect. Please try again.",
+  "auth.login.tooManyAttempts": "Too many login attempts. Please wait and try again.",
+  "auth.login.unavailable": "Unable to connect right now. Please try again.",
+  "auth.login.failed": "Unable to log in. Please try again.",
 } as const;

@@ -748,4 +748,12 @@ export const fr: Record<keyof typeof en, string> = {
   "createJob.photoTypeError": "{name} : choisissez une photo JPEG, PNG ou WebP.",
   "createJob.photoSizeError": "{name} : choisissez une photo non vide de 10 Mo maximum.",
   "createJob.photoCountError": "{name} : vous pouvez ajouter jusqu’à 10 photos.",
+  "auth.login.screenTitle": "Connexion à 7irafy",
+  "auth.login.home": "Accueil 7irafy",
+  "auth.login.showPassword": "Afficher le mot de passe",
+  "auth.login.hidePassword": "Masquer le mot de passe",
+  "auth.login.invalidCredentials": "L’adresse e-mail ou le mot de passe est incorrect. Réessayez.",
+  "auth.login.tooManyAttempts": "Trop de tentatives de connexion. Patientez avant de réessayer.",
+  "auth.login.unavailable": "Connexion indisponible pour le moment. Réessayez.",
+  "auth.login.failed": "Impossible de se connecter. Réessayez.",
 };

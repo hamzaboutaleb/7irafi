@@ -748,4 +748,12 @@ export const ar: Record<keyof typeof en, string> = {
   "createJob.photoTypeError": "{name}: اختر صورة JPEG أو PNG أو WebP.",
   "createJob.photoSizeError": "{name}: اختر صورة غير فارغة بحجم لا يتجاوز 10 ميغابايت.",
   "createJob.photoCountError": "{name}: يمكنك إضافة 10 صور كحد أقصى.",
+  "auth.login.screenTitle": "تسجيل الدخول إلى 7irafy",
+  "auth.login.home": "الصفحة الرئيسية لـ 7irafy",
+  "auth.login.showPassword": "إظهار كلمة المرور",
+  "auth.login.hidePassword": "إخفاء كلمة المرور",
+  "auth.login.invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة. حاول مجددًا.",
+  "auth.login.tooManyAttempts": "محاولات تسجيل دخول كثيرة. انتظر ثم حاول مجددًا.",
+  "auth.login.unavailable": "تعذر الاتصال حاليًا. حاول مجددًا.",
+  "auth.login.failed": "تعذر تسجيل الدخول. حاول مجددًا.",
 };
