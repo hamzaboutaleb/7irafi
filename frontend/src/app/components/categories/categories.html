@@ -1,5 +1,10 @@
-<section class="services-section" aria-labelledby="landing-services-title">
-  <div class="services-inner"><header><div><h2 id="landing-services-title">{{ 'landing.servicesTitle' | translate }}</h2><p>{{ 'landing.servicesBody' | translate }}</p></div><a routerLink="/professionals" class="all-services">{{ 'directory.allServices' | translate }}<svg [lucideIcon]="arrow" class="directional" aria-hidden="true" /></a></header>
-    <ul class="services-grid">@for (category of categories; track category.code) { <li><a routerLink="/professionals" [queryParams]="{category: category.code}"><svg [lucideIcon]="category.icon" aria-hidden="true" /><span>{{ category.label | translate }}</span><svg [lucideIcon]="arrow" class="service-arrow directional" aria-hidden="true" /></a></li> }</ul>
+<section class="bg-[#f8f9fa] px-5 py-10 text-gray-900 md:px-6 md:py-14" aria-labelledby="landing-services-title">
+  <div class="mx-auto max-w-[1200px]">
+    <header class="mb-6 flex flex-wrap items-end justify-between gap-2 md:flex-nowrap md:gap-6"><div><h2 id="landing-services-title" class="text-2xl leading-8 font-semibold md:text-[28px] md:leading-9">{{ 'landing.servicesTitle' | translate }}</h2><p class="mt-2 text-sm leading-6 text-slate-500">{{ 'landing.servicesBody' | translate }}</p></div><a routerLink="/professionals" class="inline-flex min-h-11 items-center gap-2 text-sm whitespace-nowrap text-primary-700 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-primary-600">{{ 'directory.allServices' | translate }}<svg [lucideIcon]="arrow" class="size-[18px] shrink-0 stroke-[1.5] rtl:scale-x-[-1]" aria-hidden="true" /></a></header>
+    <ul class="services-grid grid grid-cols-2 gap-3 md:grid-cols-3">
+      @for (category of categories; track category.code) {
+        <li><a routerLink="/professionals" [queryParams]="{category: category.code}" class="flex min-h-20 flex-col items-start gap-2 rounded-lg border border-slate-200 bg-white px-3 py-4 text-sm text-gray-700 hover:border-slate-400 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-primary-600 md:min-h-[76px] md:flex-row md:items-center md:gap-4 md:p-5"><svg [lucideIcon]="category.icon" class="size-[18px] shrink-0 stroke-[1.5] text-slate-500" aria-hidden="true" /><span>{{ category.label | translate }}</span><svg [lucideIcon]="arrow" class="ms-auto hidden size-4 shrink-0 stroke-[1.5] text-slate-500 md:block rtl:scale-x-[-1]" aria-hidden="true" /></a></li>
+      }
+    </ul>
   </div>
 </section>

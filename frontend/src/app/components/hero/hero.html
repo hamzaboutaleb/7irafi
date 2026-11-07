@@ -1,15 +1,28 @@
-<section class="hero" aria-labelledby="landing-title">
-  <div class="hero-inner">
-    <div class="hero-copy">
-      <h1 id="landing-title">{{ 'landing.headline' | translate }}</h1>
-      <p>{{ 'landing.description' | translate }}</p>
-      <div class="hero-actions"><a routerLink="/jobs/new" class="primary-link">{{ 'myJobs.post' | translate }}<svg [lucideIcon]="icons.arrow" class="directional" aria-hidden="true" /></a><a routerLink="/professionals" class="secondary-link">{{ 'landing.browseProfessionals' | translate }}</a></div>
-      <p class="hero-note">{{ 'landing.heroNote' | translate }}</p>
+<section class="hero border-b border-[#eef0f3] bg-white px-5 py-10 text-gray-900 md:px-6 md:py-16" aria-labelledby="landing-title">
+  <div class="mx-auto grid max-w-[1200px] grid-cols-1 items-center gap-8 md:grid-cols-[1.1fr_1fr] lg:gap-16">
+    <div>
+      <h1 id="landing-title" class="max-w-[620px] text-4xl leading-11 font-semibold tracking-[-0.5px] md:text-[40px] md:leading-[1.15] md:tracking-[-1px] lg:text-5xl">{{ 'landing.headline' | translate }}</h1>
+      <p class="mt-4 max-w-[520px] text-base leading-[26px] text-slate-500 md:mt-6 md:text-lg md:leading-[30px]">{{ 'landing.description' | translate }}</p>
+      <div class="hero-actions mt-6 flex flex-wrap gap-3 md:mt-8">
+        <a routerLink="/jobs/new" class="inline-flex min-h-12 items-center justify-center gap-3 rounded-lg bg-primary-700 px-5 py-3 text-sm font-medium text-white hover:bg-primary-800 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary-600 max-[399px]:w-full">{{ 'myJobs.post' | translate }}<svg [lucideIcon]="icons.arrow" class="size-[18px] shrink-0 stroke-[1.5] rtl:scale-x-[-1]" aria-hidden="true" /></a>
+        <a routerLink="/professionals" class="inline-flex min-h-12 items-center justify-center rounded-lg border border-gray-300 px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary-600 max-[399px]:w-full">{{ 'landing.browseProfessionals' | translate }}</a>
+      </div>
+      <p class="mt-4 max-w-[520px] text-[13px] leading-[22px] text-slate-500">{{ 'landing.heroNote' | translate }}</p>
     </div>
-    <figure class="product-preview">
-      <figcaption>{{ 'landing.exampleLabel' | translate }}</figcaption>
-      <div class="preview-job"><div class="preview-top"><span>{{ 'jobDetails.overview' | translate }}</span><span class="job-status">{{ 'dashboard.status.OPEN' | translate }}</span></div><h2>{{ 'landing.exampleTitle' | translate }}</h2><p class="preview-location"><svg [lucideIcon]="icons.service" aria-hidden="true" />{{ 'categories.plumbing' | translate }}<span aria-hidden="true">·</span><svg [lucideIcon]="icons.city" aria-hidden="true" />{{ 'landing.exampleCity' | translate }}</p><p class="preview-description">{{ 'landing.exampleDescription' | translate }}</p><div class="preview-budget"><div><span>{{ 'job.budget' | translate }}</span><strong><bdi>{{ budget() }} <span>MAD</span></bdi></strong></div><span>{{ 'createJob.halfDay' | translate }}</span></div></div>
-      <div class="preview-applicants"><h3>{{ 'landing.compareApplicants' | translate }}</h3><div class="example-person"><span class="avatar" aria-hidden="true">AB</span><div><p>Amine Bennani</p><span>{{ 'categories.plumbing' | translate }}</span></div><span class="pending">{{ 'applications.status.PENDING' | translate }}</span></div><div class="example-person"><span class="avatar" aria-hidden="true">YR</span><div><p>Youssef Rachidi</p><span>{{ 'categories.plumbing' | translate }}</span></div><span class="pending">{{ 'applications.status.PENDING' | translate }}</span></div></div>
+    <figure class="product-preview min-w-0 overflow-hidden rounded-2xl border border-[#dce3e7] bg-white shadow-[0_12px_32px_rgb(17_24_39_/_6%)]">
+      <figcaption class="border-b border-slate-200 bg-[#f8f9fa] px-5 py-3 text-xs leading-5 text-slate-500 md:px-6">{{ 'landing.exampleLabel' | translate }}</figcaption>
+      <div class="p-5 md:p-6">
+        <div class="flex items-center justify-between gap-3 text-xs text-slate-500"><span>{{ 'jobDetails.overview' | translate }}</span><span class="rounded bg-primary-50 px-2 py-0.5 text-primary-800">{{ 'dashboard.status.OPEN' | translate }}</span></div>
+        <h2 class="mt-4 text-[22px] leading-[30px] font-semibold [overflow-wrap:anywhere]">{{ 'landing.exampleTitle' | translate }}</h2>
+        <p class="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-slate-500"><svg [lucideIcon]="icons.service" class="size-3.5 shrink-0 stroke-[1.5]" aria-hidden="true" />{{ 'categories.plumbing' | translate }}<span aria-hidden="true">·</span><svg [lucideIcon]="icons.city" class="size-3.5 shrink-0 stroke-[1.5]" aria-hidden="true" />{{ 'landing.exampleCity' | translate }}</p>
+        <p class="mt-4 text-sm leading-6 text-slate-600">{{ 'landing.exampleDescription' | translate }}</p>
+        <div class="mt-5 flex items-end justify-between gap-4 text-xs text-slate-500"><div><span>{{ 'job.budget' | translate }}</span><strong class="block text-[28px] leading-9 font-semibold text-gray-900 tabular-nums"><bdi>{{ budget() }} <span class="text-[13px] font-normal text-slate-500">MAD</span></bdi></strong></div><span>{{ 'createJob.halfDay' | translate }}</span></div>
+      </div>
+      <div class="border-t border-slate-200 bg-[#f8f9fa] p-5 md:px-6">
+        <h3 class="mb-3 text-[13px] font-medium text-slate-600">{{ 'landing.compareApplicants' | translate }}</h3>
+        <div class="flex items-center gap-3 py-3"><span class="grid size-9 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-xs text-slate-500" aria-hidden="true">AB</span><div class="min-w-0 flex-1"><p class="text-[13px] [overflow-wrap:anywhere]">Amine Bennani</p><span class="text-xs text-slate-500">{{ 'categories.plumbing' | translate }}</span></div><span class="text-xs text-slate-500">{{ 'applications.status.PENDING' | translate }}</span></div>
+        <div class="flex items-center gap-3 border-t border-slate-200 py-3"><span class="grid size-9 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-xs text-slate-500" aria-hidden="true">YR</span><div class="min-w-0 flex-1"><p class="text-[13px] [overflow-wrap:anywhere]">Youssef Rachidi</p><span class="text-xs text-slate-500">{{ 'categories.plumbing' | translate }}</span></div><span class="text-xs text-slate-500">{{ 'applications.status.PENDING' | translate }}</span></div>
+      </div>
     </figure>
   </div>
 </section>

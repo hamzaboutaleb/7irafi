@@ -5,7 +5,6 @@ import { TranslatePipe } from '../../pipes/translate-pipe.js';
   selector: 'app-how-it-works',
   imports: [TranslatePipe],
   templateUrl: './how-it-works.html',
-  styleUrl: './how-it-works.css',
 })
 export class HowItWorks {
   readonly steps = [

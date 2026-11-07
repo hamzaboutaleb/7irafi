@@ -8,7 +8,6 @@ import { LucideDynamicIcon, LucideMapPin, LucideWrench, LucideArrowRight } from 
   selector: 'app-hero',
   imports: [RouterLink, TranslatePipe, LucideDynamicIcon],
   templateUrl: './hero.html',
-  styleUrl: './hero.css',
 })
 export class Hero {
   private readonly i18n = inject(I18nService);

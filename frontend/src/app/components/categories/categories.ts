@@ -7,7 +7,6 @@ import { TranslatePipe } from '../../pipes/translate-pipe.js';
   selector: 'app-categories',
   imports: [RouterLink, LucideDynamicIcon, TranslatePipe],
   templateUrl: './categories.html',
-  styleUrl: './categories.css',
 })
 export class Categories {
   readonly arrow = LucideArrowRight;
