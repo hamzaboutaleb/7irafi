@@ -74,6 +74,7 @@ UUID from the gateway's `X-User-Id` header.
 | Method | Path | Purpose |
 | --- | --- | --- |
 | `GET`, `PUT` | `/users/me` | Read a personal profile or update first and last names. |
+| `GET` | `/users/{userId}/profile` | Read any user's public identity: `id`, `firstName`, `lastName`, signed `avatarUrl`, and published professional `categories`/`cities`. Returns empty arrays for users without an active professional profile and `404` for unknown users. Account email and storage keys are excluded. |
 | `POST` | `/users/me/heartbeat` | Set `lastSeenAt`; return `204`. |
 | `POST`, `GET`, `PUT` | `/users/me/professional-profile` | Create, read, or update professional details. |
 | `GET` | `/users/categories`, `/users/cities` | List active catalog entries. |
