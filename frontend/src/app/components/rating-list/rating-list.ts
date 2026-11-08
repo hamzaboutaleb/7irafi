@@ -11,7 +11,7 @@ import { Subject, takeUntil } from 'rxjs';
   standalone: true,
   imports: [CommonModule, RatingStars, TranslatePipe, RouterLink],
   templateUrl: './rating-list.html',
-  styleUrl: './rating-list.css',
+  host: { class: 'block' },
 })
 export class RatingListComponent implements OnChanges, OnDestroy, OnInit {
   @Input() userId!: string;

@@ -25,3 +25,181 @@
   --color-secondary-800: #b34949;
   --color-secondary-900: #993d3d;
 }
+
+/* Shared UI patterns. Page utilities override these component defaults. */
+@layer components {
+  .ui-nav-link {
+    @apply inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border border-transparent px-3 py-2 text-sm leading-5 font-medium whitespace-nowrap text-gray-600 transition-colors duration-[160ms] hover:bg-gray-50 hover:text-primary-800 aria-expanded:bg-primary-50 aria-expanded:text-primary-800 aria-[current=page]:bg-primary-50 aria-[current=page]:text-primary-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700 motion-reduce:transition-none;
+  }
+
+  .ui-nav-option {
+    @apply flex min-h-10 items-center gap-2 rounded px-3 py-2 text-sm leading-5 text-gray-600 transition-colors duration-[160ms] hover:bg-gray-100 hover:text-gray-700 [&.jobs-current]:bg-primary-50 [&.jobs-current]:font-medium [&.jobs-current]:text-primary-800 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary-700 motion-reduce:transition-none;
+  }
+
+  .ui-mobile-nav-link {
+    @apply flex min-h-11 items-center justify-between gap-4 rounded-[.65rem] px-[.9rem] py-[.7rem] text-[.9rem] font-medium text-gray-600 hover:bg-[#f8fafb] [&.mobile-active]:bg-primary-50 [&.mobile-active]:font-semibold [&.mobile-active]:text-primary-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600;
+  }
+
+  .ui-auth-page {
+    @apply grid min-h-dvh items-center bg-[#f8f9fa] px-4 py-8 text-gray-900 min-[480px]:px-5 min-[480px]:py-10;
+  }
+
+  .ui-auth-panel {
+    @apply rounded-xl border border-slate-200 bg-white p-6 min-[480px]:p-8;
+  }
+
+  .ui-auth-brand {
+    @apply mx-auto mb-7 flex min-h-11 w-fit items-center justify-center rounded focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-primary-600;
+  }
+
+  .ui-auth-input {
+    @apply min-h-12 w-full rounded-lg border border-gray-300 bg-white p-3 text-base leading-[22px] text-gray-900 focus:border-primary-600 focus:outline-none focus:ring-1 focus:ring-primary-600 aria-invalid:border-red-700 read-only:bg-gray-50 read-only:text-slate-500;
+  }
+
+  .ui-password-toggle {
+    @apply absolute end-0.5 top-0.5 grid size-11 cursor-pointer place-items-center rounded-md text-slate-500 enabled:hover:bg-gray-100 enabled:hover:text-gray-700 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-primary-600 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .ui-auth-submit {
+    @apply mt-1 min-h-12 w-full cursor-pointer rounded-lg bg-primary-700 px-5 py-3 text-sm leading-6 font-medium text-white enabled:hover:bg-primary-800 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-primary-600 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .ui-filter-button {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm leading-5 font-medium text-gray-600 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700;
+  }
+
+  .ui-filter-input {
+    @apply min-h-11 w-full min-w-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm leading-5 text-gray-700 placeholder:text-gray-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700;
+  }
+
+  .ui-footer-link {
+    @apply w-fit rounded text-sm text-gray-400 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300;
+  }
+
+  .ui-button {
+    @apply inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-lg text-sm;
+  }
+
+  .ui-button-primary {
+    @apply bg-primary-600 text-white hover:bg-primary-700;
+  }
+
+  .ui-button-secondary {
+    @apply border border-gray-300 bg-white text-gray-700 hover:bg-gray-50;
+  }
+
+  .ui-action-focus {
+    @apply focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-primary-500 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  /* Shared content states, form controls, and dialog actions. */
+  .ui-dashboard-link {
+    @apply inline-flex items-center justify-center [gap:.4rem] min-h-11 text-primary-800 [font-size:.8125rem] font-medium cursor-pointer [&:focus-visible]:[outline:2px_solid_var(--color-primary-600)] [&:focus-visible]:[outline-offset:4px] [&:focus-visible]:[border-radius:.25rem];
+  }
+
+  .ui-underlined-action {
+    @apply inline-flex items-center min-h-11 text-primary-800 [font-size:13px] [line-height:20px] font-medium underline [text-underline-offset:4px] cursor-pointer [&:focus-visible]:[outline:2px_solid_var(--color-primary-700)] [&:focus-visible]:[outline-offset:2px];
+  }
+
+  .ui-thread-link {
+    @apply inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 text-[13px] leading-5 font-medium text-primary-800 hover:underline hover:underline-offset-4 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700;
+  }
+
+  .ui-inbox-link {
+    @apply inline-flex min-h-11 cursor-pointer items-center justify-self-start font-medium text-primary-800 underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700;
+  }
+
+  .ui-list-state {
+    @apply grid gap-3 px-4 py-6 text-sm leading-6 text-gray-500;
+  }
+
+  .ui-thread-state {
+    @apply grid flex-1 place-content-center justify-items-start gap-3 p-6 text-sm leading-6 text-gray-500;
+  }
+
+  .ui-warning-notice {
+    @apply border-t border-amber-200 bg-amber-50 px-6 py-3 text-[13px] leading-5 text-amber-800;
+  }
+
+  .ui-status-label {
+    @apply inline-flex justify-center rounded bg-gray-100 px-2 py-1 text-xs leading-4 text-gray-500 data-[status=ACCEPTED]:bg-primary-50 data-[status=ACCEPTED]:text-primary-800 data-[status=OPEN]:bg-primary-50 data-[status=OPEN]:text-primary-800 data-[status=COMPLETED]:bg-primary-50 data-[status=COMPLETED]:text-primary-800;
+  }
+
+  .ui-status-tab {
+    @apply focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-primary-500 min-h-12 cursor-pointer border-b-2 border-transparent px-1 text-sm whitespace-nowrap text-slate-500 hover:text-gray-900 [&.active]:border-primary-600 [&.active]:font-semibold [&.active]:text-primary-700;
+  }
+
+  .ui-empty-state {
+    @apply px-6 py-12 text-center text-slate-500 rounded-xl border border-slate-200 bg-white [&>svg]:mx-auto [&>svg]:mb-4 [&>svg]:size-8 [&>h2]:text-xl [&>h2]:font-semibold [&>h2]:text-gray-900 [&>p]:mt-2 [&>p]:text-sm;
+  }
+
+  .ui-form-error {
+    @apply mt-5 rounded-lg bg-red-50 px-4 py-3 text-[13px] leading-[22px] text-red-700;
+  }
+
+  .ui-form-input {
+    @apply min-h-11 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm leading-[22px] text-gray-900 placeholder:text-slate-400 focus:border-primary-600 focus:outline-none focus:ring-1 focus:ring-primary-600 aria-invalid:border-red-700 disabled:bg-gray-50 disabled:text-slate-500;
+  }
+
+  .ui-dialog-actions {
+    @apply flex flex-col-reverse gap-3 border-t border-gray-200 pt-6 sm:flex-row sm:justify-end;
+  }
+
+  .ui-profile-field {
+    @apply w-full rounded-xl border border-gray-300 bg-white p-3 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-primary-500 mt-2;
+  }
+
+  .ui-avatar-fallback {
+    @apply size-12 shrink-0 rounded-full object-cover grid place-items-center bg-slate-100 text-base text-slate-600;
+  }
+
+  /* Repeated form layouts, result grids, and document pages. */
+  .ui-field-error {
+    @apply mt-2 text-xs leading-5 text-red-700;
+  }
+
+  .ui-form-grid {
+    @apply grid grid-cols-1 items-start gap-5 sm:grid-cols-2;
+  }
+
+  .ui-panel {
+    @apply rounded-xl border border-gray-200 bg-white p-6;
+  }
+
+  .ui-job-metadata {
+    @apply mt-2 flex flex-wrap gap-x-4 gap-y-2 text-[13px] text-slate-500;
+  }
+
+  .ui-results-grid {
+    @apply grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-3;
+  }
+
+  .ui-document-page {
+    @apply min-h-screen bg-gray-50 px-4 py-10 sm:px-6 sm:py-16;
+  }
+
+  .ui-document-card {
+    @apply mx-auto max-w-3xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm;
+  }
+
+  .ui-document-header {
+    @apply border-b border-primary-100 bg-primary-50 px-6 py-10 sm:px-10;
+  }
+
+  .ui-document-title {
+    @apply mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl;
+  }
+
+  .ui-document-body {
+    @apply space-y-10 px-6 py-10 text-gray-700 sm:px-10;
+  }
+
+  .ui-document-list {
+    @apply mt-3 list-disc space-y-2 pl-5 leading-7 marker:text-primary-600;
+  }
+
+  .ui-page-icon-button {
+    @apply grid place-items-center w-11 h-11 [border:1px_solid_#e5e7eb] [border-radius:.6rem] bg-white cursor-pointer [&.page-btn_svg]:[width:1.1rem] [&.page-btn_svg]:[height:1.1rem] [&.page-btn_svg]:[fill:none] [&.page-btn_svg]:[stroke:currentColor] [&.page-btn_svg]:[stroke-width:1.8] rtl:[&.page-btn_svg]:[transform:rotate(180deg)] [&.page-btn:disabled]:[opacity:.4] [&.page-btn:disabled]:cursor-not-allowed [&:focus-visible]:[outline:2px_solid_var(--color-primary-600)] [&:focus-visible]:[outline-offset:3px] [&:focus-visible]:[border-radius:.25rem];
+  }
+
+}

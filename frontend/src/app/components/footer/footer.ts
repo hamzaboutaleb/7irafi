@@ -6,6 +6,5 @@ import { TranslatePipe } from '../../pipes/translate-pipe.js';
   selector: 'app-footer',
   imports: [RouterLink, TranslatePipe],
   templateUrl: './footer.html',
-  styleUrl: './footer.css',
 })
 export class Footer {}

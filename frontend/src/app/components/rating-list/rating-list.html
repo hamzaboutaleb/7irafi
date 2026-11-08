@@ -1,56 +1,56 @@
 <div class="rating-list" [attr.aria-busy]="loading">
   @if (error) {
-    <div class="error-state" role="alert">
+    <div class="error-state flex items-center justify-between flex-wrap [gap:.5rem_1rem] [padding:.75rem_1rem] [margin-block:1rem] [border:1px_solid_#e5e7eb] [border-radius:.75rem] bg-gray-50 text-gray-600 [font-size:.85rem]" role="alert">
       <span>{{ 'reviews.loadError' | translate }}</span>
-      <button type="button" class="retry-button" (click)="retry()">{{ 'common.retry' | translate }}</button>
+      <button type="button" class="retry-button min-h-11 text-primary-800 font-semibold underline cursor-pointer [&:focus-visible]:[outline:2px_solid_var(--color-primary-600)] [&:focus-visible]:[outline-offset:3px] [&:focus-visible]:[border-radius:.25rem]" (click)="retry()">{{ 'common.retry' | translate }}</button>
     </div>
   }
   @if (loading && ratings.length === 0) {
-    <div class="skeletons" role="status">
-      <span class="sr-only">{{ 'reviews.loading' | translate }}</span>
+    <div class="skeletons grid gap-4 py-5" role="status">
+      <span class="sr-only absolute [width:1px] [height:1px] overflow-hidden [clip-path:inset(50%)] whitespace-nowrap">{{ 'reviews.loading' | translate }}</span>
       @for (item of [1, 2]; track item) {
-        <div class="skeleton" aria-hidden="true"><div></div><div></div><div></div></div>
+        <div class="skeleton grid [gap:.6rem] [&.skeleton_div]:[height:.65rem] [&.skeleton_div]:[background:#f0f2f4] [&.skeleton_div]:[border-radius:.3rem] [&.skeleton_div:first-child]:h-4 [&.skeleton_div:first-child]:[width:35%] [&.skeleton_div:last-child]:[width:70%]" aria-hidden="true"><div></div><div></div><div></div></div>
       }
     </div>
   } @else if (!error && ratings.length === 0) {
-    <div class="empty" role="status">
-      <span class="empty-symbol" aria-hidden="true">☆</span>
-      <p class="empty-title">{{ (type === 'received' ? 'reviews.noReviews' : 'reviews.noneGiven') | translate }}</p>
-      <p class="empty-description">{{ (type === 'received' ? 'reviews.noneReceived' : 'reviews.givenHint') | translate }}</p>
+    <div class="empty [padding:2rem_1rem] text-center" role="status">
+      <span class="empty-symbol grid place-items-center w-12 h-12 [margin:0_auto_1rem] rounded-full [background:#faf7ef] [color:#b7790b] [font-size:1.7rem]" aria-hidden="true">☆</span>
+      <p class="empty-title [font-size:.95rem] font-semibold text-gray-700">{{ (type === 'received' ? 'reviews.noReviews' : 'reviews.noneGiven') | translate }}</p>
+      <p class="empty-description max-w-100 [margin:.45rem_auto_0] text-gray-500 [font-size:.85rem] [line-height:1.7]">{{ (type === 'received' ? 'reviews.noneReceived' : 'reviews.givenHint') | translate }}</p>
       @if (type === 'given') {
-        <div class="empty-links"><a routerLink="/jobs/my">{{ 'nav.jobs.mine' | translate }}</a><a routerLink="/applications">{{ 'jobDetails.myApplications' | translate }}</a></div>
+        <div class="empty-links flex justify-center flex-wrap [gap:.5rem_1rem] mt-3 [&.empty-links_a]:inline-flex [&.empty-links_a]:items-center [&.empty-links_a]:min-h-11 [&.empty-links_a]:text-primary-800 [&.empty-links_a]:[font-size:.8rem] [&.empty-links_a]:font-semibold [&.empty-links_a]:underline"><a class="[&:focus-visible]:[outline:2px_solid_var(--color-primary-600)] [&:focus-visible]:[outline-offset:3px] [&:focus-visible]:[border-radius:.25rem]" routerLink="/jobs/my">{{ 'nav.jobs.mine' | translate }}</a><a class="[&:focus-visible]:[outline:2px_solid_var(--color-primary-600)] [&:focus-visible]:[outline-offset:3px] [&:focus-visible]:[border-radius:.25rem]" routerLink="/applications">{{ 'jobDetails.myApplications' | translate }}</a></div>
       }
     </div>
   }
   @if (ratings.length > 0) {
-    <div class="ratings" [class.refreshing]="loading">
+    <div class="ratings [&.refreshing]:[opacity:.5]" [class.refreshing]="loading">
       @for (rating of ratings; track rating.id) {
-        <article class="rating-card">
-          <header class="card-header">
-            <div class="person">
-              <span class="avatar" aria-hidden="true">{{ ((type === 'received' ? rating.raterName : rating.rateeName) || '?').slice(0, 1).toUpperCase() }}</span>
+        <article class="rating-card [padding-block:1.35rem] [border-block-end:1px_solid_#edf0f2] [&.rating-card:last-child]:[border-block-end:0] [&.rating-card:last-child]:[padding-block-end:.25rem]">
+          <header class="card-header flex justify-between items-start gap-4 flex-wrap">
+            <div class="person flex items-center gap-3 min-w-0">
+              <span class="avatar grid place-items-center shrink-0 w-10 h-10 bg-primary-50 text-primary-800 rounded-full [font-size:.9rem] font-semibold" aria-hidden="true">{{ ((type === 'received' ? rating.raterName : rating.rateeName) || '?').slice(0, 1).toUpperCase() }}</span>
               <div>
-                <p class="person-name">{{ type === 'received' ? (rating.raterName || ('reviews.unknownUser' | translate)) : ('reviews.for' | translate:{name: rating.rateeName || ('reviews.unknownUser' | translate)}) }}</p>
-                <time [attr.datetime]="rating.createdAt" class="rating-date">{{ rating.createdAt | date:'mediumDate' }}</time>
+                <p class="person-name [font-size:.85rem] font-semibold [color:#1f2937] [overflow-wrap:anywhere]">{{ type === 'received' ? (rating.raterName || ('reviews.unknownUser' | translate)) : ('reviews.for' | translate:{name: rating.rateeName || ('reviews.unknownUser' | translate)}) }}</p>
+                <time [attr.datetime]="rating.createdAt" class="rating-date block [margin-block-start:.15rem] [font-size:.75rem] text-gray-500">{{ rating.createdAt | date:'mediumDate' }}</time>
               </div>
             </div>
             <app-rating-stars [score]="rating.score" />
           </header>
-          @if (rating.comment) { <p class="rating-comment">{{ rating.comment }}</p> }
-          <footer class="card-footer">
-            <span class="job-label">{{ rating.jobTitle || ('reviews.completedJob' | translate) }}</span>
-            <button type="button" (click)="viewJob.emit(rating.jobId)" class="view-job" aria-haspopup="dialog">{{ 'reviews.viewJob' | translate }}<span aria-hidden="true">↗</span></button>
+          @if (rating.comment) { <p class="rating-comment mt-4 text-gray-600 [font-size:.9rem] [line-height:1.8] whitespace-pre-wrap [overflow-wrap:anywhere]">{{ rating.comment }}</p> }
+          <footer class="card-footer flex items-center justify-between flex-wrap [gap:.5rem_1rem] mt-3 [font-size:.75rem]">
+            <span class="job-label text-gray-500 [overflow-wrap:anywhere]">{{ rating.jobTitle || ('reviews.completedJob' | translate) }}</span>
+            <button type="button" (click)="viewJob.emit(rating.jobId)" class="view-job inline-flex items-center [gap:.35rem] min-h-11 text-primary-800 font-semibold cursor-pointer [&.view-job:hover]:underline [&:focus-visible]:[outline:2px_solid_var(--color-primary-600)] [&:focus-visible]:[outline-offset:3px] [&:focus-visible]:[border-radius:.25rem]" aria-haspopup="dialog">{{ 'reviews.viewJob' | translate }}<span aria-hidden="true">↗</span></button>
           </footer>
         </article>
       }
     </div>
     @if (pagination.totalPages > 1) {
-      <nav class="pagination" [attr.aria-label]="'reviews.pages' | translate">
-        <button type="button" class="page-btn" (click)="goToPrevious()" [disabled]="loading || pagination.page === 0" [attr.aria-label]="'common.previous' | translate">
+      <nav class="pagination flex items-center justify-center gap-4 mt-6 [border-block-start:1px_solid_#edf0f2] [padding-block-start:1rem]" [attr.aria-label]="'reviews.pages' | translate">
+        <button type="button" class="page-btn ui-page-icon-button" (click)="goToPrevious()" [disabled]="loading || pagination.page === 0" [attr.aria-label]="'common.previous' | translate">
           <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m14 6-6 6 6 6" /></svg>
         </button>
-        <span class="page-info" aria-live="polite">{{ 'reviews.page' | translate:{page: pagination.page + 1, total: pagination.totalPages} }}</span>
-        <button type="button" class="page-btn" (click)="goToNext()" [disabled]="loading || pagination.page + 1 >= pagination.totalPages" [attr.aria-label]="'common.next' | translate">
+        <span class="page-info [font-size:.8rem] text-gray-500" aria-live="polite">{{ 'reviews.page' | translate:{page: pagination.page + 1, total: pagination.totalPages} }}</span>
+        <button type="button" class="page-btn ui-page-icon-button" (click)="goToNext()" [disabled]="loading || pagination.page + 1 >= pagination.totalPages" [attr.aria-label]="'common.next' | translate">
           <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m10 6 6 6-6 6" /></svg>
         </button>
       </nav>

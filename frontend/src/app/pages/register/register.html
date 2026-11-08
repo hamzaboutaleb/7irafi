@@ -1,143 +1,25 @@
-<div class="min-h-screen grid grid-cols-2">
-  <!-- Left: brand side -->
-  <div
-    class="bg-gradient-to-br from-primary-600 to-primary-900 flex flex-col items-center justify-center gap-4"
-  >
-    <img src="logo.svg" alt="7irafy" class="h-14 brightness-0 invert mb-8" />
-    <h2 class="text-white text-4xl font-bold text-center max-w-xs leading-snug">
-      {{ 'auth.sideTitle' | translate }}
-    </h2>
-    <p class="text-primary-100 text-base text-center max-w-xs">
-      {{ 'auth.sideBody' | translate }}
-    </p>
-  </div>
-
-  <!-- Right: form side -->
-  <div class="flex items-center justify-center p-12">
-    <div class="w-full max-w-sm">
-      <h1 class="text-3xl font-bold text-gray-900">{{ 'auth.register.heading' | translate }}</h1>
-      <p class="text-gray-500 mt-2">{{ 'auth.register.hint' | translate }}</p>
-
-      <form [formGroup]="form" class="mt-8" (ngSubmit)="register()">
-        @if (errorMessage()) {
-          <div class="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl mt-6">
-            {{ errorMessage() }}
-          </div>
-        }
-
-        <div class="mt-8 grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ 'auth.field.firstName' | translate }}</label>
-            <input
-              type="text"
-              formControlName="firstName"
-              [attr.placeholder]="'auth.field.firstName' | translate"
-              class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
-            />
-            @if (firstName.invalid && (firstName.dirty || firstName.touched)) {
-              @if (firstName.errors?.['required']) {
-                <div class="text-red-500 text-xs mt-1">{{ 'auth.error.firstNameRequired' | translate }}</div>
-              }
-              @if (firstName.errors?.['maxlength']) {
-                <div class="text-red-500 text-xs mt-1">
-                {{ 'auth.error.maxLength' | translate: { length: firstName.errors?.['maxlength'].requiredLength } }}
-                </div>
-              }
-              @if (firstName.errors?.['minlength']) {
-                <div class="text-red-500 text-xs mt-1">
-                {{ 'auth.error.minLength' | translate: { length: firstName.errors?.['minlength'].requiredLength } }}
-                </div>
-              }
-            }
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ 'auth.field.lastName' | translate }}</label>
-            <input
-              type="text"
-              formControlName="lastName"
-              [attr.placeholder]="'auth.field.lastName' | translate"
-              class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
-            />
-            @if (lastName.invalid && (lastName.dirty || lastName.touched)) {
-              @if (lastName.errors?.['required']) {
-                <div class="text-red-500 text-xs mt-1">{{ 'auth.error.lastNameRequired' | translate }}</div>
-              }
-              @if (lastName.errors?.['minlength']) {
-                <div class="text-red-500 text-xs mt-1">
-                {{ 'auth.error.minLength' | translate: { length: lastName.errors?.['minlength'].requiredLength } }}
-                </div>
-              }
-              @if (lastName.errors?.['maxlength']) {
-                <div class="text-red-500 text-xs mt-1">
-                {{ 'auth.error.maxLength' | translate: { length: lastName.errors?.['maxlength'].requiredLength } }}
-                </div>
-              }
-            }
-          </div>
+<main class="auth-page ui-auth-page">
+  <div class="auth-content mx-auto w-full max-w-md">
+    <a routerLink="/" class="brand-link ui-auth-brand" [attr.aria-label]="'auth.login.home' | translate"><img class="block h-11 w-[140px] object-contain" src="logo.svg" alt="7irafy" width="140" height="44" /></a>
+    <section class="auth-panel ui-auth-panel" aria-labelledby="register-title">
+      <header><h1 class="text-2xl leading-8 font-semibold" id="register-title">{{ 'auth.register.heading' | translate }}</h1><p class="mt-2 text-sm leading-6 text-slate-500">{{ 'auth.register.subtitle' | translate }}</p></header>
+      <form class="mt-6 grid gap-5" [formGroup]="form" (ngSubmit)="register()" [attr.aria-busy]="submitting()" novalidate>
+        @if (errorMessage(); as error) { <p class="auth-error rounded-lg bg-red-50 p-3 text-[13px] leading-[22px] text-red-700" role="alert">{{ error | translate }}</p> }
+        <div class="name-fields grid grid-cols-1 gap-5 min-[480px]:grid-cols-2 min-[480px]:gap-4">
+          <div class="field-group"><label class="mb-2 block text-sm font-medium text-gray-700" for="register-firstName">{{ 'auth.field.firstName' | translate }}</label><input class="ui-auth-input" id="register-firstName" name="firstName" type="text" autocomplete="given-name" autocapitalize="words" formControlName="firstName" required minlength="3" maxlength="50" [readOnly]="submitting()" [attr.aria-invalid]="!!fieldError('firstName')" [attr.aria-describedby]="fieldError('firstName') ? 'register-firstName-error' : null" (input)="errorMessage.set(null)" />@if (fieldError('firstName'); as error) { <p id="register-firstName-error" class="field-error ui-field-error">{{ error }}</p> }</div>
+          <div class="field-group"><label class="mb-2 block text-sm font-medium text-gray-700" for="register-lastName">{{ 'auth.field.lastName' | translate }}</label><input class="ui-auth-input" id="register-lastName" name="lastName" type="text" autocomplete="family-name" autocapitalize="words" formControlName="lastName" required minlength="3" maxlength="50" [readOnly]="submitting()" [attr.aria-invalid]="!!fieldError('lastName')" [attr.aria-describedby]="fieldError('lastName') ? 'register-lastName-error' : null" (input)="errorMessage.set(null)" />@if (fieldError('lastName'); as error) { <p id="register-lastName-error" class="field-error ui-field-error">{{ error }}</p> }</div>
         </div>
-
-        <div class="mt-5">
-          <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ 'auth.field.emailAddress' | translate }}</label>
-          <input
-            type="email"
-            formControlName="email"
-            [attr.placeholder]="'auth.field.emailAddress' | translate"
-            class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
-          />
-          @if (email.invalid && (email.dirty || email.touched)) {
-            @if (email.errors?.['required']) {
-              <div class="text-red-500 text-xs mt-1">{{ 'auth.error.emailRequired' | translate }}</div>
-            }
-            @if (email.errors?.['email']) {
-              <div class="text-red-500 text-xs mt-1">{{ 'auth.error.emailInvalid' | translate }}</div>
-            }
-            @if (email.errors?.['maxlength']) {
-              <div class="text-red-500 text-xs mt-1">
-                {{ 'auth.error.maxLength' | translate: { length: email.errors?.['maxlength'].requiredLength } }}
-              </div>
-            }
-          }
+        <div class="field-group"><label class="mb-2 block text-sm font-medium text-gray-700" for="register-email">{{ 'auth.field.emailAddress' | translate }}</label><input class="ui-auth-input" id="register-email" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" formControlName="email" required maxlength="255" [readOnly]="submitting()" [attr.aria-invalid]="!!fieldError('email')" [attr.aria-describedby]="fieldError('email') ? 'register-email-error' : null" (input)="errorMessage.set(null)" />@if (fieldError('email'); as error) { <p id="register-email-error" class="field-error ui-field-error">{{ error }}</p> }</div>
+        <div class="field-group">
+          <label class="mb-2 block text-sm font-medium text-gray-700" for="register-password">{{ 'auth.field.password' | translate }}</label>
+          <div class="password-field relative"><input class="ui-auth-input pe-14" #passwordInput id="register-password" name="password" [type]="passwordVisible() ? 'text' : 'password'" autocomplete="new-password" formControlName="password" required minlength="8" maxlength="128" [readOnly]="submitting()" [attr.aria-invalid]="!!fieldError('password')" [attr.aria-describedby]="'register-password-help' + (fieldError('password') ? ' register-password-error' : '')" (input)="errorMessage.set(null)" /><button type="button" class="password-toggle ui-password-toggle" [disabled]="submitting()" [attr.aria-label]="(passwordVisible() ? 'auth.login.hidePassword' : 'auth.login.showPassword') | translate" (pointerdown)="$event.preventDefault()" (click)="togglePassword(passwordInput, $event)"><svg class="size-[18px] stroke-[1.5]" [lucideIcon]="passwordVisible() ? icons.hide : icons.show" aria-hidden="true" /></button></div>
+          <p id="register-password-help" class="field-hint mt-2 text-xs leading-5 text-slate-500">{{ 'auth.register.passwordHint' | translate }}</p>
+          @if (fieldError('password'); as error) { <p id="register-password-error" class="field-error ui-field-error">{{ error }}</p> }
         </div>
-
-        <div class="mt-5">
-          <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ 'auth.field.password' | translate }}</label>
-          <input
-            type="password"
-            formControlName="password"
-            placeholder="••••••••"
-            class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
-          />
-          @if (password.invalid && (password.dirty || password.touched)) {
-            @if (password.errors?.['required']) {
-              <div class="text-red-500 text-xs mt-1">{{ 'auth.error.passwordRequired' | translate }}</div>
-            }
-            @if (password.errors?.['minlength']) {
-              <div class="text-red-500 text-xs mt-1">
-                {{ 'auth.error.minLength' | translate: { length: password.errors?.['minlength'].requiredLength } }}
-              </div>
-            }
-            @if (password.errors?.['maxlength']) {
-              <div class="text-red-500 text-xs mt-1">
-                {{ 'auth.error.maxLength' | translate: { length: password.errors?.['maxlength'].requiredLength } }}
-              </div>
-            }
-          }
-        </div>
-
-        <button
-          class="w-full mt-8 bg-gradient-to-r from-primary-500 to-primary-700 hover:from-primary-600 hover:to-primary-800 text-white text-sm font-medium py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-sm shadow-primary-200 cursor-pointer"
-        >
-          {{ 'auth.register.submit' | translate }}
-        </button>
+        <button type="submit" class="auth-submit ui-auth-submit" [disabled]="submitting()">{{ (submitting() ? 'auth.register.submitting' : 'auth.register.submit') | translate }}</button>
+        <span class="sr-only" role="status">{{ submitting() ? ('auth.register.submitting' | translate) : '' }}</span>
       </form>
-
-      <p class="text-center text-sm text-gray-500 mt-6">
-        {{ 'auth.register.hasAccount' | translate }}
-        <a routerLink="/login" class="text-primary-600 font-medium hover:text-primary-700"
-          >{{ 'auth.login.submit' | translate }}</a
-        >
-      </p>
-    </div>
+      <p class="account-link mt-6 text-center text-[13px] leading-6 text-slate-500">{{ 'auth.register.hasAccount' | translate }} <a routerLink="/login" queryParamsHandling="preserve" class="inline-block font-medium text-primary-700 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-primary-600">{{ 'auth.login.submit' | translate }}</a></p>
+    </section>
   </div>
-</div>
+</main>

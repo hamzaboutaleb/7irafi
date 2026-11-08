@@ -1,7 +1,5 @@
-<label class="sr-only" [attr.for]="controlId()">{{ 'nav.language' | translate }}</label>
-<select [id]="controlId()" (change)="change($event)"
-  class="min-h-11 cursor-pointer rounded-lg border border-gray-200 bg-white px-2 py-2 text-sm font-medium text-gray-600 transition-colors duration-200 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400">
-  @for (option of options; track option.code) {
-  <option [value]="option.code" [selected]="option.code === current()">{{ option.label }}</option>
-  }
-</select>
+<app-select [controlId]="controlId()" [label]="'nav.language' | translate"
+  [options]="options" [value]="current()" [compact]="true" [displayLabel]="current().toUpperCase()"
+  (valueChange)="change($event)">
+  <svg class="w-4.5 h-4.5 shrink-0 [stroke-width:1.5] text-gray-500" selectIcon lucideGlobe aria-hidden="true"></svg>
+</app-select>

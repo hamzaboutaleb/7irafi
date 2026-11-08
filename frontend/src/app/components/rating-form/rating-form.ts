@@ -14,7 +14,7 @@ import { AuthService } from '../../services/auth.js';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, LucideStar, TranslatePipe],
   templateUrl: './rating-form.html',
-  styleUrl: './rating-form.css',
+  host: { class: 'block' },
 })
 export class RatingFormComponent {
   @Input() jobId!: string;
