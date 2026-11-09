@@ -46,9 +46,10 @@ es -X POST "$ES_URL/_security/user/logstash_writer" \
 echo
 
 echo "applying ILM policy"
+sed "s/__RETENTION_DAYS__/${LOG_RETENTION_DAYS}/g" /scripts/ilm-policy.json > /tmp/ilm-policy.json
 es -X PUT "$ES_URL/_ilm/policy/7irafi-logs-policy" \
   -H 'Content-Type: application/json' \
-  -d @/scripts/ilm-policy.json
+  -d @/tmp/ilm-policy.json
 echo
 
 echo "applying index template"
