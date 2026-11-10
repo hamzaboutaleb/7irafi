@@ -1,0 +1,153 @@
+@reference '../../../styles.css';
+
+/*
+ * Line height, font weight, borders, outlines and the focus ring are written as
+ * plain CSS: their Tailwind utilities would copy ~4 kB of @property
+ * registrations into this file, which styles.css already provides globally.
+ */
+
+/* Page */
+.login {
+  @apply grid min-h-dvh items-center bg-[#f8f9fa] px-4 py-8 text-gray-900;
+}
+
+.login__content {
+  @apply mx-auto w-full max-w-md;
+}
+
+.login__brand {
+  @apply mx-auto mb-7 flex min-h-11 w-fit items-center justify-center rounded;
+}
+
+.login__logo {
+  @apply block h-11 w-[140px] object-contain;
+}
+
+.login__panel {
+  @apply rounded-xl border-slate-200 bg-white p-6;
+  border-width: 1px;
+  border-style: solid;
+}
+
+.login__title {
+  @apply text-2xl;
+  line-height: 2rem;
+  font-weight: 600;
+}
+
+.login__subtitle {
+  @apply mt-2 text-sm text-slate-500;
+  line-height: 1.5rem;
+}
+
+/* Form */
+.login__form {
+  @apply mt-6 grid gap-5;
+}
+
+.login__alert {
+  @apply rounded-lg bg-red-50 p-3 text-[13px] text-red-700;
+  line-height: 22px;
+}
+
+.login__label {
+  @apply mb-2 block text-sm text-gray-700;
+  font-weight: 500;
+}
+
+.login__input {
+  @apply min-h-12 w-full rounded-lg border-gray-300 bg-white p-3 text-base text-gray-900;
+  border-width: 1px;
+  border-style: solid;
+  line-height: 22px;
+}
+
+.login__input:focus {
+  @apply border-primary-600;
+  outline-style: none;
+  box-shadow: 0 0 0 1px --theme(--color-primary-600);
+}
+
+.login__input:read-only {
+  @apply bg-gray-50 text-slate-500;
+}
+
+/* Leaves room for the show/hide button. */
+.login__input--password {
+  @apply pe-14;
+}
+
+.login__password {
+  @apply relative;
+}
+
+.login__toggle {
+  @apply absolute end-0.5 top-0.5 grid size-11 cursor-pointer place-items-center rounded-md text-slate-500;
+}
+
+.login__toggle:enabled:hover {
+  @apply bg-gray-100 text-gray-700;
+}
+
+.login__toggle:disabled {
+  @apply cursor-not-allowed opacity-60;
+}
+
+.login__toggle-icon {
+  @apply size-[18px] stroke-[1.5];
+}
+
+.login__error {
+  @apply mt-2 text-xs text-red-700;
+  line-height: 1.25rem;
+}
+
+.login__submit {
+  @apply mt-1 min-h-12 w-full cursor-pointer rounded-lg bg-primary-700 px-5 py-3 text-sm text-white;
+  line-height: 1.5rem;
+  font-weight: 500;
+}
+
+.login__submit:enabled:hover {
+  @apply bg-primary-800;
+}
+
+.login__submit:disabled {
+  @apply cursor-not-allowed opacity-60;
+}
+
+/* "No account? Register" */
+.login__switch {
+  @apply mt-6 text-center text-[13px] text-slate-500;
+  line-height: 1.5rem;
+}
+
+.login__switch-link {
+  @apply inline-block text-primary-700 underline-offset-4;
+  font-weight: 500;
+}
+
+.login__switch-link:hover {
+  @apply underline;
+}
+
+/* Keyboard focus ring shared by every link and button on the page. */
+.login__brand:focus-visible,
+.login__toggle:focus-visible,
+.login__submit:focus-visible,
+.login__switch-link:focus-visible {
+  @apply outline-primary-600;
+  outline-width: 2px;
+  outline-style: solid;
+  outline-offset: 3px;
+}
+
+@media (min-width: 480px) {
+  .login {
+    @apply px-5 py-10;
+  }
+
+  .login__panel {
+    @apply p-8;
+  }
+}

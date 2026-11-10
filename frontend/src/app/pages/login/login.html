@@ -1,27 +1,83 @@
-<main class="auth-page ui-auth-page">
-  <div class="auth-content mx-auto w-full max-w-md">
-    <a routerLink="/" class="brand-link ui-auth-brand" [attr.aria-label]="'auth.login.home' | translate"><img class="block h-11 w-[140px] object-contain" src="logo.svg" alt="7irafy" width="140" height="44" /></a>
-    <section class="auth-panel ui-auth-panel" aria-labelledby="login-title">
-      <header><h1 class="text-2xl leading-8 font-semibold" id="login-title">{{ 'auth.login.screenTitle' | translate }}</h1><p class="mt-2 text-sm leading-6 text-slate-500">{{ 'auth.login.subtitle' | translate }}</p></header>
-      <form class="mt-6 grid gap-5" [formGroup]="form" (ngSubmit)="login()" [attr.aria-busy]="submitting()" novalidate>
-        @if (errorMessage(); as error) { <p class="auth-error rounded-lg bg-red-50 p-3 text-[13px] leading-[22px] text-red-700" role="alert">{{ error | translate }}</p> }
-        <div class="field-group">
-          <label class="mb-2 block text-sm font-medium text-gray-700" for="login-email">{{ 'auth.field.emailAddress' | translate }}</label>
-          <input class="ui-auth-input" id="login-email" name="email" type="email" inputmode="email" autocomplete="username" autocapitalize="none" spellcheck="false" formControlName="email" required maxlength="255" [readOnly]="submitting()" [attr.aria-invalid]="!!fieldError('email')" [attr.aria-describedby]="fieldError('email') ? 'login-email-error' : null" (input)="errorMessage.set(null)" />
-          @if (fieldError('email'); as error) { <p id="login-email-error" class="field-error ui-field-error">{{ error }}</p> }
+<main class="login">
+  <div class="login__content">
+    <a routerLink="/" class="login__brand">
+      <img class="login__logo" src="logo.svg" alt="7irafy" width="140" height="44" />
+    </a>
+    <section class="login__panel">
+      <header>
+        <h1 class="login__title">{{ 'auth.login.screenTitle' | translate }}</h1>
+        <p class="login__subtitle">{{ 'auth.login.subtitle' | translate }}</p>
+      </header>
+      <form class="login__form" [formGroup]="form" (ngSubmit)="login()" novalidate>
+        @if (errorMessage(); as error) {
+          <p class="login__alert">{{ error | translate }}</p>
+        }
+        <div>
+          <label class="login__label" for="login-email">{{
+            'auth.field.emailAddress' | translate
+          }}</label>
+          <input
+            class="login__input"
+            id="login-email"
+            name="email"
+            type="email"
+            autocomplete="username"
+            autocapitalize="none"
+            formControlName="email"
+            required
+            maxlength="255"
+            [readOnly]="submitting()"
+            (input)="errorMessage.set(null)"
+          />
+          @if (fieldError('email'); as error) {
+            <p class="login__error">{{ error }}</p>
+          }
         </div>
-        <div class="field-group">
-          <label class="mb-2 block text-sm font-medium text-gray-700" for="login-password">{{ 'auth.field.password' | translate }}</label>
-          <div class="password-field relative">
-            <input class="ui-auth-input pe-14" #passwordInput id="login-password" name="password" [type]="passwordVisible() ? 'text' : 'password'" autocomplete="current-password" formControlName="password" required maxlength="128" [readOnly]="submitting()" [attr.aria-invalid]="!!fieldError('password')" [attr.aria-describedby]="fieldError('password') ? 'login-password-error' : null" (input)="errorMessage.set(null)" />
-            <button type="button" class="password-toggle ui-password-toggle" [disabled]="submitting()" [attr.aria-label]="(passwordVisible() ? 'auth.login.hidePassword' : 'auth.login.showPassword') | translate" (pointerdown)="$event.preventDefault()" (click)="togglePassword(passwordInput, $event)"><svg class="size-[18px] stroke-[1.5]" [lucideIcon]="passwordVisible() ? icons.hide : icons.show" aria-hidden="true" /></button>
+        <div>
+          <label class="login__label" for="login-password">{{
+            'auth.field.password' | translate
+          }}</label>
+          <div class="login__password">
+            <input
+              class="login__input login__input--password"
+              #passwordInput
+              id="login-password"
+              name="password"
+              [type]="passwordVisible() ? 'text' : 'password'"
+              autocomplete="current-password"
+              formControlName="password"
+              required
+              maxlength="128"
+              [readOnly]="submitting()"
+              (input)="errorMessage.set(null)"
+            />
+            <button
+              type="button"
+              class="login__toggle"
+              [disabled]="submitting()"
+              (pointerdown)="$event.preventDefault()"
+              (click)="togglePassword(passwordInput, $event)"
+            >
+              <svg
+                class="login__toggle-icon"
+                [lucideIcon]="passwordVisible() ? icons.hide : icons.show"
+              />
+            </button>
           </div>
-          @if (fieldError('password'); as error) { <p id="login-password-error" class="field-error ui-field-error">{{ error }}</p> }
+          @if (fieldError('password'); as error) {
+            <p class="login__error">{{ error }}</p>
+          }
         </div>
-        <button type="submit" class="auth-submit ui-auth-submit" [disabled]="submitting()">{{ (submitting() ? 'auth.login.submitting' : 'auth.login.submit') | translate }}</button>
-        <span class="sr-only" role="status">{{ submitting() ? ('auth.login.submitting' | translate) : '' }}</span>
+        <button type="submit" class="login__submit" [disabled]="submitting()">
+          {{ (submitting() ? 'auth.login.submitting' : 'auth.login.submit') | translate }}
+        </button>
       </form>
-      <p class="account-link mt-6 text-center text-[13px] leading-6 text-slate-500">{{ 'auth.login.noAccount' | translate }} <a routerLink="/register" queryParamsHandling="preserve" class="inline-block font-medium text-primary-700 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-primary-600">{{ 'auth.register.submit' | translate }}</a></p>
+      <p class="login__switch">
+        {{ 'auth.login.noAccount' | translate }}
+        <a routerLink="/register" queryParamsHandling="preserve" class="login__switch-link">{{
+          'auth.register.submit' | translate
+        }}</a>
+      </p>
     </section>
   </div>
 </main>
