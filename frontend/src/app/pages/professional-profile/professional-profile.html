@@ -198,7 +198,7 @@
           </fieldset>
 
           <div
-            class="flex flex-col-reverse gap-3 border-t border-gray-200 pt-6 sm:flex-row sm:justify-end"
+            class="ui-dialog-actions"
           >
             <a
               routerLink="/profile"
@@ -211,7 +211,7 @@
               type="submit"
               [disabled]="isSaving()"
               [attr.aria-busy]="isSaving()"
-              class="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl bg-primary-600 px-6 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+              class="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl ui-button-primary px-6 py-3 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
             >
               @if (isSaving()) {
                 Saving…

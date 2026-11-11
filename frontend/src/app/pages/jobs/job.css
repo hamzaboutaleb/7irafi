@@ -1,8 +1,0 @@
-.filter-label { display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.875rem; font-weight: 600; color: #374151; }
-.filter-control { width: 100%; min-height: 44px; border: 1px solid #d1d5db; border-radius: 0.75rem; padding: 0.625rem 0.75rem; background: white; color: #111827; font-size: 0.875rem; font-weight: 400; }
-.filter-control:focus-visible, .filter-button:focus-visible { outline: 2px solid var(--color-primary-500, #6366f1); outline-offset: 2px; }
-.filter-button { min-height: 44px; border: 1px solid #d1d5db; border-radius: 0.75rem; padding: 0.625rem 1rem; background: white; color: #374151; font-size: 0.875rem; font-weight: 600; cursor: pointer; }
-.filter-button:hover { background: #f9fafb; }
-.filter-sheet { position: fixed; inset: auto 0 0; margin: 0 auto; width: 100%; max-width: 40rem; max-height: 90dvh; padding: 0; border: 0; border-radius: 1.5rem 1.5rem 0 0; background: white; }
-.filter-sheet[open] { display: flex; flex-direction: column; }
-.filter-sheet::backdrop { background: rgb(17 24 39 / 45%); }

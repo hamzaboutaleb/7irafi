@@ -11,7 +11,6 @@ import { NotificationService } from './services/notification.js';
   selector: 'app-root',
   imports: [RouterOutlet, ContactsRail],
   templateUrl: './app.html',
-  styleUrl: './app.css',
 })
 export class App implements OnInit {
   protected readonly title = signal('7irafy is here');

@@ -22,7 +22,6 @@ type ProfessionalProfileMode = 'loading' | 'create' | 'edit' | 'error';
   selector: 'app-professional-profile',
   imports: [Footer, Navbar, ReactiveFormsModule, RouterLink, TranslatePipe],
   templateUrl: './professional-profile.html',
-  styleUrl: './professional-profile.css',
 })
 export class ProfessionalProfile implements OnInit {
   private readonly userService = inject(UserService);

@@ -1,41 +1,51 @@
-<section class="mb-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8"
-  aria-labelledby="notifications-heading">
-  <div class="flex flex-wrap items-center justify-between gap-3">
-    <h2 id="notifications-heading" class="text-xl font-semibold text-gray-900">
-      {{ 'notifications.title' | translate }}
-      @if (unread()) {
-      <span class="ml-2 inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-red-600 px-2 text-xs font-bold text-white">
-        {{ unread() }}
-      </span>
-      }
-    </h2>
-
+<section class="notification-panel group/notifications ui-panel [&.compact]:border-0 [&.compact]:p-0" [class.compact]="compact()" [attr.aria-labelledby]="headingId()">
+  <header class="notification-header flex items-center justify-between gap-2 group-[.compact]/notifications:border-b group-[.compact]/notifications:border-gray-100 group-[.compact]/notifications:px-3 group-[.compact]/notifications:py-1">
+    <h2 class="me-auto text-xl leading-7 font-semibold text-gray-900 group-[.compact]/notifications:text-base group-[.compact]/notifications:leading-6" [id]="headingId()">{{ 'notifications.title' | translate }}</h2>
     @if (unread()) {
-    <button type="button" (click)="markAllRead()"
-      class="min-h-11 text-sm font-semibold text-primary-700 underline">{{ 'notifications.markAllRead' | translate }}</button>
+      <button type="button" class="text-action min-h-11 cursor-pointer text-[13px] leading-5 font-medium text-primary-800 underline underline-offset-4 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary-700 mark-all group-[.compact]/notifications:px-1 group-[.compact]/notifications:text-xs group-[.compact]/notifications:whitespace-nowrap group-[.compact]/notifications:no-underline group-[.compact]/notifications:hover:underline" (click)="markAllRead()"
+        [attr.aria-label]="'notifications.markAllRead' | translate">
+        {{ (compact() ? 'notifications.readAllShort' : 'notifications.markAllRead') | translate }}
+      </button>
+    }
+    @if (compact()) {
+      <button type="button" class="close-notifications grid size-11 shrink-0 cursor-pointer place-items-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary-700" (click)="dismissRequested.emit()"
+        [attr.aria-label]="'notifications.close' | translate">
+        <svg class="size-[18px] stroke-[1.5]" lucideX aria-hidden="true"></svg>
+      </button>
+    }
+  </header>
+  <div class="notification-content group-[.compact]/notifications:max-h-[min(480px,calc(100dvh_-_208px))] group-[.compact]/notifications:overflow-y-auto group-[.compact]/notifications:overscroll-contain group-[.compact]/notifications:px-2 group-[.compact]/notifications:pt-1 group-[.compact]/notifications:pb-2" [attr.aria-busy]="loading()">
+    @if (loading()) {
+      <p class="notification-state px-3 py-4 text-sm leading-5 text-gray-500" role="status">{{ 'notifications.loading' | translate }}</p>
+    }
+    @if (loadError()) {
+      <div class="notification-error flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-sm leading-5 text-gray-600" role="alert">
+        <p>{{ 'notifications.loadError' | translate }}</p>
+        <button type="button" class="text-action min-h-11 cursor-pointer text-[13px] leading-5 font-medium text-primary-800 underline underline-offset-4 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary-700" (click)="retry()">{{ 'common.retry' | translate }}</button>
+      </div>
+    }
+    @if (!loading() && !loadError() && items().length === 0) {
+      <div class="notification-empty grid justify-items-center gap-3 px-4 py-8 text-center text-sm leading-6 text-gray-500 [&>svg]:size-6" role="status">
+        <svg class="size-[18px] stroke-[1.5]" lucideBell aria-hidden="true"></svg>
+        <p>{{ 'notifications.empty' | translate }}</p>
+      </div>
+    }
+    @if (items().length) {
+      <ul class="notification-list divide-y divide-gray-100">
+        @for (notification of items(); track notification.id) {
+          <li>
+            <button type="button" class="notification-item group/item flex w-full cursor-pointer items-start gap-3 rounded-lg px-3 py-4 text-start transition-colors duration-[160ms] hover:bg-gray-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary-700 motion-reduce:transition-none" [class.unread]="!notification.read" (click)="activate(notification)">
+              <span class="unread-dot mt-[7px] size-1.5 shrink-0 rounded-full [&.visible]:bg-primary-700" [class.visible]="!notification.read" aria-hidden="true"></span>
+              <span class="notification-copy grid min-w-0 gap-1 [overflow-wrap:anywhere]">
+                @if (!notification.read) { <span class="sr-only">{{ 'notifications.unread' | translate }}: </span> }
+                <span class="notification-title text-sm leading-5 font-normal text-gray-600 group-[.unread]/item:font-semibold group-[.unread]/item:text-gray-900">{{ notification.title }}</span>
+                <span class="notification-body text-[13px] leading-5 text-gray-500">{{ notification.body }}</span>
+                <time class="mt-1 text-xs leading-4 text-gray-500" [attr.datetime]="notification.createdAt">{{ notification.createdAt | date: 'MMM d, HH:mm' }}</time>
+              </span>
+            </button>
+          </li>
+        }
+      </ul>
     }
   </div>
-
-  @if (items().length === 0) {
-  <p class="mt-4 text-sm text-gray-500">{{ 'notifications.empty' | translate }}</p>
-  } @else {
-  <ul class="mt-4 divide-y divide-gray-100">
-    @for (notification of items(); track notification.id) {
-    <li>
-      <button type="button" (click)="activate(notification)"
-        class="flex w-full items-start gap-3 rounded-xl px-2 py-3 text-left transition-colors duration-150 hover:bg-gray-50 focus-visible:outline-none focus-visible:bg-gray-50">
-        <span aria-hidden="true" class="mt-2 h-2 w-2 shrink-0 rounded-full"
-          [class]="notification.read ? 'bg-transparent' : 'bg-red-600'"></span>
-        <span class="min-w-0 flex-1">
-          <span class="block text-sm font-semibold text-gray-900">{{ notification.title }}</span>
-          <span class="mt-0.5 block break-words text-sm text-gray-600">{{ notification.body }}</span>
-        </span>
-        <time [attr.datetime]="notification.createdAt" class="shrink-0 text-xs text-gray-400">
-          {{ notification.createdAt | date: 'MMM d, HH:mm' }}
-        </time>
-      </button>
-    </li>
-    }
-  </ul>
-  }
 </section>

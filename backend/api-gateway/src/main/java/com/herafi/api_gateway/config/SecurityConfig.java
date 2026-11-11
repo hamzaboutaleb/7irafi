@@ -60,7 +60,7 @@ public class SecurityConfig {
                                                                 "/v3/api-docs/**")
                                                 .permitAll()
                                                 .requestMatchers("/users/**", "/jobs/**", "/applications/**",
-                                                                "/conversations/**", "/notifications/**", "/analytics/**")
+                                                                "/conversations/**", "/notifications/**", "/ratings/**", "/analytics/**")
                                                 .authenticated())
                                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                                 .build();

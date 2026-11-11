@@ -32,3 +32,8 @@ SELECT 'CREATE DATABASE analytics_db'
 WHERE NOT EXISTS (
     SELECT FROM pg_database WHERE datname = 'analytics_db'
 )\gexec
+
+SELECT 'CREATE DATABASE rating_db'
+WHERE NOT EXISTS (
+    SELECT FROM pg_database WHERE datname = 'rating_db'
+)\gexec

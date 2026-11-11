@@ -1,0 +1,23 @@
+@if (totalRatings > 0) {
+  <div class="rating-display grid [grid-template-columns:minmax(9rem,_1fr)_minmax(12rem,_2fr)] items-center gap-8 [padding-block:1rem_1.75rem] [&.compact]:flex [&.compact]:p-0 [&.compact_.score-label]:hidden [&.compact_.score-line]:gap-1 [&.compact_.score-line]:[margin-block:0_.25rem] [&.compact_.score-line_strong]:[font-size:1.25rem] [&.compact_.score-line_strong]:font-medium [&.compact_.score-line_span]:[font-size:.8125rem] [&.compact_.review-count]:mt-1 [&.compact_.review-count]:[font-size:.75rem] [@media(max-width:_480px)]:[&.rating-display]:[grid-template-columns:1fr] [@media(max-width:_480px)]:[&.rating-display]:gap-5" [class.compact]="compact">
+    <div class="overall-score" role="group" [attr.aria-label]="getAriaLabel()">
+      <p class="score-label [color:#68747e] [font-size:.8125rem]">{{ 'reviews.average' | translate }}</p>
+      <div class="score-line flex items-baseline [gap:.4rem] [margin-block:.25rem_.5rem] [&.score-line_strong]:[font-size:2.75rem] [&.score-line_strong]:[line-height:1.15] [&.score-line_strong]:[letter-spacing:-.025em] [&.score-line_strong]:[color:#17212b] [&.score-line_span]:text-gray-400 [&.score-line_span]:[font-size:.9rem]"><strong>{{ averageScore | number:'1.1-1' }}</strong><span>/ 5</span></div>
+      <app-rating-stars [score]="averageScore" />
+      <p class="review-count [color:#68747e] [font-size:.8125rem] [margin-block-start:.4rem]">{{ (totalRatings === 1 ? 'reviews.oneReview' : 'reviews.count') | translate:{count: totalRatings} }}</p>
+    </div>
+    @if (showDistribution && !compact) {
+      <div class="distribution grid gap-2" role="img" [attr.aria-label]="getDistributionAriaLabel()">
+        @for (level of levels; track level) {
+          <div class="dist-row grid [grid-template-columns:2.25rem_1fr_2rem] gap-3 items-center [font-size:.75rem] text-gray-500" aria-hidden="true">
+            <span class="dist-label flex items-center [gap:.4rem]">{{ level }} <span class="star [color:#b7790b]">★</span></span>
+            <div class="dist-bar [height:.45rem] [background:#f1f3f5] [border-radius:1rem] overflow-hidden"><div class="dist-fill h-full [background:#f0b544] [border-radius:inherit]" [style.width.%]="getPercentage(level)"></div></div>
+            <span class="dist-count text-end tabular-nums">{{ getCount(level) }}</span>
+          </div>
+        }
+      </div>
+    }
+  </div>
+} @else if (compact) {
+  <span class="review-count [color:#68747e] [font-size:.8125rem] [margin-block-start:.4rem]">{{ 'reviews.noReviews' | translate }}</span>
+}

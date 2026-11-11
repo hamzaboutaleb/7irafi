@@ -1,206 +1,150 @@
-<dialog
-  #dialog
-  (close)="closed.emit()"
-  aria-labelledby="job-details-title"
-  class="fixed inset-0 m-auto h-dvh max-h-dvh w-screen max-w-none overflow-y-auto border-0 bg-white p-0 text-gray-900 shadow-xl backdrop:bg-gray-900/50 sm:h-auto sm:max-h-[calc(100dvh-3rem)] sm:w-[calc(100%-3rem)] sm:max-w-3xl sm:rounded-2xl"
->
-  <header class="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-gray-100 bg-white p-5 sm:px-6">
-    <h2 id="job-details-title" class="min-w-0 flex-1 text-xl font-semibold [overflow-wrap:anywhere]">
-      {{ job()?.title || 'Job details' }}
-    </h2>
-    <button
-      type="button"
-      autofocus
-      (click)="dialog.close()"
-      class="shrink-0 cursor-pointer rounded-xl border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
-    >{{ 'common.close' | translate }}</button>
-  </header>
-
-  <div class="p-5 sm:p-6" [attr.aria-busy]="isLoading()">
-    @if (isLoading()) {
-      <p role="status" class="text-sm text-gray-600">{{ 'jobDetails.loading' | translate }}</p>
-    } @else if (errorMessage()) {
-      <p role="alert" class="rounded-xl bg-red-50 p-4 text-sm text-red-700">{{ errorMessage() }}</p>
-      <button
-        type="button"
-        (click)="loadDetails()"
-        class="mt-4 cursor-pointer rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
-      >
-        {{ 'common.retry' | translate }}
-      </button>
-    } @else if (job(); as detail) {
-      <button
-        type="button"
-        (click)="openImage()"
-        [disabled]="!detail.images.length"
-        aria-haspopup="dialog"
-        [attr.aria-label]="'jobDetails.viewFullImage' | translate"
-        class="group relative block w-full cursor-zoom-in rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 disabled:cursor-default"
-      >
-        <img
-          [src]="imageUrl()"
-          [alt]="detail.title"
-          (error)="onImageError($event)"
-          class="h-64 w-full rounded-xl bg-gray-50 object-contain sm:h-80"
-        />
-        @if (detail.images.length) {
-          <span aria-hidden="true" class="absolute bottom-3 right-3 flex items-center gap-2 rounded-lg bg-gray-900/75 px-3 py-2 text-xs font-semibold text-white group-hover:bg-gray-900">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5" />
-            </svg>
-            {{ 'jobDetails.viewFullImage' | translate }}
-          </span>
-        }
-      </button>
-
-      @if (detail.images.length > 1) {
-        <div role="group" [attr.aria-label]="'jobDetails.images' | translate" class="mt-3 flex gap-3 overflow-x-auto p-1">
-          @for (image of detail.images; track image.id; let index = $index) {
-            <button
-              type="button"
-              (click)="selectedImage.set(index)"
-              [attr.aria-label]="'jobDetails.showImage' | translate: { number: index + 1 }"
-              [attr.aria-pressed]="selectedImage() === index"
-              [class.ring-2]="selectedImage() === index"
-              [class.ring-primary-500]="selectedImage() === index"
-              class="shrink-0 cursor-pointer rounded-lg ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
-            >
-              <img
-                [src]="image.url"
-                alt=""
-                loading="lazy"
-                (error)="onImageError($event)"
-                class="h-16 w-20 rounded-lg object-cover"
-              />
-            </button>
-          }
+<dialog #dialog class="details-dialog fixed inset-0 [width:calc(100%_-_48px)] max-w-200 [max-height:calc(100dvh_-_48px)] m-auto p-0 overflow-hidden [border:1px_solid_#e5e7eb] rounded-2xl bg-white text-gray-900 [box-shadow:0_16px_48px_rgb(0_0_0_/_12%)] [&.details-dialog[open]]:flex [&.details-dialog[open]]:flex-col [&.details-dialog::backdrop]:[background:rgb(17_24_39_/_45%)] [@media(max-width:_639px)]:[&.details-dialog]:w-full [@media(max-width:_639px)]:[&.details-dialog]:[height:100dvh] [@media(max-width:_639px)]:[&.details-dialog]:[max-height:100dvh] [@media(max-width:_639px)]:[&.details-dialog]:max-w-none [@media(max-width:_639px)]:[&.details-dialog]:[border:0] [@media(max-width:_639px)]:[&.details-dialog]:[border-radius:0] [&.review-mode]:max-w-160 [&.review-mode_.job-context_>_summary]:flex [&.review-mode_.job-context_>_summary]:items-center [&.review-mode_.job-context_>_summary]:justify-between [&.review-mode_.job-context_>_summary]:gap-4 [&.review-mode_.job-context_>_summary]:min-h-11 [&.review-mode_.job-context_>_summary]:cursor-pointer [&.review-mode_.job-context_>_summary]:text-gray-600 [&.review-mode_.job-context_>_summary]:[font-size:13px] [&.review-mode_.job-context_>_summary]:list-none [&.review-mode_.job-context]:[border-bottom:1px_solid_#e5e7eb] [&.review-mode_.job-context]:pb-3 [&.review-mode_.job-context[open]]:pb-5 [&.review-mode_.review-section]:[border-top:0] [&.review-mode_.review-section]:pt-0 [&.review-mode_.review-section]:mt-5 [&.review-mode_.section-heading]:mb-2" [class.review-mode]="ratingOpen() && !savedReview()" (close)="closed.emit()" (cancel)="protectSubmission($event)" aria-labelledby="job-details-title">
+  <header class="details-header flex shrink-0 items-start justify-between gap-4 [padding:20px_24px] [border-bottom:1px_solid_#e5e7eb] [@media(max-width:_639px)]:[&.details-header]:[padding:16px_20px] [@media(max-width:_639px)]:[&.details-header]:gap-2">
+    <div class="details-heading flex-1 min-w-0 [&.details-heading_h2]:[overflow-wrap:anywhere] [&.details-heading_h2]:[font-size:22px] [&.details-heading_h2]:[line-height:30px] [&.details-heading_h2]:font-semibold [@media(max-width:_639px)]:[&.details-heading_h2]:[font-size:20px] [@media(max-width:_639px)]:[&.details-heading_h2]:[line-height:28px]">
+      <h2 id="job-details-title">{{ job()?.title || ('jobDetails.title' | translate) }}</h2>
+      @if (job(); as detail) {
+        <div class="header-meta flex items-center flex-wrap gap-2 mt-2 text-gray-500 [font-size:13px] [line-height:20px]">
+          <span>{{ detail.skill.replaceAll('_', ' ') | titlecase }}</span>
+          <span aria-hidden="true">·</span>
+          <span class="location inline-flex items-center gap-1"><svg class="w-4 h-4 shrink-0 [stroke-width:1.5]" lucideMapPin aria-hidden="true"></svg>{{ detail.city.replaceAll('_', ' ') | titlecase }}</span>
+          <span class="job-status [padding:2px_6px] rounded bg-gray-100 text-gray-600 [font-size:12px] [line-height:16px] [&.job-status[data-status='OPEN']]:bg-primary-50 [&.job-status[data-status='OPEN']]:text-primary-800 [&.job-status[data-status='COMPLETED']]:bg-primary-50 [&.job-status[data-status='COMPLETED']]:text-primary-800" [attr.data-status]="detail.status">{{ statusLabel() }}</span>
         </div>
       }
+    </div>
+    <button type="button" class="icon-button close-details grid place-items-center shrink-0 w-11 h-11 rounded-lg text-gray-500 cursor-pointer [&.icon-button_svg]:w-4.5 [&.icon-button_svg]:h-4.5 [&.icon-button:hover:enabled]:bg-gray-100 [&.icon-button:hover:enabled]:text-gray-700 [&:disabled]:[opacity:.5] [&:disabled]:cursor-not-allowed [&:focus-visible]:[outline:2px_solid_var(--color-primary-700)] [&:focus-visible]:[outline-offset:2px]" [disabled]="busy()" autofocus (click)="dialog.close()"
+      [attr.aria-label]="'common.close' | translate"><svg class="w-4 h-4 shrink-0 [stroke-width:1.5]" lucideX aria-hidden="true"></svg></button>
+  </header>
 
-      <div class="mt-6 flex items-center justify-between gap-3">
-        <p class="text-xl font-semibold">{{ detail.budget | number: '1.0-2' }} MAD</p>
-        <span class="rounded-full bg-primary-50 px-3 py-1 text-xs font-semibold text-primary-700">
-          {{ detail.status | titlecase }}
-        </span>
-      </div>
-
-      <dl class="mt-5 grid grid-cols-2 gap-4 text-sm [overflow-wrap:anywhere]">
-        <div>
-          <dt class="text-gray-500">{{ 'job.skill' | translate }}</dt>
-          <dd class="mt-1 font-semibold">{{ detail.skill }}</dd>
-        </div>
-        <div>
-          <dt class="text-gray-500">{{ 'job.city' | translate }}</dt>
-          <dd class="mt-1 font-semibold">{{ detail.city }}</dd>
-        </div>
-        <div>
-          <dt class="text-gray-500">{{ 'jobs.duration' | translate }}</dt>
-          <dd class="mt-1 font-semibold">{{ durationLabels[detail.estimatedDuration] }}</dd>
-        </div>
-        <div>
-          <dt class="text-gray-500">{{ 'jobs.preferredTime' | translate }}</dt>
-          <dd class="mt-1 font-semibold">{{ detail.preferredTime | titlecase }}</dd>
-        </div>
-        <div>
-          <dt class="text-gray-500">{{ 'jobDetails.posted' | translate }}</dt>
-          <dd class="mt-1 font-semibold">{{ detail.createdAt | date: 'mediumDate' }}</dd>
-        </div>
-        @if (detail.addressLine) {
-          <div>
-            <dt class="text-gray-500">{{ 'job.address' | translate }}</dt>
-            <dd class="mt-1 break-words font-semibold">{{ detail.addressLine }}</dd>
-          </div>
-        }
+  <div class="details-body flex-1 min-h-0 overflow-y-auto overscroll-contain p-6 [@media(max-width:_639px)]:[&.details-body]:p-5" [attr.aria-busy]="isLoading()">
+    @if (isLoading()) {
+      <p role="status" class="details-state grid place-content-center justify-items-start gap-4 min-h-50 text-gray-500 [font-size:14px] [line-height:24px]">{{ 'jobDetails.loading' | translate }}</p>
+    } @else if (errorMessage()) {
+      <div role="alert" class="details-state grid place-content-center justify-items-start gap-4 min-h-50 text-gray-500 [font-size:14px] [line-height:24px]"><p>{{ errorMessage() }}</p><button type="button" class="secondary-button inline-flex items-center justify-center min-h-11 [padding:8px_20px] [border:1px_solid_transparent] rounded-lg bg-white text-gray-600 [font-size:14px] [line-height:20px] font-medium text-center cursor-pointer border-gray-300 [&.secondary-button:hover]:bg-gray-50 [&:disabled]:[opacity:.5] [&:disabled]:cursor-not-allowed [&:focus-visible]:[outline:2px_solid_var(--color-primary-700)] [&:focus-visible]:[outline-offset:2px]" (click)="loadDetails()">{{ 'common.retry' | translate }}</button></div>
+    } @else if (job(); as detail) {
+      <details class="job-context [&.job-context_>_summary]:hidden [&.job-context_>_summary::-webkit-details-marker]:hidden [&.job-context[open]_.context-budget_svg]:[transform:rotate(90deg)] [&.job-context_>_summary:focus-visible]:[outline:2px_solid_var(--color-primary-700)] [&.job-context_>_summary:focus-visible]:[outline-offset:2px]" [open]="!ratingOpen() || !!savedReview()">
+        <summary><span>{{ 'jobDetails.title' | translate }}</span><span class="context-budget inline-flex items-center gap-2 tabular-nums"><bdi>{{ budgetLabel() }} MAD</bdi><svg class="w-4 h-4 shrink-0 [stroke-width:1.5]" lucideChevronRight aria-hidden="true"></svg></span></summary>
+      <dl class="details-summary grid [grid-template-columns:1.2fr_1fr_1fr] items-start gap-6 [&.details-summary_dt]:flex [&.details-summary_dt]:items-center [&.details-summary_dt]:gap-1.5 [&.details-summary_dt]:text-gray-500 [&.details-summary_dt]:[font-size:12px] [&.details-summary_dt]:[line-height:20px] [&.details-summary_dd]:mt-2 [&.details-summary_dd]:text-gray-700 [&.details-summary_dd]:[font-size:14px] [&.details-summary_dd]:[line-height:24px] [&.details-summary_dd]:font-medium [&.details-summary_dd]:[overflow-wrap:anywhere] [@media(max-width:_639px)]:[&.details-summary]:[grid-template-columns:repeat(2,minmax(0,1fr))] [@media(max-width:_639px)]:[&.details-summary]:gap-4" [attr.aria-label]="'jobDetails.overview' | translate">
+        <div class="summary-budget [&.summary-budget_dd]:mt-1 [&.summary-budget_dd]:text-gray-900 [&.summary-budget_dd]:[font-size:28px] [&.summary-budget_dd]:[line-height:36px] [&.summary-budget_dd]:font-semibold [&.summary-budget_dd]:tabular-nums [&.summary-budget_dd_span]:text-gray-500 [&.summary-budget_dd_span]:[font-size:13px] [&.summary-budget_dd_span]:font-normal [@media(max-width:_639px)]:[&.summary-budget]:[grid-column:1_/_-1]"><dt>{{ 'job.budget' | translate }}</dt><dd><bdi>{{ budgetLabel() }} <span>MAD</span></bdi></dd></div>
+        <div><dt><svg class="w-4 h-4 shrink-0 [stroke-width:1.5]" lucideClock aria-hidden="true"></svg>{{ 'jobs.duration' | translate }}</dt><dd>{{ durationLabel() }}</dd></div>
+        <div><dt><svg class="w-4 h-4 shrink-0 [stroke-width:1.5]" lucideSun aria-hidden="true"></svg>{{ 'jobs.preferredTime' | translate }}</dt><dd>{{ timeLabel() }}</dd></div>
       </dl>
 
-      <section class="mt-6 border-t border-gray-100 pt-5">
-        <h3 class="font-semibold">{{ 'job.description' | translate }}</h3>
-        <p class="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed text-gray-600">{{ detail.description }}</p>
+      <section class="owner-row flex items-center gap-3 mt-6 py-5 [border-block:1px_solid_#f3f4f6] [@media(max-width:_639px)]:[&.owner-row]:flex-wrap" aria-labelledby="owner-heading">
+        @if (owner()?.avatarUrl && !ownerImageFailed()) {
+          <img [src]="owner()!.avatarUrl" alt="" class="owner-avatar shrink-0 w-11 h-11 object-cover rounded-full" (error)="ownerImageFailed.set(true)" />
+        } @else { <span class="owner-avatar avatar-fallback shrink-0 w-11 h-11 object-cover rounded-full grid place-items-center bg-gray-100 text-gray-500 [&.avatar-fallback_svg]:w-4.5 [&.avatar-fallback_svg]:h-4.5" aria-hidden="true"><svg class="w-4 h-4 shrink-0 [stroke-width:1.5]" lucideUserRound></svg></span> }
+        <div class="owner-copy flex-1 min-w-0 [&.owner-copy_h3]:text-gray-500 [&.owner-copy_h3]:[font-size:12px] [&.owner-copy_h3]:[line-height:20px] [&.owner-copy_h3]:font-normal [&.owner-copy_p]:[overflow-wrap:anywhere] [&.owner-copy_p]:[font-size:14px] [&.owner-copy_p]:[line-height:24px]">
+          <h3 class="[&:focus]:[outline:2px_solid_var(--color-primary-700)] [&:focus]:[outline-offset:2px]" id="owner-heading">{{ 'jobDetails.postedBy' | translate }}</h3>
+          @if (ownerState() === 'loading') { <p role="status">{{ 'common.loading' | translate }}</p> }
+          @else if (ownerState() === 'error') {
+            <p class="owner-unavailable text-gray-500">{{ 'jobDetails.ownerUnavailable' | translate }}</p>
+            <button type="button" class="text-button ui-underlined-action [&:disabled]:[opacity:.5] [&:disabled]:cursor-not-allowed" (click)="loadOwner()">{{ 'common.retry' | translate }}</button>
+          } @else { <p class="owner-name text-gray-700 font-medium">{{ ownerName() }}</p> }
+        </div>
+        <time class="posted-date text-gray-500 [font-size:12px] [line-height:20px] font-normal shrink-0 [@media(max-width:_639px)]:[&.posted-date]:[flex-basis:calc(100%_-_56px)] [@media(max-width:_639px)]:[&.posted-date]:ms-14" [attr.datetime]="detail.createdAt">{{ dateLabel(detail.createdAt) }}</time>
       </section>
 
-      <footer class="mt-6 border-t border-gray-100 pt-5">
-        @if (applied()) {
-          <p role="status" class="text-sm font-semibold text-primary-700">{{ 'jobDetails.applied' | translate }}</p>
-          <a routerLink="/applications" class="mt-3 inline-block text-sm font-semibold text-primary-700 underline">{{ 'jobDetails.myApplications' | translate }}</a>
-        } @else if (isOwner()) {
-          <a [routerLink]="['/jobs', detail.id, 'applicants']" class="inline-block rounded-xl bg-primary-600 px-5 py-3 text-sm font-semibold text-white">{{ 'myJobs.viewApplicants' | translate }}</a>
-        } @else if (detail.status !== 'OPEN') {
-          <p class="text-sm text-gray-600">{{ 'jobDetails.closed' | translate }}</p>
-        } @else if (eligibility() === 'loading') {
-          <p role="status" class="text-sm text-gray-600">{{ 'jobDetails.checkingProfile' | translate }}</p>
-        } @else if (eligibility() === 'error') {
-          <p role="alert" class="text-sm text-red-700">{{ 'jobDetails.profileCheckFailed' | translate }}</p>
-          <button type="button" (click)="loadEligibility()" class="mt-3 text-sm font-semibold text-primary-700 underline">{{ 'common.retry' | translate }}</button>
-        } @else if (eligibility() === 'ineligible') {
-          <p class="text-sm text-gray-600">{{ 'jobDetails.needsProfile' | translate }}</p>
-          <a routerLink="/professional-profile" class="mt-3 inline-block text-sm font-semibold text-primary-700 underline">{{ 'jobDetails.viewProfile' | translate }}</a>
-        } @else {
-          <button type="button" (click)="apply()" [disabled]="!canApply()"
-            class="w-full cursor-pointer rounded-xl bg-primary-600 px-5 py-3 text-sm font-semibold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto">
-            {{ applying() ? 'Applying...' : 'Apply to job' }}
+      <section class="detail-section description-section mt-6 [&.detail-section_h3]:text-gray-700 [&.detail-section_h3]:[font-size:16px] [&.detail-section_h3]:[line-height:24px] [&.detail-section_h3]:font-semibold" aria-labelledby="description-heading">
+        <h3 class="[&:focus]:[outline:2px_solid_var(--color-primary-700)] [&:focus]:[outline-offset:2px]" id="description-heading">{{ 'job.description' | translate }}</h3>
+        <p class="job-description mt-3 whitespace-pre-wrap [overflow-wrap:anywhere] text-gray-600 [font-size:14px] [line-height:26px]" dir="auto">{{ detail.description }}</p>
+        @if (detail.addressLine) {
+          <dl class="address-detail grid gap-1 mt-5 [font-size:13px] [line-height:20px] [&.address-detail_dt]:flex [&.address-detail_dt]:items-center [&.address-detail_dt]:gap-1.5 [&.address-detail_dt]:text-gray-500 [&.address-detail_dd]:[overflow-wrap:anywhere] [&.address-detail_dd]:text-gray-700"><dt><svg class="w-4 h-4 shrink-0 [stroke-width:1.5]" lucideMapPin aria-hidden="true"></svg>{{ 'job.address' | translate }}</dt><dd>{{ detail.addressLine }}</dd></dl>
+        }
+      </section>
+
+      @if (images().length) {
+        <section class="detail-section gallery-section mt-6 [&.detail-section_h3]:text-gray-700 [&.detail-section_h3]:[font-size:16px] [&.detail-section_h3]:[line-height:24px] [&.detail-section_h3]:font-semibold" aria-labelledby="gallery-heading">
+          <div class="section-heading flex items-center justify-between flex-wrap gap-2 mb-3 [&.section-heading_>_span]:text-gray-500 [&.section-heading_>_span]:[font-size:12px] [&.section-heading_>_span]:[line-height:20px]"><h3 class="[&:focus]:[outline:2px_solid_var(--color-primary-700)] [&:focus]:[outline-offset:2px]" id="gallery-heading">{{ 'jobDetails.photos' | translate }}</h3><span>{{ 'jobDetails.imageCount' | translate: { current: selectedImage() + 1, total: images().length } }}</span></div>
+          <button type="button" class="gallery-preview relative block w-full overflow-hidden [border:1px_solid_#e5e7eb] rounded-lg bg-gray-50 cursor-zoom-in [&.gallery-preview_>_img]:w-full [&.gallery-preview_>_img]:h-50 [&.gallery-preview_>_img]:object-contain [&:disabled]:[opacity:.5] [&:disabled]:cursor-not-allowed [&:focus-visible]:[outline:2px_solid_var(--color-primary-700)] [&:focus-visible]:[outline-offset:2px] [@media(max-width:_639px)]:[&.gallery-preview_>_img]:h-40" (click)="openImage()" aria-haspopup="dialog" [attr.aria-label]="'jobDetails.viewFullImage' | translate">
+            <img [src]="imageUrl()" [alt]="detail.title" (error)="onImageError($event)" />
+            <span class="expand-photo absolute end-2 bottom-2 inline-flex items-center gap-1.5 min-h-8 [padding:4px_8px] [border:1px_solid_#e5e7eb] rounded bg-white text-gray-600 [font-size:12px] [line-height:20px]"><svg class="w-4 h-4 shrink-0 [stroke-width:1.5]" lucideMaximize2 aria-hidden="true"></svg>{{ 'jobDetails.viewFullImage' | translate }}</span>
           </button>
-        }
-        @if (applyError()) {
-          <p role="alert" class="mt-3 text-sm text-red-700">{{ applyError() }}</p>
-        }
-      </footer>
+          @if (images().length > 1) {
+            <div class="gallery-thumbnails flex gap-2 overflow-x-auto p-1 mt-2 [&.gallery-thumbnails_button]:shrink-0 [&.gallery-thumbnails_button]:p-0.5 [&.gallery-thumbnails_button]:overflow-hidden [&.gallery-thumbnails_button]:[border:1px_solid_#e5e7eb] [&.gallery-thumbnails_button]:rounded-lg [&.gallery-thumbnails_button]:cursor-pointer [&.gallery-thumbnails_button[aria-pressed='true']]:border-primary-700 [&.gallery-thumbnails_button[aria-pressed='true']]:[outline:1px_solid_var(--color-primary-700)] [&.gallery-thumbnails_img]:w-16 [&.gallery-thumbnails_img]:h-12 [&.gallery-thumbnails_img]:rounded [&.gallery-thumbnails_img]:object-cover" role="group" [attr.aria-label]="'jobDetails.images' | translate">
+              @for (image of images(); track image.id; let index = $index) {
+                <button class="[&:disabled]:[opacity:.5] [&:disabled]:cursor-not-allowed [&:focus-visible]:[outline:2px_solid_var(--color-primary-700)] [&:focus-visible]:[outline-offset:2px]" type="button" (click)="selectedImage.set(index)" [attr.aria-pressed]="selectedImage() === index" [attr.aria-label]="'jobDetails.showImage' | translate: { number: index + 1 }">
+                  <img [src]="image.url" alt="" loading="lazy" (error)="onImageError($event)" />
+                </button>
+              }
+            </div>
+          }
+        </section>
+      }
+
+      </details>
+
+      @if (rateeId(); as recipientId) {
+        <section #reviewSection class="detail-section review-section mt-6 pt-6 [border-top:1px_solid_#f3f4f6] [scroll-margin-top:24px] [&.detail-section_h3]:text-gray-700 [&.detail-section_h3]:[font-size:16px] [&.detail-section_h3]:[line-height:24px] [&.detail-section_h3]:font-semibold" aria-labelledby="job-rating-heading" [attr.aria-busy]="reviewState() === 'loading'">
+          <div class="section-heading flex items-center justify-between flex-wrap gap-2 mb-3 [&.section-heading_>_span]:text-gray-500 [&.section-heading_>_span]:[font-size:12px] [&.section-heading_>_span]:[line-height:20px]"><h3 class="[&:focus]:[outline:2px_solid_var(--color-primary-700)] [&:focus]:[outline-offset:2px]" id="job-rating-heading" tabindex="-1">{{ (savedReview() ? 'reviews.saved' : isOwner() ? 'reviews.professional' : 'reviews.client') | translate }}</h3></div>
+          @if (reviewState() === 'loading') {
+            <p role="status" class="muted-text text-gray-500 [font-size:14px] [line-height:24px]">{{ 'reviews.checking' | translate }}</p>
+          } @else if (reviewState() === 'error') {
+            <p role="alert" class="muted-text text-gray-500 [font-size:14px] [line-height:24px]">{{ 'reviews.checkError' | translate }}</p>
+            <button type="button" class="text-button ui-underlined-action [&:disabled]:[opacity:.5] [&:disabled]:cursor-not-allowed" (click)="loadReview()">{{ 'common.retry' | translate }}</button>
+          } @else if (savedReview(); as review) {
+            @if (ratingSubmitted()) { <p role="status" class="review-notice mb-3 text-primary-800 [font-size:14px] [line-height:24px]">{{ 'reviews.thanks' | translate }}</p> }
+            <div class="saved-review-heading flex items-center justify-between gap-3 [&.saved-review-heading_time]:text-gray-500 [&.saved-review-heading_time]:[font-size:12px]"><app-rating-stars [score]="review.score" /><time [attr.datetime]="review.createdAt">{{ dateLabel(review.createdAt) }}</time></div>
+            @if (review.rateeName) { <p class="review-recipient mt-3 text-gray-700 [font-size:14px] font-medium">{{ 'reviews.for' | translate: { name: review.rateeName } }}</p> }
+            @if (review.comment) { <p class="review-comment mt-3 whitespace-pre-wrap [overflow-wrap:anywhere] text-gray-600 [font-size:14px] [line-height:26px]" dir="auto">{{ review.comment }}</p> }
+          } @else if (ratingOpen()) {
+            <app-rating-form [jobId]="detail.id" [rateeId]="recipientId" [recipientName]="recipientName() || (!isOwner() ? ownerName() : '')"
+              (busyChange)="ratingBusy.set($event)" (submitted)="reviewSaved($event)" (reloadRequested)="loadReview()" (cancelled)="ratingOpen.set(false)" />
+          } @else {
+            <p class="muted-text text-gray-500 [font-size:14px] [line-height:24px]">{{ 'reviews.formHint' | translate }}</p>
+            <button type="button" class="text-button ui-underlined-action [&:disabled]:[opacity:.5] [&:disabled]:cursor-not-allowed" (click)="focusReview(true)">{{ 'reviews.leave' | translate }}</button>
+          }
+        </section>
+      }
     }
   </div>
-</dialog>
 
-<dialog
-  #imageDialog
-  (keydown.arrowleft)="$event.preventDefault(); changeImage(-1)"
-  (keydown.arrowright)="$event.preventDefault(); changeImage(1)"
-  aria-labelledby="job-image-title"
-  class="fixed inset-0 m-0 h-dvh max-h-none w-screen max-w-none overflow-hidden border-0 bg-gray-950 p-0 text-white backdrop:bg-gray-950/90"
->
-  @if (job(); as detail) {
-    <div class="flex h-full min-h-0 flex-col">
-      <header class="flex shrink-0 items-center justify-between gap-4 border-b border-white/10 p-4 sm:px-6">
-        <div class="min-w-0">
-          <h2 id="job-image-title" class="truncate text-sm font-semibold sm:text-base">{{ detail.title }}</h2>
-          <p role="status" aria-live="polite" aria-atomic="true" class="mt-1 text-xs text-gray-300">
-            {{ 'jobDetails.imageCount' | translate: { current: selectedImage() + 1, total: detail.images.length } }}
-          </p>
-        </div>
-        <button
-          type="button"
-          autofocus
-          (click)="imageDialog.close()"
-          class="inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-        >
-          <span aria-hidden="true" class="text-xl leading-none">×</span>
-          {{ 'common.close' | translate }}
-        </button>
-      </header>
-
-      <div class="relative flex min-h-0 flex-1 items-center justify-center p-3 sm:p-6">
-        <img
-          [src]="imageUrl()"
-          [alt]="detail.title"
-          (error)="onImageError($event)"
-          class="h-full w-full object-contain"
-        />
-        @if (detail.images.length > 1) {
-          <button
-            type="button"
-            (click)="changeImage(-1)"
-            [attr.aria-label]="'jobDetails.previousImage' | translate"
-            class="absolute left-3 top-1/2 flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-gray-900/80 text-white shadow-lg hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white sm:left-6 sm:h-12 sm:w-12"
-          >
-            <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></svg>
+  @if (!isLoading() && !errorMessage() && (!rateeId() || (!ratingOpen() && !savedReview())) && job(); as detail) {
+    <footer class="details-footer flex shrink-0 items-center justify-between gap-6 [padding:16px_24px] [border-top:1px_solid_#e5e7eb] bg-white [@media(max-width:_639px)]:[&.details-footer]:gap-4 [@media(max-width:_639px)]:[&.details-footer]:[padding:12px_20px_max(12px,_env(safe-area-inset-bottom))]">
+      <div class="footer-budget min-w-0 [&.footer-budget_strong_span]:text-gray-500 [&.footer-budget_strong_span]:[font-size:13px] [&.footer-budget_strong_span]:font-normal [&.footer-budget_>_span]:text-gray-500 [&.footer-budget_>_span]:[font-size:12px] [&.footer-budget_>_span]:[line-height:20px] [&.footer-budget_strong]:block [&.footer-budget_strong]:[overflow-wrap:anywhere] [&.footer-budget_strong]:text-gray-900 [&.footer-budget_strong]:[font-size:20px] [&.footer-budget_strong]:[line-height:28px] [&.footer-budget_strong]:font-semibold [&.footer-budget_strong]:tabular-nums"><span>{{ 'job.budget' | translate }}</span><strong><bdi>{{ budgetLabel() }} <span>MAD</span></bdi></strong></div>
+      <div class="footer-action grid justify-items-end gap-1 min-w-0 [max-width:70%] text-end [@media(max-width:_639px)]:[&.footer-action]:[max-width:65%]">
+        @if (rateeId()) {
+          <p class="action-note text-gray-500 [font-size:13px] [line-height:20px]">{{ 'reviews.completedJob' | translate }}</p>
+          <button type="button" class="primary-button inline-flex items-center justify-center min-h-11 [padding:8px_20px] [border:1px_solid_transparent] rounded-lg bg-primary-700 text-white [font-size:14px] [line-height:20px] font-medium text-center cursor-pointer [&.primary-button:hover:enabled]:bg-primary-800 [&:disabled]:[opacity:.5] [&:disabled]:cursor-not-allowed [&:focus-visible]:[outline:2px_solid_var(--color-primary-700)] [&:focus-visible]:[outline-offset:2px] [@media(max-width:_639px)]:[&.primary-button]:px-4" (click)="focusReview(true)" [disabled]="ratingBusy() || reviewState() === 'loading'">
+            {{ 'reviews.leave' | translate }}
           </button>
-          <button
-            type="button"
-            (click)="changeImage(1)"
-            [attr.aria-label]="'jobDetails.nextImage' | translate"
-            class="absolute right-3 top-1/2 flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-gray-900/80 text-white shadow-lg hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white sm:right-6 sm:h-12 sm:w-12"
-          >
-            <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+        } @else if (applied()) {
+          <p role="status" class="applied-note flex items-center gap-1.5 text-primary-800 [font-size:13px] [line-height:20px]"><svg class="w-4 h-4 shrink-0 [stroke-width:1.5]" lucideCircleCheck aria-hidden="true"></svg>{{ 'jobDetails.applied' | translate }}</p>
+          <a routerLink="/applications" class="text-button ui-underlined-action">{{ 'jobDetails.myApplications' | translate }}</a>
+        } @else if (isOwner()) {
+          <a [routerLink]="['/jobs', detail.id, 'applicants']" class="primary-button inline-flex items-center justify-center min-h-11 [padding:8px_20px] [border:1px_solid_transparent] rounded-lg bg-primary-700 text-white [font-size:14px] [line-height:20px] font-medium text-center cursor-pointer [&.primary-button:hover:enabled]:bg-primary-800 [&:focus-visible]:[outline:2px_solid_var(--color-primary-700)] [&:focus-visible]:[outline-offset:2px] [@media(max-width:_639px)]:[&.primary-button]:px-4">{{ 'myJobs.viewApplicants' | translate }}</a>
+        } @else if (detail.status !== 'OPEN') {
+          <p class="action-note text-gray-500 [font-size:13px] [line-height:20px]">{{ 'jobDetails.closed' | translate }}</p>
+        } @else if (eligibility() === 'loading') {
+          <p role="status" class="action-note text-gray-500 [font-size:13px] [line-height:20px]">{{ 'jobDetails.checkingProfile' | translate }}</p>
+        } @else if (eligibility() === 'error') {
+          <p role="alert" class="action-note text-gray-500 [font-size:13px] [line-height:20px]">{{ 'jobDetails.profileCheckFailed' | translate }}</p>
+          <button type="button" class="text-button ui-underlined-action [&:disabled]:[opacity:.5] [&:disabled]:cursor-not-allowed" (click)="loadEligibility()">{{ 'common.retry' | translate }}</button>
+        } @else if (eligibility() === 'ineligible') {
+          <p class="action-note text-gray-500 [font-size:13px] [line-height:20px]">{{ 'jobDetails.needsProfile' | translate }}</p>
+          <a routerLink="/professional-profile" class="text-button ui-underlined-action">{{ 'jobDetails.viewProfile' | translate }}</a>
+        } @else {
+          <button type="button" class="primary-button apply-button inline-flex items-center justify-center min-h-11 [padding:8px_20px] [border:1px_solid_transparent] rounded-lg bg-primary-700 text-white [font-size:14px] [line-height:20px] font-medium text-center cursor-pointer [&.primary-button:hover:enabled]:bg-primary-800 [&:disabled]:[opacity:.5] [&:disabled]:cursor-not-allowed [&:focus-visible]:[outline:2px_solid_var(--color-primary-700)] [&:focus-visible]:[outline-offset:2px] [@media(max-width:_639px)]:[&.primary-button]:px-4" (click)="apply()" [disabled]="!canApply()" [attr.aria-busy]="applying()">
+            {{ (applying() ? 'jobDetails.applying' : 'jobDetails.apply') | translate }}
           </button>
         }
+        @if (applyError()) { <p role="alert" class="application-error text-red-700 [font-size:13px] [line-height:20px]">{{ applyError() }}</p> }
       </div>
+    </footer>
+  }
+</dialog>
+
+<dialog #imageDialog class="image-dialog fixed inset-0 m-0 h-dvh max-h-none w-screen max-w-none overflow-hidden border-0 bg-gray-900 p-0 text-white open:flex open:flex-col backdrop:bg-gray-900/90 [&.image-dialog_button:focus-visible]:outline-white" (keydown.arrowleft)="$event.preventDefault(); changeImage(-1)" (keydown.arrowright)="$event.preventDefault(); changeImage(1)" aria-labelledby="job-image-title">
+  @if (job(); as detail) {
+    <header class="flex shrink-0 items-center justify-between gap-4 border-b border-white/10 px-4 py-3 sm:px-6">
+      <div class="min-w-0"><h2 id="job-image-title" class="truncate text-sm font-medium leading-6">{{ detail.title }}</h2><p role="status" aria-live="polite" aria-atomic="true" class="text-xs leading-5 text-gray-300">{{ 'jobDetails.imageCount' | translate: { current: selectedImage() + 1, total: images().length } }}</p></div>
+      <button type="button" class="icon-button image-close grid place-items-center shrink-0 w-11 h-11 rounded-lg text-white cursor-pointer [&.icon-button_svg]:w-4.5 [&.icon-button_svg]:h-4.5 [&.icon-button:hover:enabled]:bg-gray-100 [&.icon-button:hover:enabled]:text-gray-700 [&:disabled]:[opacity:.5] [&:disabled]:cursor-not-allowed [&:focus-visible]:[outline:2px_solid_var(--color-primary-700)] [&:focus-visible]:[outline-offset:2px] [&.image-close:hover:enabled]:bg-gray-700 [&.image-close:hover:enabled]:text-white" autofocus (click)="imageDialog.close()" [attr.aria-label]="'common.close' | translate"><svg class="w-4 h-4 shrink-0 [stroke-width:1.5]" lucideX aria-hidden="true"></svg></button>
+    </header>
+    <div class="relative min-h-0 flex-1 p-3 sm:p-6">
+      @if (images().length) { <img [src]="imageUrl()" [alt]="detail.title" (error)="onImageError($event)" class="h-full w-full object-contain" /> }
+      @if (images().length > 1) {
+        <button type="button" class="image-nav absolute top-1/2 grid h-11 w-11 -translate-y-1/2 cursor-pointer place-items-center rounded-lg bg-gray-900/80 text-white start-4 [&:disabled]:[opacity:.5] [&:disabled]:cursor-not-allowed [&:focus-visible]:[outline:2px_solid_var(--color-primary-700)] [&:focus-visible]:[outline-offset:2px] rtl:[&.image-nav_svg]:[transform:rotate(180deg)]" (click)="changeImage(-1)" [attr.aria-label]="'jobDetails.previousImage' | translate"><svg class="w-4 h-4 shrink-0 [stroke-width:1.5]" lucideChevronLeft aria-hidden="true"></svg></button>
+        <button type="button" class="image-nav absolute top-1/2 grid h-11 w-11 -translate-y-1/2 cursor-pointer place-items-center rounded-lg bg-gray-900/80 text-white end-4 [&:disabled]:[opacity:.5] [&:disabled]:cursor-not-allowed [&:focus-visible]:[outline:2px_solid_var(--color-primary-700)] [&:focus-visible]:[outline-offset:2px] rtl:[&.image-nav_svg]:[transform:rotate(180deg)]" (click)="changeImage(1)" [attr.aria-label]="'jobDetails.nextImage' | translate"><svg class="w-4 h-4 shrink-0 [stroke-width:1.5]" lucideChevronRight aria-hidden="true"></svg></button>
+      }
     </div>
   }
 </dialog>

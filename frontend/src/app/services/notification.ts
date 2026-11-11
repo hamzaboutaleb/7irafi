@@ -23,6 +23,8 @@ export class NotificationService {
 
   private readonly items = signal<AppNotification[]>([]);
   readonly list = this.items.asReadonly();
+  readonly loading = signal(false);
+  readonly loadError = signal(false);
   readonly unread = computed(() => this.items().filter((item) => !item.read).length);
 
   /** Safe to call repeatedly; reconnects only if the tab's account changed. */
@@ -72,15 +74,28 @@ export class NotificationService {
     this.client = null;
     this.connectedToken = null;
     this.items.set([]);
+    this.loading.set(false);
+    this.loadError.set(false);
     void client?.deactivate();
   }
 
   load(): void {
+    const token = this.connectedToken;
+    this.loading.set(true);
+    this.loadError.set(false);
     this.http.get<Page<AppNotification>>('notifications', { params: { page: 0, size: 20 } })
       .subscribe({
-        next: (page) => this.items.set(page.content),
-        // A failure leaves the bell empty rather than breaking the page it sits on.
-        error: () => undefined,
+        next: (page) => {
+          if (this.connectedToken !== token) return;
+          this.items.set(page.content);
+          this.loading.set(false);
+        },
+        error: () => {
+          if (this.connectedToken !== token) return;
+          // Keep existing activity visible, but distinguish failure from no activity.
+          this.loading.set(false);
+          this.loadError.set(true);
+        },
       });
   }
 

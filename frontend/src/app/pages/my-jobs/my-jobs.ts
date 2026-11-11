@@ -1,4 +1,4 @@
-import { DatePipe, DecimalPipe, DOCUMENT, TitleCasePipe } from '@angular/common';
+import { DOCUMENT, TitleCasePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, DestroyRef, ElementRef, HostListener, inject, OnInit, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -8,19 +8,28 @@ import { Observable } from 'rxjs';
 import { Navbar } from '../../components/navbar/navbar.js';
 import { Footer } from '../../components/footer/footer.js';
 import { JobDetailsModal } from '../../components/job-details-modal/job-details-modal.js';
+import { RatingService } from '../../services/rating.js';
 import { JobService } from '../../services/job.js';
 import { JobResponse, JobStatus, UpdateJobRequest } from '../../types/job.js';
 import { TranslatePipe } from '../../pipes/translate-pipe.js';
+
+import { I18nService } from '../../services/i18n.js';
+import { TranslationKey } from '../../i18n/language.js';
+import { LucideDynamicIcon, LucidePlus, LucideBriefcaseBusiness, LucideMapPin, LucideUsersRound, LucideCheck, LucideStar, LucideEllipsisVertical, LucidePencil, LucideTrash2, LucideX } from '@lucide/angular';
 
 type Action = 'edit' | 'cancel' | 'complete' | 'delete';
 
 @Component({
   selector: 'app-my-jobs',
-  imports: [DatePipe, DecimalPipe, TitleCasePipe, FormsModule, RouterLink, Navbar, Footer, JobDetailsModal, TranslatePipe],
+  imports: [LucideDynamicIcon, TitleCasePipe, FormsModule, RouterLink, Navbar, Footer, JobDetailsModal, TranslatePipe],
   templateUrl: './my-jobs.html',
-  styleUrl: './my-jobs.css',
 })
 export class MyJobs implements OnInit {
+  private readonly i18n = inject(I18nService);
+  readonly icons = { plus: LucidePlus, work: LucideBriefcaseBusiness, city: LucideMapPin, people: LucideUsersRound, check: LucideCheck, review: LucideStar, more: LucideEllipsisVertical, edit: LucidePencil, delete: LucideTrash2, cancel: LucideX };
+  statusLabel(status: JobStatus): TranslationKey { return `dashboard.status.${status}`; }
+  formatNumber(value: number): string { return new Intl.NumberFormat(this.i18n.language()).format(value); }
+  formatDate(value: string): string { return new Intl.DateTimeFormat(this.i18n.language(), { dateStyle: 'medium' }).format(new Date(value)); }
   private readonly service = inject(JobService);
   private readonly element = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly destroyRef = inject(DestroyRef);
@@ -30,6 +39,9 @@ export class MyJobs implements OnInit {
   readonly jobs = signal<JobResponse[]>([]);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+  readonly ratings = inject(RatingService);
+  readonly completedJobToReview = signal<JobResponse | null>(null);
+  readonly startWithReview = signal(false);
   readonly notice = signal<string | null>(null);
   readonly status = signal<JobStatus | ''>('');
   readonly statuses: JobStatus[] = ['OPEN', 'ASSIGNED', 'COMPLETED', 'CANCELLED'];
@@ -39,8 +51,8 @@ export class MyJobs implements OnInit {
   readonly action = signal<Action>('edit');
   readonly busy = signal(false);
   readonly actionError = signal<string | null>(null);
-  readonly actionLabels: Record<Action, string> = {
-    edit: 'Edit job', cancel: 'Cancel job', complete: 'Mark complete', delete: 'Delete job',
+  readonly actionLabels: Record<Action, TranslationKey> = {
+    edit: 'myJobs.edit', cancel: 'myJobs.cancel', complete: 'myJobs.complete', delete: 'myJobs.delete',
   };
   draft: UpdateJobRequest = { title: '', description: '', addressLine: '' };
 
@@ -49,6 +61,11 @@ export class MyJobs implements OnInit {
   }
 
   ngOnInit(): void { this.load(); }
+
+  openReview(jobId: string): void {
+    this.startWithReview.set(true);
+    this.selectedJobId.set(jobId);
+  }
 
   closeMenu(menu: HTMLDetailsElement): void {
     menu.open = false;
@@ -77,8 +94,8 @@ export class MyJobs implements OnInit {
         this.loading.set(false);
       },
       error: (error: HttpErrorResponse) => {
-        this.error.set(error.status === 0 ? 'The server could not be reached. Please try again.'
-          : this.errorMessage(error, 'Unable to load your jobs. Please try again.'));
+        this.error.set(error.status === 0 ? this.i18n.translate('myJobs.connectionError')
+          : this.errorMessage(error, this.i18n.translate('myJobs.loadError')));
         this.loading.set(false);
       },
     });
@@ -129,7 +146,7 @@ export class MyJobs implements OnInit {
     };
     if (action === 'edit' && (!request.title || request.title.length > 120 ||
       !request.description || (request.addressLine?.length ?? 0) > 200)) {
-      this.actionError.set('Enter a title (up to 120 characters), a description, and an optional address (up to 200 characters).');
+      this.actionError.set(this.i18n.translate('myJobs.validation'));
       return;
     }
     this.busy.set(true);
@@ -148,23 +165,24 @@ export class MyJobs implements OnInit {
           : jobs.map(item => item.id === job.id && updated ? updated : item));
         this.busy.set(false);
         this.closeAction();
-        this.notice.set({ edit: 'Job updated.', cancel: 'Job cancelled.', complete: 'Job marked complete.', delete: 'Job deleted.' }[action]);
+        if (action === 'complete' && updated) this.completedJobToReview.set(updated);
+        this.notice.set({ edit: this.i18n.translate('myJobs.updated'), cancel: this.i18n.translate('myJobs.cancelled'), complete: this.i18n.translate('myJobs.completed'), delete: this.i18n.translate('myJobs.deleted') }[action]);
       },
       error: (error: HttpErrorResponse) => {
         this.busy.set(false);
         if ([403, 404, 409].includes(error.status)) {
           this.closeAction();
-          this.notice.set(this.errorMessage(error, 'This job has changed or is no longer available. Your list has been refreshed.'));
+          this.notice.set(this.errorMessage(error, this.i18n.translate('myJobs.changed')));
           this.load();
         } else {
-          this.actionError.set(this.errorMessage(error, 'Unable to save this change. Please try again.'));
+          this.actionError.set(this.errorMessage(error, this.i18n.translate('myJobs.saveError')));
         }
       },
     });
   }
 
   private errorMessage(error: HttpErrorResponse, fallback: string): string {
-    if (error.status === 0) return 'The server could not be reached. Close this dialog and refresh your jobs to check whether the change was saved.';
+    if (error.status === 0) return this.i18n.translate('myJobs.uncertain');
     return error.error?.error?.message ?? error.error?.message ?? fallback;
   }
 }
