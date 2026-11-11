@@ -10,12 +10,19 @@ import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.validation.annotation.Validated;
 
 import com.herafi.notification_service.dto.CreateNotificationRequest;
 import com.herafi.notification_service.dto.NotificationResponse;
 import com.herafi.notification_service.entity.Notification;
+import com.herafi.notification_service.event.NotificationRequestedEvent;
 import com.herafi.notification_service.exception.NotificationException;
 import com.herafi.notification_service.repository.NotificationRepository;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * Stores what happened and, if the recipient is connected, tells them straight
@@ -25,6 +32,7 @@ import com.herafi.notification_service.repository.NotificationRepository;
  * was online to receive still has to be there on the next page load.
  */
 @Service
+@Validated
 public class NotificationService {
 
     static final String USER_DESTINATION = "/queue/notifications";
@@ -49,19 +57,49 @@ public class NotificationService {
         notification.setTargetUrl(request.targetUrl());
 
         Notification saved = notificationRepository.save(notification);
+        push(saved);
 
+        return saved;
+    }
+
+    @Transactional
+    public void createFromEvent(@NotNull @Valid NotificationRequestedEvent event) {
+        if (notificationRepository.existsByEventId(event.eventId())) {
+            return;
+        }
+
+        Notification notification = new Notification();
+        notification.setEventId(event.eventId());
+        notification.setRecipientId(event.recipientId());
+        notification.setType(event.type());
+        notification.setTitle(event.title());
+        notification.setBody(event.body());
+        notification.setTargetUrl(event.targetUrl());
+
+        Notification saved = notificationRepository.save(notification);
+        afterCommit(() -> push(saved));
+    }
+
+    private void afterCommit(Runnable action) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                action.run();
+            }
+        });
+    }
+
+    private void push(Notification notification) {
         // Best effort: a websocket failure must not undo a stored notification,
         // which the recipient would otherwise never see at all.
         try {
             messagingTemplate.convertAndSendToUser(
-                    saved.getRecipientId().toString(),
+                    notification.getRecipientId().toString(),
                     USER_DESTINATION,
-                    NotificationResponse.from(saved));
+                    NotificationResponse.from(notification));
         } catch (RuntimeException exception) {
             // Intentionally swallowed; the row is the source of truth.
         }
-
-        return saved;
     }
 
     @Transactional(readOnly = true)
