@@ -18,7 +18,10 @@ services:
     ports:
       - "127.0.0.1:${KAFKA_PORT:-9094}:9094"
     volumes:
+      - ./kafka/start.sh:/opt/kafka/start.sh:ro
+      - ./kafka/init-topics.sh:/opt/kafka/init-topics.sh:ro
       - kafka-data:/var/lib/kafka/data
+    entrypoint: ["/bin/sh", "/opt/kafka/start.sh"]
     healthcheck:
       test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1"]
       interval: 10s
@@ -26,18 +29,6 @@ services:
       retries: 12
       start_period: 20s
     restart: unless-stopped
-
-  kafka-init:
-    image: apache/kafka:4.2.2
-    environment:
-      KAFKA_TOPIC_PARTITIONS: ${KAFKA_TOPIC_PARTITIONS:-3}
-    volumes:
-      - ./kafka/init-topics.sh:/opt/kafka/init-topics.sh:ro
-    entrypoint: ["/bin/sh", "/opt/kafka/init-topics.sh"]
-    depends_on:
-      kafka:
-        condition: service_healthy
-    restart: "no"
 
   postgres:
     container_name: postgres-dev
