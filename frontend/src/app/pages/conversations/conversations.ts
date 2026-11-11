@@ -1,8 +1,15 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, computed, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { catchError, filter, forkJoin, map, of, switchMap } from 'rxjs';
+import {
+  ActivatedRoute,
+  NavigationEnd,
+  Router,
+  RouterLink,
+  RouterLinkActive,
+  RouterOutlet,
+} from '@angular/router';
+import { Observable, catchError, filter, forkJoin, map, of, switchMap } from 'rxjs';
 import { LucideSearch, LucideMessageSquare, LucideUserRound } from '@lucide/angular';
 import { I18nService } from '../../services/i18n.js';
 import { TranslatePipe } from '../../pipes/translate-pipe.js';
@@ -25,9 +32,18 @@ interface ConversationRow {
 
 @Component({
   selector: 'app-conversations',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, Navbar, TranslatePipe, LucideSearch, LucideMessageSquare, LucideUserRound],
+  imports: [
+    RouterLink,
+    RouterLinkActive,
+    RouterOutlet,
+    Navbar,
+    TranslatePipe,
+    LucideSearch,
+    LucideMessageSquare,
+    LucideUserRound,
+  ],
   templateUrl: './conversations.html',
-  host: { class: 'block' },
+  styleUrl: './conversations.css',
 })
 export class Conversations implements OnInit {
   private readonly chat = inject(ChatService);
@@ -45,60 +61,126 @@ export class Conversations implements OnInit {
   readonly query = signal('');
   readonly selectedId = signal<string | null>(null);
   readonly filteredRows = computed(() => {
-    const normalize = (value: string) => value.normalize('NFD').replace(/\p{M}/gu, '').toLocaleLowerCase();
-    const query = normalize(this.query().trim());
-    return this.rows().filter(row => normalize(`${this.nameFor(row)} ${row.jobTitle ?? this.i18n.translate('chat.jobUnavailable')}`).includes(query));
+    const query = this.normalizeSearchText(this.query().trim());
+
+    return this.rows().filter((row) => {
+      const name = this.nameFor(row);
+      const jobTitle = row.jobTitle ?? this.i18n.translate('chat.jobUnavailable');
+      const searchableText = this.normalizeSearchText(`${name} ${jobTitle}`);
+
+      return searchableText.includes(query);
+    });
   });
 
   nameFor(row: ConversationRow): string {
-    return row.otherName || this.i18n.translate(row.iAmClient ? 'chat.applicant' : 'chat.jobOwner');
+    if (row.otherName) {
+      return row.otherName;
+    }
+
+    if (row.iAmClient) {
+      return this.i18n.translate('chat.applicant');
+    }
+
+    return this.i18n.translate('chat.jobOwner');
   }
 
   ngOnInit(): void {
-    this.selectedId.set(this.route.firstChild?.snapshot.paramMap.get('id') ?? null);
-    this.router.events.pipe(filter(event => event instanceof NavigationEnd), takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.selectedId.set(this.route.firstChild?.snapshot.paramMap.get('id') ?? null));
+    this.updateSelectedConversation();
+
+    this.router.events
+      .pipe(
+        filter((event) => event instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.updateSelectedConversation());
+
     this.load();
   }
 
   load(): void {
-    const me = this.auth.currentUserId();
+    const currentUserId = this.auth.currentUserId();
     this.loading.set(true);
     this.error.set(null);
 
-    this.chat.list().pipe(
-      switchMap((conversations) => {
-        if (conversations.length === 0) return of([]);
+    this.chat
+      .list()
+      .pipe(
+        switchMap((conversations) => {
+          if (conversations.length === 0) {
+            return of([]);
+          }
 
-        // A conversation stores ids. The job title and the other participant's
-        // public profile make each row recognisable. A failed lookup
-        // degrades the label instead of hiding the conversation.
-        return forkJoin(conversations.map((conversation) => {
-          const iAmClient = conversation.clientId === me;
-          return forkJoin({
-            jobTitle: this.jobs.getJob(conversation.jobId).pipe(
-              map((job) => job.title),
-              catchError(() => of(null)),
-            ),
-            person: this.users.getPublicUserProfile(iAmClient ? conversation.workerId : conversation.clientId).pipe(
-              map(response => response.data),
-              catchError(() => of(null)),
-            ),
-          }).pipe(map(({ jobTitle, person }) => ({ conversation, jobTitle, iAmClient,
-            otherName: person ? `${person.firstName} ${person.lastName}`.trim() || null : null,
-            avatarUrl: person?.avatarUrl ?? null })));
-        }));
+          const rowRequests = conversations.map((conversation) =>
+            this.loadConversationRow(conversation, currentUserId),
+          );
+
+          return forkJoin(rowRequests);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (rows) => {
+          this.rows.set(rows);
+          this.loading.set(false);
+        },
+        error: (error: HttpErrorResponse) => {
+          const fallback = this.i18n.translate('chat.listError');
+
+          this.error.set(chatError(error, fallback));
+          this.loading.set(false);
+        },
+      });
+  }
+
+  private loadConversationRow(
+    conversation: Conversation,
+    currentUserId: string | null,
+  ): Observable<ConversationRow> {
+    const iAmClient = conversation.clientId === currentUserId;
+    let otherUserId = conversation.clientId;
+
+    if (iAmClient) {
+      otherUserId = conversation.workerId;
+    }
+
+    // Keep the conversation visible even if its job or profile lookup fails.
+    const jobTitle$ = this.jobs.getJob(conversation.jobId).pipe(
+      map((job) => job.title),
+      catchError(() => of(null)),
+    );
+
+    const person$ = this.users.getPublicUserProfile(otherUserId).pipe(
+      map((response) => response.data),
+      catchError(() => of(null)),
+    );
+
+    return forkJoin({ jobTitle: jobTitle$, person: person$ }).pipe(
+      map(({ jobTitle, person }) => {
+        let otherName: string | null = null;
+
+        if (person) {
+          const fullName = `${person.firstName} ${person.lastName}`.trim();
+          otherName = fullName || null;
+        }
+
+        return {
+          conversation,
+          jobTitle,
+          iAmClient,
+          otherName,
+          avatarUrl: person?.avatarUrl ?? null,
+        };
       }),
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe({
-      next: (rows) => {
-        this.rows.set(rows);
-        this.loading.set(false);
-      },
-      error: (error: HttpErrorResponse) => {
-        this.error.set(chatError(error, this.i18n.translate('chat.listError')));
-        this.loading.set(false);
-      },
-    });
+    );
+  }
+
+  private updateSelectedConversation(): void {
+    const conversationId = this.route.firstChild?.snapshot.paramMap.get('id') ?? null;
+
+    this.selectedId.set(conversationId);
+  }
+
+  private normalizeSearchText(value: string): string {
+    return value.toLocaleLowerCase();
   }
 }
