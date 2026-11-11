@@ -6,11 +6,20 @@ import java.time.Duration;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
 @Configuration
 public class ApplicationClientConfig {
+    // Eureka also injects a RestClient.Builder. It needs a direct HTTP client
+    // to reach the registry before service discovery is available.
+    @Primary
+    @Bean
+    RestClient.Builder restClientBuilder(RequestIdInterceptor requestIdInterceptor) {
+        return RestClient.builder().requestInterceptor(requestIdInterceptor);
+    }
+
     @LoadBalanced
     @Bean
     RestClient.Builder loadBalancedRestClientBuilder(RequestIdInterceptor requestIdInterceptor) {
