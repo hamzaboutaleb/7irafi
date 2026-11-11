@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    url: ${ANALYTICS_TEST_DB_URL:jdbc:postgresql://localhost:55439/analytics_test}
+    username: ${ANALYTICS_TEST_DB_USERNAME:herafi}
+    password: ${ANALYTICS_TEST_DB_PASSWORD:herafi}
+eureka.client.enabled: false
+gateway.shared-secret: test-gateway-key
+logging.level.root: WARN
+logging.level.org.apache.kafka: ERROR
+logging.level.kafka: ERROR

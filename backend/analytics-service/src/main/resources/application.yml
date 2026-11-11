@@ -1,34 +1,23 @@
 spring:
-  # 1. Database Configuration
+  application.name: analytics-service
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:5432/${DB_NAME:auth_db} 
-    username: ${DB_USERNAME:herafi}                                 
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/analytics_db}
+    username: ${DB_USERNAME:herafi}
     password: ${DB_PASSWORD:herafi}
-  
-  # Tell Flyway to use a separate ledger for analytics
-  flyway:
-    table: flyway_schema_history_analytics
-    baseline-on-migrate: true
-
-  jpa:
-    hibernate:
-      ddl-auto: validate 
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-
-  # 2. Kafka Configuration
   kafka:
-    bootstrap-servers: localhost:9092
-    # ADD THIS PRODUCER BLOCK:
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9094}
     consumer:
-      group-id: analytics-service-group
+      group-id: analytics-projections-v1
       auto-offset-reset: earliest
+      enable-auto-commit: false
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "*"
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    listener:
+      ack-mode: record
+server.port: ${SERVER_PORT:8087}
+gateway.shared-secret: ${GATEWAY_SHARED_SECRET:7irafi-development-gateway-key}
+security.jwt.secret: ${JWT_SECRET:7irafi-development-jwt-secret-change-me-2026}
+security.jwt.issuer: ${JWT_ISSUER:7irafi-auth-service}
+analytics.allowed-origin: ${FRONTEND_ORIGIN:http://localhost:4200}
+eureka.client.serviceUrl.defaultZone: ${DISCOVERY_SERVICE_URL:http://localhost:8761/eureka/}
+management.endpoints.web.exposure.include: health
