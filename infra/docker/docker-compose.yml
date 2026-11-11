@@ -120,6 +120,7 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/user_db
       DB_USERNAME: ${DB_USERNAME:-herafi}
       DB_PASSWORD: ${DB_PASSWORD:-herafi}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       SQL_LOG_LEVEL: debug
       GATEWAY_SHARED_SECRET: ${GATEWAY_SHARED_SECRET:-7irafi-development-gateway-key}
       INTERNAL_API_KEY: ${INTERNAL_API_KEY:-7irafi-development-internal-key}
