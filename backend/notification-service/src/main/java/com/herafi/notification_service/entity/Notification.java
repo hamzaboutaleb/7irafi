@@ -22,6 +22,9 @@ public class Notification {
     @Id
     private UUID id;
 
+    @Column(name = "event_id", updatable = false)
+    private UUID eventId;
+
     @Column(nullable = false, updatable = false)
     private UUID recipientId;
 
