@@ -1,6 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 import { Presence } from './presence.js';
+import { authDestination } from '../guards/auth-destination.js';
 
 export interface AuthUser {
   id: string;
@@ -28,6 +30,7 @@ export interface RegisterRequest {
 export class AuthService {
   private http = inject(HttpClient);
   private presence = inject(Presence);
+  private router = inject(Router);
 
   constructor() {
     // The shared token may belong to a different tab's account. Require a fresh login.
@@ -46,6 +49,18 @@ export class AuthService {
     // Keep each tab's account independent, including across page reloads.
     sessionStorage.setItem('token', token);
     this.presence.start();
+  }
+
+  // After login or register: save the token, then open the page the user wanted.
+  // Returns false if that page could not be opened, so the page can show an error.
+  async finishSignIn(token: string, returnUrl: string | null): Promise<boolean> {
+    this.saveToken(token);
+    try {
+      // authDestination only keeps returnUrl if it is inside our site, otherwise it uses "/".
+      return await this.router.navigateByUrl(authDestination(returnUrl));
+    } catch {
+      return false;
+    }
   }
 
   getToken(): string | null {

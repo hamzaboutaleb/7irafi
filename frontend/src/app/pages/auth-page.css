@@ -1,4 +1,5 @@
-@reference '../../../styles.css';
+/* Shared by the login and register pages. */
+@reference '../../styles.css';
 
 /*
  * Line height, font weight, borders, outlines and the focus ring are written as
@@ -7,135 +8,146 @@
  */
 
 /* Page */
-.login {
+.auth-page {
   @apply grid min-h-dvh items-center bg-[#f8f9fa] px-4 py-8 text-gray-900;
 }
 
-.login__content {
+.auth-page__content {
   @apply mx-auto w-full max-w-md;
 }
 
-.login__brand {
+.auth-page__brand {
   @apply mx-auto mb-7 flex min-h-11 w-fit items-center justify-center rounded;
 }
 
-.login__logo {
+.auth-page__logo {
   @apply block h-11 w-[140px] object-contain;
 }
 
-.login__panel {
+.auth-page__panel {
   @apply rounded-xl border-slate-200 bg-white p-6;
   border-width: 1px;
   border-style: solid;
 }
 
-.login__title {
+.auth-page__title {
   @apply text-2xl;
   line-height: 2rem;
   font-weight: 600;
 }
 
-.login__subtitle {
+.auth-page__subtitle {
   @apply mt-2 text-sm text-slate-500;
   line-height: 1.5rem;
 }
 
 /* Form */
-.login__form {
+.auth-page__form {
   @apply mt-6 grid gap-5;
 }
 
-.login__alert {
+.auth-page__alert {
   @apply rounded-lg bg-red-50 p-3 text-[13px] text-red-700;
   line-height: 22px;
 }
 
-.login__label {
+/* Register only: first and last name, stacked on phones, side by side from 480px. */
+.auth-page__names {
+  @apply grid grid-cols-1 gap-5;
+}
+
+.auth-page__label {
   @apply mb-2 block text-sm text-gray-700;
   font-weight: 500;
 }
 
-.login__input {
+.auth-page__input {
   @apply min-h-12 w-full rounded-lg border-gray-300 bg-white p-3 text-base text-gray-900;
   border-width: 1px;
   border-style: solid;
   line-height: 22px;
 }
 
-.login__input:focus {
+.auth-page__input:focus {
   @apply border-primary-600;
   outline-style: none;
   box-shadow: 0 0 0 1px --theme(--color-primary-600);
 }
 
-.login__input:read-only {
+.auth-page__input:read-only {
   @apply bg-gray-50 text-slate-500;
 }
 
 /* Leaves room for the show/hide button. */
-.login__input--password {
+.auth-page__input--password {
   @apply pe-14;
 }
 
-.login__password {
+.auth-page__password {
   @apply relative;
 }
 
-.login__toggle {
+.auth-page__toggle {
   @apply absolute end-0.5 top-0.5 grid size-11 cursor-pointer place-items-center rounded-md text-slate-500;
 }
 
-.login__toggle:enabled:hover {
+.auth-page__toggle:enabled:hover {
   @apply bg-gray-100 text-gray-700;
 }
 
-.login__toggle:disabled {
+.auth-page__toggle:disabled {
   @apply cursor-not-allowed opacity-60;
 }
 
-.login__toggle-icon {
+.auth-page__toggle-icon {
   @apply size-[18px] stroke-[1.5];
 }
 
-.login__error {
+/* Register only: the hint under the password. */
+.auth-page__hint {
+  @apply mt-2 text-xs text-slate-500;
+  line-height: 1.25rem;
+}
+
+.auth-page__error {
   @apply mt-2 text-xs text-red-700;
   line-height: 1.25rem;
 }
 
-.login__submit {
+.auth-page__submit {
   @apply mt-1 min-h-12 w-full cursor-pointer rounded-lg bg-primary-700 px-5 py-3 text-sm text-white;
   line-height: 1.5rem;
   font-weight: 500;
 }
 
-.login__submit:enabled:hover {
+.auth-page__submit:enabled:hover {
   @apply bg-primary-800;
 }
 
-.login__submit:disabled {
+.auth-page__submit:disabled {
   @apply cursor-not-allowed opacity-60;
 }
 
-/* "No account? Register" */
-.login__switch {
+/* Link to the other page: "No account? Create account" / "Have an account? Log in" */
+.auth-page__switch {
   @apply mt-6 text-center text-[13px] text-slate-500;
   line-height: 1.5rem;
 }
 
-.login__switch-link {
+.auth-page__switch-link {
   @apply inline-block text-primary-700 underline-offset-4;
   font-weight: 500;
 }
 
-.login__switch-link:hover {
+.auth-page__switch-link:hover {
   @apply underline;
 }
 
 /* Keyboard focus ring shared by every link and button on the page. */
-.login__brand:focus-visible,
-.login__toggle:focus-visible,
-.login__submit:focus-visible,
-.login__switch-link:focus-visible {
+.auth-page__brand:focus-visible,
+.auth-page__toggle:focus-visible,
+.auth-page__submit:focus-visible,
+.auth-page__switch-link:focus-visible {
   @apply outline-primary-600;
   outline-width: 2px;
   outline-style: solid;
@@ -143,11 +155,15 @@
 }
 
 @media (min-width: 480px) {
-  .login {
+  .auth-page {
     @apply px-5 py-10;
   }
 
-  .login__panel {
+  .auth-page__panel {
     @apply p-8;
+  }
+
+  .auth-page__names {
+    @apply grid-cols-2 gap-4;
   }
 }
