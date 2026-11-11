@@ -24,3 +24,6 @@ Thumbs.db
 /handoff.md
 /docs/
 /graphify-out/
+
+# End-Point tests
+**/*.http

@@ -3,7 +3,7 @@
     "phases": {
       "hot":    { "actions": { "set_priority": { "priority": 100 } } },
       "warm":   { "min_age": "2d", "actions": { "forcemerge": { "max_num_segments": 1 } } },
-      "delete": { "min_age": "7d", "actions": { "delete": {} } }
+      "delete": { "min_age": "__RETENTION_DAYS__d", "actions": { "delete": {} } }
     }
   }
 }
