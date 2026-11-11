@@ -60,72 +60,113 @@ export class ChatService {
    */
   connect(): void {
     const token = this.auth.getToken();
+
     if (!token) {
       this.disconnect();
       return;
     }
 
-    if (this.client && this.connectedToken === token) return;
+    const hasClientForCurrentToken = this.client !== null && this.connectedToken === token;
+
+    if (hasClientForCurrentToken) {
+      return;
+    }
+
     this.disconnect();
 
-    let hasConnectedBefore = false;
     this.connectedToken = token;
     this.stateSignal.set('connecting');
 
-    this.client = new Client({
-      brokerURL: environment.chatSocketUrl || this.sameHostSocketUrl(),
-      // Retried automatically after a drop: the subject asks for graceful
-      // handling of disconnection, not a dead chat until the page is reloaded.
-      reconnectDelay: 3000,
-      heartbeatIncoming: 10000,
-      heartbeatOutgoing: 10000,
-      // Re-read before every attempt, so a reconnect never sends a stale token.
-      beforeConnect: (client) => {
-        client.connectHeaders = { Authorization: `Bearer ${this.auth.getToken() ?? ''}` };
-      },
-      onConnect: () => {
-        this.stateSignal.set('connected');
-        this.client?.subscribe('/user/queue/messages', (frame) => {
-          this.incoming.next(JSON.parse(frame.body) as ChatMessage);
-        });
-
-        if (hasConnectedBefore) this.reconnected.next();
-        hasConnectedBefore = true;
-      },
-      onWebSocketClose: () => {
-        if (this.client) this.stateSignal.set('connecting');
-      },
-      onStompError: () => {
-        // The server refuses CONNECT when the token is missing or invalid.
-        // Retrying with the same token would loop forever, so stop here.
-        this.disconnect();
-      },
-    });
-
+    this.client = this.createClient();
     this.client.activate();
   }
 
+  private createClient(): Client {
+    let hasConnectedBefore = false;
+
+    return new Client({
+      brokerURL: this.getSocketUrl(),
+      reconnectDelay: 3000,
+      heartbeatIncoming: 10000,
+      heartbeatOutgoing: 10000,
+
+      beforeConnect: (client) => {
+        // Read the latest token before each connection attempt.
+        const token = this.auth.getToken() ?? '';
+
+        client.connectHeaders = {
+          Authorization: `Bearer ${token}`,
+        };
+      },
+
+      onConnect: () => {
+        this.stateSignal.set('connected');
+
+        // A new connection needs a new subscription.
+        this.client?.subscribe('/user/queue/messages', (frame) => {
+          const message = JSON.parse(frame.body) as ChatMessage;
+
+          this.incoming.next(message);
+        });
+
+        if (hasConnectedBefore) {
+          this.reconnected.next();
+        }
+
+        hasConnectedBefore = true;
+      },
+
+      onWebSocketClose: () => {
+        if (this.client) {
+          this.stateSignal.set('connecting');
+        }
+      },
+
+      onStompError: () => {
+        this.disconnect();
+      },
+    });
+  }
+
   disconnect(): void {
-    const client = this.client;
+    const previousClient = this.client;
+
     this.client = null;
     this.connectedToken = null;
     this.stateSignal.set('disconnected');
-    void client?.deactivate();
+
+    if (previousClient) {
+      void previousClient.deactivate();
+    }
   }
 
   /** Returns false when there is no live connection to send on. */
   send(conversationId: string, text: string): boolean {
-    if (!this.client?.connected) return false;
+    if (!this.client?.connected) {
+      return false;
+    }
+
+    const payload = {
+      conversationId,
+      text,
+    };
 
     this.client.publish({
       destination: '/app/chat',
-      body: JSON.stringify({ conversationId, text }),
+      body: JSON.stringify(payload),
     });
+
     return true;
   }
 
-  private sameHostSocketUrl(): string {
-    const scheme = location.protocol === 'https:' ? 'wss' : 'ws';
+  private getSocketUrl(): string {
+    if (environment.chatSocketUrl) {
+      return environment.chatSocketUrl;
+    }
+
+    const usesHttps = location.protocol === 'https:';
+    const scheme = usesHttps ? 'wss' : 'ws';
+
     return `${scheme}://${location.host}/ws`;
   }
 }
