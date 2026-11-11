@@ -14,7 +14,6 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.validation.annotation.Validated;
 
-import com.herafi.notification_service.dto.CreateNotificationRequest;
 import com.herafi.notification_service.dto.NotificationResponse;
 import com.herafi.notification_service.entity.Notification;
 import com.herafi.notification_service.event.NotificationRequestedEvent;
@@ -45,21 +44,6 @@ public class NotificationService {
             SimpMessagingTemplate messagingTemplate) {
         this.notificationRepository = notificationRepository;
         this.messagingTemplate = messagingTemplate;
-    }
-
-    @Transactional
-    public Notification create(CreateNotificationRequest request) {
-        Notification notification = new Notification();
-        notification.setRecipientId(request.recipientId());
-        notification.setType(request.type());
-        notification.setTitle(request.title());
-        notification.setBody(request.body());
-        notification.setTargetUrl(request.targetUrl());
-
-        Notification saved = notificationRepository.save(notification);
-        push(saved);
-
-        return saved;
     }
 
     @Transactional
