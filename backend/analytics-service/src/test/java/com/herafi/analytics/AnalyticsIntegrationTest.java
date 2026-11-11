@@ -23,6 +23,8 @@ import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.MessageDeliveryException;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -33,6 +35,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -102,21 +105,74 @@ class AnalyticsIntegrationTest {
                 java.sql.Timestamp.class, id).toInstant()).isEqualTo(EventFixtures.CREATED_AT);
     }
 
-    @Test
-    void retriesTransientDatabaseFailuresWithoutLosingOrDuplicatingTheEvent() throws Exception {
+    static java.util.stream.Stream<RuntimeException> projectionFailures() {
+        return java.util.stream.Stream.of(
+                new TransientDataAccessResourceException("Simulated database outage"),
+                new ClassCastException("Simulated contract handling bug"));
+    }
+
+    @ParameterizedTest
+    @MethodSource("projectionFailures")
+    void retriesProjectionFailuresWithoutLosingOrReorderingEvents(RuntimeException failure) throws Exception {
         UUID owner = UUID.randomUUID();
         UUID jobId = UUID.randomUUID();
         var event = EventFixtures.job(owner, jobId, JobEvent.Type.JOB_CREATED, JobStatus.OPEN);
-        doThrow(new TransientDataAccessResourceException("Simulated database outage"))
+        var cancelled = EventFixtures.job(owner, jobId, JobEvent.Type.JOB_STATUS_CHANGED, JobStatus.CANCELLED);
+        doThrow(failure)
                 .doCallRealMethod().when(repository).saveJob(argThat(job -> job.jobId().equals(jobId)));
 
         send(jobId, event);
-        awaitProcessed(event.eventId());
+        send(jobId, cancelled);
+        awaitProcessed(cancelled.eventId());
 
         verify(repository, times(2)).saveJob(event.data());
         assertThat(receipts(event.eventId())).isEqualTo(1);
-        await().untilAsserted(() -> verify(messaging, times(1))
+        assertThat(jdbc.queryForObject("SELECT status FROM analytics_jobs WHERE job_id = ?", String.class, jobId))
+                .isEqualTo("CANCELLED");
+        await().untilAsserted(() -> verify(messaging, times(2))
                 .convertAndSendToUser(eq(owner.toString()), eq("/queue/analytics"), any(Object.class)));
+    }
+
+    @Test
+    void notifiesOnlyAfterTheProjectionIsVisibleToAnotherConnection() {
+        UUID owner = UUID.randomUUID();
+        UUID jobId = UUID.randomUUID();
+        var event = EventFixtures.job(owner, jobId, JobEvent.Type.JOB_CREATED, JobStatus.OPEN);
+        doAnswer(invocation -> {
+            try (var connection = jdbc.getDataSource().getConnection();
+                 var statement = connection.prepareStatement("SELECT status FROM analytics_jobs WHERE job_id = ?")) {
+                statement.setObject(1, jobId);
+                try (var rows = statement.executeQuery()) {
+                    assertThat(rows.next()).isTrue();
+                    assertThat(rows.getString(1)).isEqualTo("OPEN");
+                }
+            }
+            return null;
+        }).when(messaging).convertAndSendToUser(eq(owner.toString()), eq("/queue/analytics"), any(Object.class));
+
+        projections.apply(event);
+
+        verify(messaging).convertAndSendToUser(eq(owner.toString()), eq("/queue/analytics"), any(Object.class));
+    }
+
+    @Test
+    void aSocketDeliveryFailureDoesNotUndoTheProjectionOrBlockLaterEvents() throws Exception {
+        UUID owner = UUID.randomUUID();
+        UUID jobId = UUID.randomUUID();
+        var created = EventFixtures.job(owner, jobId, JobEvent.Type.JOB_CREATED, JobStatus.OPEN);
+        var cancelled = EventFixtures.job(owner, jobId, JobEvent.Type.JOB_STATUS_CHANGED, JobStatus.CANCELLED);
+        doThrow(new MessageDeliveryException("Simulated broker outage"))
+                .doCallRealMethod().when(messaging)
+                .convertAndSendToUser(eq(owner.toString()), eq("/queue/analytics"), any(Object.class));
+
+        send(jobId, created);
+        send(jobId, cancelled);
+        awaitProcessed(cancelled.eventId());
+
+        assertThat(receipts(created.eventId())).isEqualTo(1);
+        verify(repository, times(1)).saveJob(created.data());
+        assertThat(jdbc.queryForObject("SELECT status FROM analytics_jobs WHERE job_id = ?", String.class, jobId))
+                .isEqualTo("CANCELLED");
     }
 
     @Test

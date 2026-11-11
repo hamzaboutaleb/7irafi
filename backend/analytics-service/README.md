@@ -18,6 +18,8 @@ The two HTTP endpoints have explicit controller methods and typed responses.
 `AnalyticsQueries` holds the read transaction, while the job and application
 repositories each contain their own SQL with a shared filter clause for all four
 queries. All persistence uses JDBC; Flyway owns the schema.
+See [JDBC and JPA compared](docs/jdbc-vs-jpa.md) for concrete examples of how the
+same projection and queries would look with an ORM.
 
 The consumer group `analytics-projections-v1` starts at the earliest **retained**
 offset. The local topic retains seven days by default; this is not a historical
@@ -27,6 +29,14 @@ Do not reset the consumer group without also understanding the projection and de
 state. The processed-event table must be retained for as long as old events can be replayed.
 
 ## Run locally
+
+Copy `infra/docker/.env.example` to `infra/docker/.env` if that file does not exist,
+then fill every empty credential. Compose rejects missing or empty credentials,
+including the monitoring services' credentials, before starting containers. It
+parses the whole Compose file even when starting only selected services.
+Generate secrets locally (for example, `openssl rand -hex 32`); do not commit `.env`.
+Existing database volumes keep their original password: configure that password
+or deliberately rotate it in PostgreSQL before changing the client setting.
 
 For an existing PostgreSQL volume, run the idempotent database setup first:
 
@@ -40,6 +50,15 @@ New volumes initialize the database automatically. Wait for discovery to propaga
 the services after health checks pass before running the simulation. Kafka topics are provisioned by
 `kafka-init`. The gateway exposes HTTP on port 8080; the analytics socket is exposed
 directly on port 8087, matching the existing chat and notification socket pattern.
+
+When running the Java process outside Compose, explicitly set `DB_URL`,
+`DB_USERNAME`, `DB_PASSWORD`, `KAFKA_BOOTSTRAP_SERVERS`, `DISCOVERY_SERVICE_URL`,
+`GATEWAY_SHARED_SECRET`, `JWT_SECRET`, `JWT_ISSUER`, and `FRONTEND_ORIGIN`.
+For local infrastructure these URLs normally use localhost, Kafka uses port 9094,
+and the issuer must match auth-service (`7irafi-auth-service`). Analytics does not
+load the Compose `.env` automatically. Missing or blank required configuration
+fails startup; JWT keys must contain at least 32 bytes. Only the server port has
+a runtime default (8087). The test profile supplies its own explicit settings.
 
 To generate development activity through the public APIs, run
 `python3 backend/analytics-service/simulate.py` with the full stack running. This
@@ -79,13 +98,19 @@ Notifications are best effort after commit; HTTP is authoritative. This local se
 assumes one analytics instance: multiple instances require shared message delivery or
 fan-out to reach sockets connected elsewhere. The five-second target is conditional on
 healthy publishers, Kafka, the consumer and a manageable backlog.
+Messaging failures are logged after commit and do not undo the projection. Database
+and event-contract failures are retried without advancing past the failed record;
+repair the underlying problem before expecting that partition to catch up.
 
 ## Tests
 
 Tests cover producer JSON contracts, HTTP filters and validation, socket
 authorization, and transactional projections. Kafka integration cases verify
 duplicate delivery, ordering, deletion, transient database failure, rollback,
-and listener restart. Each case uses unique users and event IDs without clearing
+and listener restart. Configuration tests reject every missing or blank deployment
+setting. Notification tests check visibility from a separate database connection
+and continued consumption after socket delivery failure.
+Each case uses unique users and event IDs without clearing
 other tests' rows.
 
 Run with Java 21 and a dedicated PostgreSQL database. The test profile defaults to

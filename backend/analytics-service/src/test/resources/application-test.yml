@@ -3,8 +3,13 @@ spring:
     url: ${ANALYTICS_TEST_DB_URL:jdbc:postgresql://localhost:55439/analytics_test}
     username: ${ANALYTICS_TEST_DB_USERNAME:herafi}
     password: ${ANALYTICS_TEST_DB_PASSWORD:herafi}
+  kafka.bootstrap-servers: localhost:9094
 eureka.client.enabled: false
+eureka.client.serviceUrl.defaultZone: http://localhost:8761/eureka/
 gateway.shared-secret: test-gateway-key
+security.jwt.secret: analytics-test-jwt-secret-at-least-32-bytes
+security.jwt.issuer: analytics-test
+analytics.allowed-origin: http://localhost:4200
 logging.level.root: WARN
 logging.level.org.apache.kafka: ERROR
 logging.level.kafka: ERROR

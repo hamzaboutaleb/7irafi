@@ -1,5 +1,7 @@
 package com.herafi.analytics.listener;
 
+import java.util.Map;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.listener.DefaultErrorHandler;
@@ -9,6 +11,9 @@ import org.springframework.util.backoff.FixedBackOff;
 public class KafkaConfig {
     @Bean
     DefaultErrorHandler kafkaErrorHandler() {
-        return new DefaultErrorHandler(new FixedBackOff(1000L, FixedBackOff.UNLIMITED_ATTEMPTS));
+        var handler = new DefaultErrorHandler(new FixedBackOff(1000L, FixedBackOff.UNLIMITED_ATTEMPTS));
+        // Malformed contracts must block for repair too; never recover by skipping a record.
+        handler.setClassifications(Map.of(), true);
+        return handler;
     }
 }
