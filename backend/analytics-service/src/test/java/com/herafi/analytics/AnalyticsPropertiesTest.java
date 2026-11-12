@@ -4,7 +4,8 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import com.herafi.analytics.config.RequiredConfiguration;
+import com.herafi.analytics.config.AnalyticsProperties;
+import org.springframework.boot.context.properties.bind.validation.BindValidationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -15,7 +16,7 @@ import org.springframework.core.io.ClassPathResource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class RequiredConfigurationTest {
+class AnalyticsPropertiesTest {
     private static final Map<String, Object> SETTINGS = Map.of(
             "DB_URL", "jdbc:postgresql://localhost:55439/analytics_test",
             "DB_USERNAME", "test-user",
@@ -28,7 +29,7 @@ class RequiredConfigurationTest {
             "DISCOVERY_SERVICE_URL", "http://localhost:8761/eureka/");
 
     private final ApplicationContextRunner runner = new ApplicationContextRunner()
-            .withUserConfiguration(RequiredConfiguration.class)
+            .withUserConfiguration(AnalyticsProperties.class)
             .withInitializer(context -> {
                 var sources = context.getEnvironment().getPropertySources();
                 // Isolate deployment configuration from the developer's shell environment.
@@ -62,7 +63,7 @@ class RequiredConfigurationTest {
                     .replace("deployment", new MapPropertySource("deployment", settings));
         }).run(context -> {
             assertThat(context).hasFailed();
-            assertThat(context.getStartupFailure()).hasStackTraceContaining(name);
+            assertThat(context.getStartupFailure()).hasRootCauseInstanceOf(BindValidationException.class);
         });
     }
 
@@ -76,7 +77,7 @@ class RequiredConfigurationTest {
                     .replace("deployment", new MapPropertySource("deployment", settings));
         }).run(context -> {
             assertThat(context).hasFailed();
-            assertThat(context.getStartupFailure()).hasStackTraceContaining("must not be blank");
+            assertThat(context.getStartupFailure()).hasRootCauseInstanceOf(BindValidationException.class);
         });
     }
 }

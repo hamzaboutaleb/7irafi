@@ -56,7 +56,10 @@ When running the Java process outside Compose, explicitly set `DB_URL`,
 For local infrastructure these URLs normally use localhost, Kafka uses port 9094,
 and the issuer must match auth-service (`7irafi-auth-service`). Analytics does not
 load the Compose `.env` automatically. Missing or blank required configuration
-fails startup; JWT keys must contain at least 32 bytes. Only the server port has
+fails startup through validated `@ConfigurationProperties` records. Unset environment
+variables bind to empty values so validation rejects them, rather than accepting
+unresolved placeholder strings. No usable credential or connection default is supplied
+by the Java service. JWT keys must contain at least 32 bytes. Only the server port has
 a runtime default (8087). The test profile supplies its own explicit settings.
 
 ## HTTP API
