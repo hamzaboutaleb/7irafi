@@ -31,9 +31,8 @@ state. The processed-event table must be retained for as long as old events can 
 ## Run locally
 
 Copy `infra/docker/.env.example` to `infra/docker/.env` if that file does not exist,
-then fill every empty credential. Compose rejects missing or empty credentials,
-including the monitoring services' credentials, before starting containers. It
-parses the whole Compose file even when starting only selected services.
+then configure the credentials for your environment. Compose retains the existing
+development defaults; changing the stack's startup policy is outside this service's scope.
 Generate secrets locally (for example, `openssl rand -hex 32`); do not commit `.env`.
 Existing database volumes keep their original password: configure that password
 or deliberately rotate it in PostgreSQL before changing the client setting.
@@ -47,7 +46,7 @@ docker compose -f infra/docker/docker-compose.yml up --build -d analytics-servic
 ```
 
 New volumes initialize the database automatically. Wait for discovery to propagate
-the services after health checks pass before running the simulation. Kafka topics are provisioned by
+the services after health checks pass before querying analytics. Kafka topics are provisioned by
 `kafka-init`. The gateway exposes HTTP on port 8080; the analytics socket is exposed
 directly on port 8087, matching the existing chat and notification socket pattern.
 
@@ -59,12 +58,6 @@ and the issuer must match auth-service (`7irafi-auth-service`). Analytics does n
 load the Compose `.env` automatically. Missing or blank required configuration
 fails startup; JWT keys must contain at least 32 bytes. Only the server port has
 a runtime default (8087). The test profile supplies its own explicit settings.
-
-To generate development activity through the public APIs, run
-`python3 backend/analytics-service/simulate.py` with the full stack running. This
-creates two uniquely named users, a professional profile, two jobs and an application,
-then cancels one job and deletes the other. It polls analytics until the resulting
-projections converge. Set `GATEWAY_URL` to override the default localhost gateway.
 
 ## HTTP API
 
