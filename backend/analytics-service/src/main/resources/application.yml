@@ -1,0 +1,24 @@
+spring:
+  application.name: analytics-service
+  datasource:
+    url: ${DB_URL:}
+    username: ${DB_USERNAME:}
+    password: ${DB_PASSWORD:}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:}
+    consumer:
+      group-id: analytics-projections-v1
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    listener:
+      ack-mode: record
+server.port: ${SERVER_PORT:8087}
+# Empty bindings are invalid: AnalyticsProperties rejects absent/blank settings at startup.
+gateway.shared-secret: ${GATEWAY_SHARED_SECRET:}
+security.jwt.secret: ${JWT_SECRET:}
+security.jwt.issuer: ${JWT_ISSUER:}
+analytics.allowed-origin: ${FRONTEND_ORIGIN:}
+eureka.client.serviceUrl.defaultZone: ${DISCOVERY_SERVICE_URL:}
+management.endpoints.web.exposure.include: health

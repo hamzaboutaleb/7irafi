@@ -55,6 +55,16 @@ public class GatewayRoutesConfig {
     }
 
     @Bean
+    RouterFunction<ServerResponse> analyticsServiceRoute(
+            @Value("${gateway.shared-secret}") String gatewaySharedSecret) {
+        return route("analytics-service")
+                .route(path("/analytics/**"), http())
+                .before(addAuthenticatedIdentity(gatewaySharedSecret))
+                .filter(lb("ANALYTICS-SERVICE"))
+                .build();
+    }
+
+    @Bean
     RouterFunction<ServerResponse> chatServiceRoute(
             @Value("${gateway.shared-secret}") String gatewaySharedSecret) {
         return route("chat-service")
