@@ -79,3 +79,17 @@ export interface JobPhoto {
   status: 'queued' | 'uploading' | 'uploaded' | 'failed';
   error: string | null;
 }
+
+export interface JobFilters {
+  skill: string;
+  city: string;
+  minBudget: number | null;
+  maxBudget: number | null;
+  duration: EstimatedDuration | '';
+  preferredTime: PreferredTime | '';
+}
+
+// function helper
+export const emptyFilters = (): JobFilters => ({
+  skill: '', city: '', minBudget: null, maxBudget: null, duration: '', preferredTime: '',
+});

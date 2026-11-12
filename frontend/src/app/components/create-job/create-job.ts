@@ -8,7 +8,6 @@ import { catchError, concatMap, forkJoin, from, of, tap, throwError } from 'rxjs
 
 import { Footer } from '../footer/footer.js';
 import { PostingStatusModal } from '../posting-status-modal/posting-status-modal.js';
-import { JobPostingResult } from '../../services/job-posting-result.js';
 import { Navbar } from '../navbar/navbar.js';
 import { JobService } from '../../services/job.js';
 import {
@@ -69,7 +68,6 @@ export class CreateJob implements OnInit {
   private readonly jobService = inject(JobService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
-  private readonly postingResult = inject(JobPostingResult);
 
   readonly skills = signal<string[]>([]);
   readonly cities = signal<string[]>([]);
@@ -87,7 +85,9 @@ export class CreateJob implements OnInit {
   readonly uploadedPhotoCount = computed(() =>
     this.photos().filter((photo) => photo.status === 'uploaded').length,
   );
-  readonly failedPhotos = computed(() => this.photos().filter((photo) => photo.status === 'failed'));
+  readonly uploadErrors = computed(() => this.photos()
+    .filter((photo) => photo.status === 'failed')
+    .map((photo) => `${photo.file.name}: ${photo.error}`));
   readonly maxPhotos = 10;
   readonly maxPhotoBytes = 10 * 1024 * 1024;
 
@@ -99,7 +99,7 @@ export class CreateJob implements OnInit {
 
   private hasUnfinishedWork(): boolean {
     if (this.isRedirecting()) return false;
-    return this.isSaving() || this.isUploading() || this.failedPhotos().length > 0 ||
+    return this.isSaving() || this.isUploading() ||
       (!this.createdJob() && (this.form.dirty || this.photos().length > 0));
   }
 
@@ -137,23 +137,23 @@ export class CreateJob implements OnInit {
   }
 
   removePhoto(photo: JobPhoto): void {
-    if (this.isSaving() || this.isUploading() || photo.status === 'uploaded') return;
+    if (this.isPosting() || this.createdJob()) return;
     URL.revokeObjectURL(photo.previewUrl);
     this.photos.update((photos) => photos.filter((item) => item !== photo));
     this.photoErrors.set([]);
   }
 
-  uploadPhotos(): void {
+  private uploadPhotos(): void {
     const job = this.createdJob();
     if (!job || this.isUploading()) return;
-    const pending = this.photos().filter((photo) => photo.status !== 'uploaded');
-    if (!pending.length) {
+    const queued = this.photos().filter((photo) => photo.status === 'queued');
+    if (!queued.length) {
       void this.finishPosting();
       return;
     }
 
     this.isUploading.set(true);
-    from(pending).pipe(
+    from(queued).pipe(
       concatMap((photo) => {
         this.updatePhoto(photo, 'uploading');
         return this.jobService.uploadImage(job.id, photo.file).pipe(
@@ -182,19 +182,26 @@ export class CreateJob implements OnInit {
   }
 
   private async finishPosting(): Promise<void> {
-    const job = this.createdJob();
-    if (!job) return;
-    this.postingResult.set({
-      jobId: job.id,
-      failed: this.failedPhotos().map((photo) => ({
-        file: photo.file, error: photo.error ?? this.i18n.translate('createJob.uploadError'),
-      })),
-    });
+    if (!this.createdJob()) return;
+    if (this.uploadErrors().length) {
+      this.errorMessage.set(this.i18n.translate('jobs.photosFailed'));
+      this.showFailure.set(true);
+      return;
+    }
+    await this.openJobs();
+  }
+
+  closeFailure(): void {
+    this.showFailure.set(false);
+    if (this.createdJob()) void this.openJobs();
+  }
+
+  private async openJobs(): Promise<void> {
     this.isRedirecting.set(true);
     try {
       if (await this.router.navigate(['/jobs'])) return;
     } catch {
-      // Preserve the posted job and retry files when navigation cannot complete.
+      // Keep the posted job visible when navigation cannot complete.
     }
     this.isRedirecting.set(false);
     this.errorMessage.set(this.i18n.translate('createJob.postedRedirectError'));
