@@ -23,7 +23,13 @@ services:
       - kafka-data:/var/lib/kafka/data
     entrypoint: ["/bin/sh", "/opt/kafka/start.sh"]
     healthcheck:
-      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1"]
+      test:
+        - CMD-SHELL
+        - >-
+          topics=$$(/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list 2>/dev/null) &&
+          printf '%s\n' "$$topics" | grep -Fxq analytics.events &&
+          printf '%s\n' "$$topics" | grep -Fxq jobs.lifecycle &&
+          printf '%s\n' "$$topics" | grep -Fxq notification.request
       interval: 10s
       timeout: 10s
       retries: 12
@@ -119,6 +125,8 @@ services:
       S3_ACCESS_KEY: ${MINIO_ROOT_USER:-minio}
       S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minio123}
     depends_on:
+      kafka:
+        condition: service_healthy
       postgres:
         condition: service_healthy
       auth-service:
@@ -153,6 +161,8 @@ services:
     ports:
       - "127.0.0.1:8086:8086"
     depends_on:
+      kafka:
+        condition: service_healthy
       postgres:
         condition: service_healthy
       discovery-service:
@@ -186,6 +196,8 @@ services:
     ports:
       - "127.0.0.1:8085:8085"
     depends_on:
+      kafka:
+        condition: service_healthy
       postgres:
         condition: service_healthy
       discovery-service:
