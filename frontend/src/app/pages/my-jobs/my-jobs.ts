@@ -1,12 +1,9 @@
-import { TitleCasePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { RouterLink } from '@angular/router';
-import { LucideDynamicIcon, LucideBriefcaseBusiness, LucideMapPin } from '@lucide/angular';
 import { Footer } from '../../components/footer/footer.js';
 import { JobDetailsModal } from '../../components/job-details-modal/job-details-modal.js';
-import { MyJobActions } from '../../components/my-job-actions/my-job-actions.js';
+import { MyJobsResults } from '../../components/my-jobs-results/my-jobs-results.js';
 import { Navbar } from '../../components/navbar/navbar.js';
 import { TranslationKey } from '../../i18n/language.js';
 import { TranslatePipe } from '../../pipes/translate-pipe.js';
@@ -17,16 +14,7 @@ import { JobActionResult, JobResponse, JobStatus } from '../../types/job.js';
 
 @Component({
   selector: 'app-my-jobs',
-  imports: [
-    LucideDynamicIcon,
-    TitleCasePipe,
-    RouterLink,
-    Navbar,
-    Footer,
-    MyJobActions,
-    JobDetailsModal,
-    TranslatePipe,
-  ],
+  imports: [Navbar, Footer, MyJobsResults, JobDetailsModal, TranslatePipe],
   templateUrl: './my-jobs.html',
 })
 export class MyJobs implements OnInit {
@@ -35,11 +23,6 @@ export class MyJobs implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly ratings = inject(RatingService);
-
-  readonly icons = {
-    work: LucideBriefcaseBusiness,
-    city: LucideMapPin,
-  };
 
   readonly jobs = signal<JobResponse[]>([]);
   readonly loading = signal(false);
@@ -61,16 +44,6 @@ export class MyJobs implements OnInit {
 
   statusLabel(status: JobStatus): TranslationKey {
     return `dashboard.status.${status}`;
-  }
-
-  formatNumber(value: number): string {
-    return new Intl.NumberFormat(this.i18n.language()).format(value);
-  }
-
-  formatDate(value: string): string {
-    return new Intl.DateTimeFormat(this.i18n.language(), { dateStyle: 'medium' }).format(
-      new Date(value),
-    );
   }
 
   openReview(jobId: string): void {

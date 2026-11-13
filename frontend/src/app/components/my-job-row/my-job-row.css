@@ -1,0 +1,96 @@
+@reference '../../../styles.css';
+
+:host {
+  display: block;
+}
+
+.my-job-row {
+  @apply grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 py-5;
+}
+
+.my-job-row__heading {
+  @apply flex flex-wrap items-center gap-2;
+}
+
+.my-job-row__title {
+  @apply text-base;
+  line-height: 1.5rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.my-job-row__details {
+  @apply cursor-pointer text-start;
+}
+
+.my-job-row__details:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 3px;
+}
+
+.my-job-row__status {
+  @apply rounded px-2 py-0.5 whitespace-nowrap;
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+  background-color: var(--color-gray-100);
+  color: var(--color-slate-500);
+}
+
+.my-job-row__status--open {
+  background-color: var(--color-primary-50);
+  color: var(--color-primary-700);
+}
+
+.my-job-row__metadata {
+  @apply mt-2 flex flex-wrap gap-x-4 gap-y-2 text-[13px];
+  color: var(--color-slate-500);
+}
+
+.my-job-row__metadata-item {
+  @apply inline-flex items-center gap-1;
+  overflow-wrap: anywhere;
+}
+
+.my-job-row__icon {
+  @apply size-3.5 shrink-0;
+}
+
+.my-job-row__budget {
+  @apply col-span-full text-start text-base whitespace-nowrap;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.my-job-row__currency {
+  @apply text-xs;
+  font-weight: 400;
+  color: var(--color-slate-500);
+}
+
+@media (width >= 601px) {
+  .my-job-row {
+    @apply p-6;
+  }
+
+  .my-job-row__heading {
+    @apply gap-3;
+  }
+
+  .my-job-row__budget {
+    grid-column: auto;
+    text-align: end;
+  }
+}
+
+@media (width >= 961px) {
+  .my-job-row {
+    @apply grid-cols-[minmax(0,1fr)_120px_224px] gap-6;
+  }
+}
+
+@media (hover: hover) {
+  .my-job-row__details:hover {
+    color: var(--color-primary-700);
+    text-decoration-line: underline;
+  }
+}

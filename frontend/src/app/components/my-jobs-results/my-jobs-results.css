@@ -1,0 +1,72 @@
+@reference '../../../styles.css';
+
+:host {
+  display: block;
+}
+
+.my-jobs-results__state {
+  @apply px-6 py-12 text-center;
+  color: var(--color-slate-500);
+}
+
+.my-jobs-results__state--error {
+  @apply flex flex-wrap items-center justify-center gap-4;
+  color: var(--color-red-700);
+}
+
+.my-jobs-results__state--empty,
+.my-jobs-results__list {
+  @apply rounded-xl;
+  border: 1px solid var(--color-slate-200);
+  background-color: var(--color-white);
+}
+
+.my-jobs-results__empty-icon {
+  @apply mx-auto mb-4 size-[18px] shrink-0;
+}
+
+.my-jobs-results__heading {
+  @apply text-xl;
+  font-weight: 600;
+  color: var(--color-gray-900);
+}
+
+.my-jobs-results__hint {
+  @apply mt-2 mb-6 text-sm;
+}
+
+.my-jobs-results__button {
+  @apply inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm whitespace-nowrap;
+  font-weight: 600;
+}
+
+.my-jobs-results__button--primary {
+  background-color: var(--color-primary-600);
+  color: var(--color-white);
+}
+
+.my-jobs-results__button--secondary {
+  border: 1px solid var(--color-gray-300);
+  background-color: var(--color-white);
+  color: var(--color-gray-700);
+}
+
+.my-jobs-results__button:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 3px;
+}
+
+.my-jobs-results__item:not(:last-child) {
+  border-bottom-width: 1px;
+  border-color: var(--color-slate-200);
+}
+
+@media (hover: hover) {
+  .my-jobs-results__button--primary:hover {
+    background-color: var(--color-primary-700);
+  }
+
+  .my-jobs-results__button--secondary:hover {
+    background-color: var(--color-gray-50);
+  }
+}
