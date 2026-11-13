@@ -18,7 +18,10 @@ services:
     ports:
       - "127.0.0.1:${KAFKA_PORT:-9094}:9094"
     volumes:
+      - ./kafka/start.sh:/opt/kafka/start.sh:ro
+      - ./kafka/init-topics.sh:/opt/kafka/init-topics.sh:ro
       - kafka-data:/var/lib/kafka/data
+    entrypoint: ["/bin/sh", "/opt/kafka/start.sh"]
     healthcheck:
       test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1"]
       interval: 10s
@@ -26,18 +29,6 @@ services:
       retries: 12
       start_period: 20s
     restart: unless-stopped
-
-  kafka-init:
-    image: apache/kafka:4.2.2
-    environment:
-      KAFKA_TOPIC_PARTITIONS: ${KAFKA_TOPIC_PARTITIONS:-3}
-    volumes:
-      - ./kafka/init-topics.sh:/opt/kafka/init-topics.sh:ro
-    entrypoint: ["/bin/sh", "/opt/kafka/init-topics.sh"]
-    depends_on:
-      kafka:
-        condition: service_healthy
-    restart: "no"
 
   postgres:
     container_name: postgres-dev
@@ -133,8 +124,6 @@ services:
         condition: service_healthy
       discovery-service:
         condition: service_healthy
-      minio-init:
-        condition: service_completed_successfully
     healthcheck:
       test:
         [
@@ -244,8 +233,6 @@ services:
         condition: service_healthy
       discovery-service:
         condition: service_healthy
-      minio-init:
-        condition: service_completed_successfully
       # auth-service:
       #   condition: service_healthy
     healthcheck:
@@ -326,16 +313,15 @@ services:
     build:
       context: ./minio
       args:
-        PROJECT: minio
-        RELEASE: RELEASE.2025-09-07T16-13-09Z
-    entrypoint: ["minio"]
+        MINIO_RELEASE: RELEASE.2025-09-07T16-13-09Z
+        MC_RELEASE: RELEASE.2025-08-13T08-35-41Z
     container_name: minio
     ports:
       - "9000:9000"
       - "9001:9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minio}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minio123456}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minio123}
     volumes:
       - minio_data:/data
     command: server /data --console-address ":9001"
@@ -348,23 +334,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-
-  minio-init:
-    # image: local/minio-client:RELEASE.2025-08-13T08-35-41Z
-    build:
-      context: ./minio
-      args:
-        PROJECT: mc
-        RELEASE: RELEASE.2025-08-13T08-35-41Z
-    container_name: minio-init
-    depends_on:
-      minio:
-        condition: service_healthy
-    entrypoint: >
-      /bin/sh -c " mc alias set local http://minio:9000 '${MINIO_ROOT_USER:-minio}' '${MINIO_ROOT_PASSWORD:-minio123}'
-      && mc mb --ignore-existing local/jobs
-      && mc mb --ignore-existing local/avatars
-      && mc ilm rule add --tags 'cleanup=pending' --expire-days 1 local/jobs "
 
   api-gateway:
     container_name: api-gateway-dev
