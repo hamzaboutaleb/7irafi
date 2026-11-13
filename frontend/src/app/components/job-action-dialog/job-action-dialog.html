@@ -1,0 +1,107 @@
+<dialog
+  #dialog
+  class="job-action-dialog"
+  aria-labelledby="job-action-heading"
+  (cancel)="close($event)"
+  (close)="closed.emit()"
+>
+  <form class="job-action-dialog__form" (ngSubmit)="submit()">
+    <header class="job-action-dialog__header">
+      <h2 id="job-action-heading" class="job-action-dialog__heading">
+        {{ actionLabels[action()] | translate }}
+      </h2>
+      <button
+        type="button"
+        class="job-action-dialog__button job-action-dialog__button--secondary"
+        [attr.aria-label]="'common.closeDialog' | translate"
+        [disabled]="busy()"
+        (click)="close()"
+      >
+        <svg lucideX class="job-action-dialog__icon" aria-hidden="true" />
+      </button>
+    </header>
+
+    @if (action() === 'edit') {
+      <p class="job-action-dialog__intro">
+        {{ 'myJobs.editIntro' | translate }}
+      </p>
+      <fieldset class="job-action-dialog__fields" [disabled]="busy()">
+        <label class="job-action-dialog__label">
+          {{ 'job.title' | translate }}
+          <input
+            name="title"
+            class="job-action-dialog__field"
+            required
+            maxlength="120"
+            [(ngModel)]="draft.title"
+          />
+        </label>
+        <label class="job-action-dialog__label">
+          {{ 'job.description' | translate }}
+          <textarea
+            name="description"
+            class="job-action-dialog__field"
+            rows="5"
+            required
+            [(ngModel)]="draft.description"
+          ></textarea>
+        </label>
+        <label class="job-action-dialog__label">
+          {{ 'job.address' | translate }}
+          <span class="job-action-dialog__optional">
+            {{ 'common.optional' | translate }}
+          </span>
+          <input
+            name="address"
+            class="job-action-dialog__field"
+            maxlength="200"
+            [(ngModel)]="draft.addressLine"
+          />
+        </label>
+      </fieldset>
+    } @else {
+      <p class="job-action-dialog__job-title">
+        {{ job().title }}
+      </p>
+      <p class="job-action-dialog__confirmation">
+        @switch (action()) {
+          @case ('delete') {
+            {{ 'myJobs.deleteConfirm' | translate }}
+          }
+          @case ('cancel') {
+            {{ 'myJobs.cancelConfirm' | translate }}
+          }
+          @case ('complete') {
+            {{ 'myJobs.completeConfirm' | translate }}
+          }
+        }
+      </p>
+    }
+
+    @if (error(); as message) {
+      <p class="job-action-dialog__error" role="alert">{{ message }}</p>
+    }
+
+    <footer class="job-action-dialog__footer">
+      <button
+        type="button"
+        class="job-action-dialog__button job-action-dialog__button--secondary"
+        [disabled]="busy()"
+        (click)="close()"
+      >
+        {{ (action() === 'edit' ? 'myJobs.discard' : 'myJobs.keep') | translate }}
+      </button>
+      <button
+        type="submit"
+        class="job-action-dialog__button job-action-dialog__button--primary"
+        [class.job-action-dialog__button--danger]="action() === 'delete' || action() === 'cancel'"
+        [disabled]="busy()"
+      >
+        {{
+          (busy() ? 'myJobs.saving' : action() === 'edit' ? 'myJobs.save' : actionLabels[action()])
+            | translate
+        }}
+      </button>
+    </footer>
+  </form>
+</dialog>

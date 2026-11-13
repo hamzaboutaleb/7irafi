@@ -1,131 +1,325 @@
 <app-navbar />
-<main class="my-jobs-page min-h-[75dvh] bg-[#f8f9fa] px-4 pt-6 pb-12 text-gray-900 min-[601px]:px-6 min-[601px]:pt-10 min-[601px]:pb-16">
+<main
+  class="my-jobs-page min-h-[75dvh] bg-[#f8f9fa] px-4 pt-6 pb-12 text-gray-900 min-[601px]:px-6 min-[601px]:pt-10 min-[601px]:pb-16"
+>
   <section class="jobs-content mx-auto max-w-[1120px]" aria-labelledby="my-jobs-title">
-    <header class="page-heading flex flex-wrap items-start justify-between gap-4 min-[601px]:flex-nowrap min-[601px]:items-center min-[601px]:gap-6 mb-5 min-[601px]:mb-7">
-      <div><h1 class="text-2xl leading-8 font-semibold min-[601px]:text-[28px] min-[601px]:leading-9" id="my-jobs-title">{{ 'myJobs.heading' | translate }}</h1><p class="mt-1 text-sm text-slate-500">{{ 'myJobs.subtitle' | translate }}</p></div>
-      <a routerLink="/jobs/new" class="primary-button ui-button ui-action-focus ui-button-primary px-4 py-2.5 font-semibold whitespace-nowrap [&.danger-button]:bg-red-700 [&.danger-button:hover]:bg-red-800"><svg class="size-[18px] shrink-0" [lucideIcon]="icons.plus" aria-hidden="true" />{{ 'myJobs.post' | translate }}</a>
+    <header
+      class="page-heading flex flex-wrap items-start justify-between gap-4 min-[601px]:flex-nowrap min-[601px]:items-center min-[601px]:gap-6 mb-5 min-[601px]:mb-7"
+    >
+      <div>
+        <h1
+          class="text-2xl leading-8 font-semibold min-[601px]:text-[28px] min-[601px]:leading-9"
+          id="my-jobs-title"
+        >
+          {{ 'myJobs.heading' | translate }}
+        </h1>
+        <p class="mt-1 text-sm text-slate-500">{{ 'myJobs.subtitle' | translate }}</p>
+      </div>
     </header>
-    <nav class="status-tabs mb-6 flex gap-4 overflow-x-auto border-b border-slate-200 min-[601px]:gap-6" [attr.aria-label]="'myJobs.status' | translate">
-      <button class="ui-status-tab" type="button" [class.active]="status() === ''" [attr.aria-current]="status() === '' ? 'true' : null" (click)="status.set('')">{{ 'myJobs.all' | translate }}</button>
+    <nav
+      class="status-tabs mb-6 flex gap-4 overflow-x-auto border-b border-slate-200 min-[601px]:gap-6"
+      [attr.aria-label]="'myJobs.status' | translate"
+    >
+      <button
+        class="ui-status-tab"
+        type="button"
+        [class.active]="status() === ''"
+        [attr.aria-current]="status() === '' ? 'true' : null"
+        (click)="status.set('')"
+      >
+        {{ 'myJobs.all' | translate }}
+      </button>
       @for (value of statuses; track value) {
-        <button class="ui-status-tab" type="button" [class.active]="status() === value" [attr.aria-current]="status() === value ? 'true' : null" (click)="status.set(value)">{{ statusLabel(value) | translate }}</button>
+        <button
+          class="ui-status-tab"
+          type="button"
+          [class.active]="status() === value"
+          [attr.aria-current]="status() === value ? 'true' : null"
+          (click)="status.set(value)"
+        >
+          {{ statusLabel(value) | translate }}
+        </button>
       }
     </nav>
-    @if (notice()) { <p role="status" class="page-notice mb-6 rounded-lg border border-primary-200 bg-white p-5 text-sm text-primary-700">{{ notice() }}</p> }
+    @if (notice()) {
+      <p
+        role="status"
+        class="page-notice mb-6 rounded-lg border border-primary-200 bg-white p-5 text-sm text-primary-700 data-[tone=danger]:border-red-200 data-[tone=danger]:bg-red-50 data-[tone=danger]:text-red-700"
+        [attr.data-tone]="noticeTone()"
+      >
+        {{ notice() }}
+      </p>
+    }
+
     @if (completedJobToReview(); as completedJob) {
       @if (!ratings.hasReviewed(completedJob.id)) {
-        <aside class="review-prompt mb-6 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-primary-200 bg-white p-5">
-          <div><p class="font-semibold">{{ 'reviews.completePrompt' | translate }}</p><p class="text-sm text-gray-500">{{ completedJob.title }}</p></div>
-          <div class="row-buttons flex items-center gap-2"><button type="button" class="primary-button ui-button ui-action-focus ui-button-primary px-4 py-2.5 font-semibold whitespace-nowrap [&.danger-button]:bg-red-700 [&.danger-button:hover]:bg-red-800" (click)="openReview(completedJob.id)">{{ 'reviews.leave' | translate }}</button><button type="button" class="secondary-button ui-button ui-action-focus ui-button-secondary px-4 py-2.5 font-semibold whitespace-nowrap" (click)="completedJobToReview.set(null)">{{ 'reviews.later' | translate }}</button></div>
+        <aside
+          class="review-prompt mb-6 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-primary-200 bg-white p-5"
+        >
+          <div>
+            <p class="font-semibold">{{ 'reviews.completePrompt' | translate }}</p>
+            <p class="text-sm text-gray-500">{{ completedJob.title }}</p>
+          </div>
+          <div class="row-buttons flex items-center gap-2">
+            <button
+              type="button"
+              class="primary-button ui-button ui-action-focus ui-button-primary px-4 py-2.5 font-semibold whitespace-nowrap [&.danger-button]:bg-red-700 [&.danger-button:hover]:bg-red-800"
+              (click)="openReview(completedJob.id)"
+            >
+              {{ 'reviews.leave' | translate }}</button
+            ><button
+              type="button"
+              class="secondary-button ui-button ui-action-focus ui-button-secondary px-4 py-2.5 font-semibold whitespace-nowrap"
+              (click)="completedJobToReview.set(null)"
+            >
+              {{ 'reviews.later' | translate }}
+            </button>
+          </div>
         </aside>
       }
     }
     @if (loading()) {
-      <p role="status" class="page-state px-6 py-12 text-center text-slate-500">{{ 'myJobs.loading' | translate }}</p>
+      <p role="status" class="page-state px-6 py-12 text-center text-slate-500">
+        {{ 'myJobs.loading' | translate }}
+      </p>
     } @else if (error()) {
-      <div role="alert" class="page-state px-6 py-12 text-center error-state flex flex-wrap items-center justify-center gap-4 text-red-700">{{ error() }} <button type="button" class="secondary-button ui-button ui-action-focus ui-button-secondary px-4 py-2.5 font-semibold whitespace-nowrap" (click)="load()">{{ 'common.retry' | translate }}</button></div>
+      <div
+        role="alert"
+        class="page-state px-6 py-12 text-center error-state flex flex-wrap items-center justify-center gap-4 text-red-700"
+      >
+        {{ error() }}
+        <button
+          type="button"
+          class="secondary-button ui-button ui-action-focus ui-button-secondary px-4 py-2.5 font-semibold whitespace-nowrap"
+          (click)="load()"
+        >
+          {{ 'common.retry' | translate }}
+        </button>
+      </div>
     } @else if (!visibleJobs().length) {
       <div class="page-state ui-empty-state empty-state [&>p]:mb-6">
         <svg class="size-[18px] shrink-0" [lucideIcon]="icons.work" aria-hidden="true" />
         <h2>{{ (jobs().length ? 'myJobs.emptyFilter' : 'myJobs.emptyTitle') | translate }}</h2>
         <p>{{ (jobs().length ? 'myJobs.emptyFilterHint' : 'myJobs.emptyHint') | translate }}</p>
-        @if (jobs().length) { <button type="button" class="secondary-button ui-button ui-action-focus ui-button-secondary px-4 py-2.5 font-semibold whitespace-nowrap" (click)="status.set('')">{{ 'myJobs.showAll' | translate }}</button> }
-        @else { <a routerLink="/jobs/new" class="primary-button ui-button ui-action-focus ui-button-primary px-4 py-2.5 font-semibold whitespace-nowrap [&.danger-button]:bg-red-700 [&.danger-button:hover]:bg-red-800">{{ 'myJobs.post' | translate }}</a> }
+        @if (jobs().length) {
+          <button
+            type="button"
+            class="secondary-button ui-button ui-action-focus ui-button-secondary px-4 py-2.5 font-semibold whitespace-nowrap"
+            (click)="status.set('')"
+          >
+            {{ 'myJobs.showAll' | translate }}
+          </button>
+        } @else {
+          <a
+            routerLink="/jobs/new"
+            class="primary-button ui-button ui-action-focus ui-button-primary px-4 py-2.5 font-semibold whitespace-nowrap [&.danger-button]:bg-red-700 [&.danger-button:hover]:bg-red-800"
+            >{{ 'myJobs.post' | translate }}</a
+          >
+        }
       </div>
     } @else {
-      <p class="result-count mb-3 text-[13px] text-slate-500 tabular-nums">{{ formatNumber(visibleJobs().length) }} {{ (visibleJobs().length === 1 ? 'myJobs.oneJob' : 'myJobs.manyJobs') | translate }}</p>
+      <p class="result-count mb-3 text-[13px] text-slate-500 tabular-nums">
+        {{ formatNumber(visibleJobs().length) }}
+        {{ (visibleJobs().length === 1 ? 'myJobs.oneJob' : 'myJobs.manyJobs') | translate }}
+      </p>
       <ul class="job-list divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
         @for (job of visibleJobs(); track job.id) {
-          <li><article class="job-row grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 py-5 min-[601px]:p-6 min-[961px]:grid-cols-[minmax(0,1fr)_120px_224px] min-[961px]:gap-6">
-            <div class="job-info">
-              <div class="job-title-line flex flex-wrap items-center gap-2 min-[601px]:gap-3"><h2 class="text-base leading-6 font-semibold [overflow-wrap:anywhere]"><button class="cursor-pointer text-start hover:text-primary-700 hover:underline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-primary-500" type="button" (click)="selectedJobId.set(job.id)">{{ job.title }}</button></h2><span class="job-status rounded bg-gray-100 px-2 py-0.5 text-xs leading-5 whitespace-nowrap text-slate-500 [&.is-open]:bg-primary-50 [&.is-open]:text-primary-700" [class.is-open]="job.status === 'OPEN'">{{ statusLabel(job.status) | translate }}</span></div>
-              <div class="job-meta ui-job-metadata"><span class="inline-flex items-center gap-1 [overflow-wrap:anywhere]"><svg class="size-3.5 shrink-0" [lucideIcon]="icons.work" aria-hidden="true" />{{ job.skill.replaceAll('_', ' ') | titlecase }}</span><span class="inline-flex items-center gap-1 [overflow-wrap:anywhere]"><svg class="size-3.5 shrink-0" [lucideIcon]="icons.city" aria-hidden="true" />{{ job.city.replaceAll('_', ' ') | titlecase }}</span><span>{{ 'myJobs.posted' | translate }} {{ formatDate(job.createdAt) }}</span></div>
-            </div>
-            <p class="job-budget col-span-full text-start text-base font-semibold whitespace-nowrap tabular-nums min-[601px]:col-auto min-[601px]:text-end">{{ formatNumber(job.budget) }} <span class="text-xs font-normal text-slate-500">MAD</span></p>
-            <div class="row-buttons flex items-center gap-2 job-controls col-span-full justify-between min-[601px]:justify-end min-[961px]:col-auto max-[600px]:[&>a]:flex-1 max-[600px]:[&>button]:flex-1 min-[961px]:[&>a]:flex-1 min-[961px]:[&>button]:flex-1">
-              @switch (job.status) {
-                @case ('OPEN') { <a [routerLink]="['/jobs', job.id, 'applicants']" class="primary-button ui-button ui-action-focus ui-button-primary px-4 py-2.5 font-semibold whitespace-nowrap [&.danger-button]:bg-red-700 [&.danger-button:hover]:bg-red-800"><svg class="size-[18px] shrink-0" [lucideIcon]="icons.people" aria-hidden="true" />{{ 'myJobs.viewApplicants' | translate }}</a> }
-                @case ('ASSIGNED') { <button type="button" class="primary-button ui-button ui-action-focus ui-button-primary px-4 py-2.5 font-semibold whitespace-nowrap [&.danger-button]:bg-red-700 [&.danger-button:hover]:bg-red-800" (click)="openAction(job, 'complete')"><svg class="size-[18px] shrink-0" [lucideIcon]="icons.check" aria-hidden="true" />{{ 'myJobs.complete' | translate }}</button> }
-                @case ('COMPLETED') {
-                  @if (job.assignedWorkerId) { <button type="button" class="secondary-button ui-button ui-action-focus ui-button-secondary px-4 py-2.5 font-semibold whitespace-nowrap" (click)="openReview(job.id)" aria-haspopup="dialog"><svg class="size-[18px] shrink-0" [lucideIcon]="icons.review" aria-hidden="true" />{{ (ratings.hasReviewed(job.id) ? 'reviews.viewReview' : 'reviews.reviewJob') | translate }}</button> }
-                  @else { <button type="button" class="secondary-button ui-button ui-action-focus ui-button-secondary px-4 py-2.5 font-semibold whitespace-nowrap" (click)="selectedJobId.set(job.id)">{{ 'myJobs.viewDetails' | translate }}</button> }
+          <li>
+            <article
+              class="job-row grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 py-5 min-[601px]:p-6 min-[961px]:grid-cols-[minmax(0,1fr)_120px_224px] min-[961px]:gap-6"
+            >
+              <div class="job-info">
+                <div class="job-title-line flex flex-wrap items-center gap-2 min-[601px]:gap-3">
+                  <h2 class="text-base leading-6 font-semibold [overflow-wrap:anywhere]">
+                    <button
+                      class="cursor-pointer text-start hover:text-primary-700 hover:underline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-primary-500"
+                      type="button"
+                      (click)="selectedJobId.set(job.id)"
+                    >
+                      {{ job.title }}
+                    </button>
+                  </h2>
+                  <span
+                    class="job-status rounded bg-gray-100 px-2 py-0.5 text-xs leading-5 whitespace-nowrap text-slate-500 [&.is-open]:bg-primary-50 [&.is-open]:text-primary-700"
+                    [class.is-open]="job.status === 'OPEN'"
+                    >{{ statusLabel(job.status) | translate }}</span
+                  >
+                </div>
+                <div class="job-meta ui-job-metadata">
+                  <span class="inline-flex items-center gap-1 [overflow-wrap:anywhere]"
+                    ><svg
+                      class="size-3.5 shrink-0"
+                      [lucideIcon]="icons.work"
+                      aria-hidden="true"
+                    />{{ job.skill.replaceAll('_', ' ') | titlecase }}</span
+                  ><span class="inline-flex items-center gap-1 [overflow-wrap:anywhere]"
+                    ><svg
+                      class="size-3.5 shrink-0"
+                      [lucideIcon]="icons.city"
+                      aria-hidden="true"
+                    />{{ job.city.replaceAll('_', ' ') | titlecase }}</span
+                  ><span>{{ 'myJobs.posted' | translate }} {{ formatDate(job.createdAt) }}</span>
+                </div>
+              </div>
+              <p
+                class="job-budget col-span-full text-start text-base font-semibold whitespace-nowrap tabular-nums min-[601px]:col-auto min-[601px]:text-end"
+              >
+                {{ formatNumber(job.budget) }}
+                <span class="text-xs font-normal text-slate-500">MAD</span>
+              </p>
+              <div
+                class="row-buttons flex items-center gap-2 job-controls col-span-full justify-between min-[601px]:justify-end min-[961px]:col-auto max-[600px]:[&>a]:flex-1 max-[600px]:[&>button]:flex-1 min-[961px]:[&>a]:flex-1 min-[961px]:[&>button]:flex-1"
+              >
+                @switch (job.status) {
+                  @case ('OPEN') {
+                    <a
+                      [routerLink]="['/jobs', job.id, 'applicants']"
+                      class="primary-button ui-button ui-action-focus ui-button-primary px-4 py-2.5 font-semibold whitespace-nowrap [&.danger-button]:bg-red-700 [&.danger-button:hover]:bg-red-800"
+                      ><svg
+                        class="size-[18px] shrink-0"
+                        [lucideIcon]="icons.people"
+                        aria-hidden="true"
+                      />{{ 'myJobs.viewApplicants' | translate }}</a
+                    >
+                  }
+                  @case ('ASSIGNED') {
+                    <button
+                      type="button"
+                      class="primary-button ui-button ui-action-focus ui-button-primary px-4 py-2.5 font-semibold whitespace-nowrap [&.danger-button]:bg-red-700 [&.danger-button:hover]:bg-red-800"
+                      (click)="openAction(job, 'complete')"
+                    >
+                      <svg
+                        class="size-[18px] shrink-0"
+                        [lucideIcon]="icons.check"
+                        aria-hidden="true"
+                      />{{ 'myJobs.complete' | translate }}
+                    </button>
+                  }
+                  @case ('COMPLETED') {
+                    @if (job.assignedWorkerId) {
+                      <button
+                        type="button"
+                        class="secondary-button ui-button ui-action-focus ui-button-secondary px-4 py-2.5 font-semibold whitespace-nowrap"
+                        (click)="openReview(job.id)"
+                        aria-haspopup="dialog"
+                      >
+                        <svg
+                          class="size-[18px] shrink-0"
+                          [lucideIcon]="icons.review"
+                          aria-hidden="true"
+                        />{{
+                          (ratings.hasReviewed(job.id) ? 'reviews.viewReview' : 'reviews.reviewJob')
+                            | translate
+                        }}
+                      </button>
+                    } @else {
+                      <button
+                        type="button"
+                        class="secondary-button ui-button ui-action-focus ui-button-secondary px-4 py-2.5 font-semibold whitespace-nowrap"
+                        (click)="selectedJobId.set(job.id)"
+                      >
+                        {{ 'myJobs.viewDetails' | translate }}
+                      </button>
+                    }
+                  }
+                  @case ('CANCELLED') {
+                    <button
+                      type="button"
+                      class="secondary-button ui-button ui-action-focus ui-button-secondary px-4 py-2.5 font-semibold whitespace-nowrap"
+                      (click)="selectedJobId.set(job.id)"
+                    >
+                      {{ 'myJobs.viewDetails' | translate }}
+                    </button>
+                  }
                 }
-                @case ('CANCELLED') { <button type="button" class="secondary-button ui-button ui-action-focus ui-button-secondary px-4 py-2.5 font-semibold whitespace-nowrap" (click)="selectedJobId.set(job.id)">{{ 'myJobs.viewDetails' | translate }}</button> }
-              }
                 @if (allowed(job, 'edit') || allowed(job, 'cancel') || allowed(job, 'delete')) {
-                <details #actions class="job-actions group relative" name="job-actions" (keydown.escape)="closeMenu(actions)"
-                  (focusout)="closeMenuOnFocusOut($event, actions)">
-                  <summary class="flex h-11 w-11 cursor-pointer list-none [&::-webkit-details-marker]:hidden group-open:bg-gray-100 group-open:text-gray-900 items-center justify-center rounded-xl text-gray-500 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-primary-500"
-                    [attr.aria-label]="('myJobs.actions' | translate) + ': ' + job.title">
-                    <svg class="size-[18px] shrink-0" [lucideIcon]="icons.more" aria-hidden="true" />
-                  </summary>
-                  <div class="absolute end-0 top-full z-20 mt-1 w-44 rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg">
-                    @if (allowed(job, 'edit')) {
-                      <button type="button" class="menu-action flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-start text-sm text-gray-700 hover:bg-gray-50 ui-action-focus" (click)="closeMenu(actions); openAction(job, 'edit')">
-                        <svg class="size-[18px] shrink-0" [lucideIcon]="icons.edit" aria-hidden="true" />
-                        {{ 'myJobs.edit' | translate }}
-                      </button>
-                    }
-                    @if (allowed(job, 'cancel')) {
-                      <button type="button" class="menu-action flex min-h-11 w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-start text-sm ui-action-focus menu-action-danger rounded-none border-t border-slate-100 [&.menu-action-danger]:text-red-700 [&.menu-action-danger:hover]:bg-red-50" (click)="closeMenu(actions); openAction(job, 'cancel')">
-                        <svg class="size-[18px] shrink-0" [lucideIcon]="icons.cancel" aria-hidden="true" />{{ 'myJobs.cancel' | translate }}
-                      </button>
-                    }
-                    @if (allowed(job, 'delete')) {
-                      <button type="button" class="menu-action flex min-h-11 w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-start text-sm ui-action-focus menu-action-danger rounded-none border-t border-slate-100 [&.menu-action-danger]:text-red-700 [&.menu-action-danger:hover]:bg-red-50" (click)="closeMenu(actions); openAction(job, 'delete')">
-                        <svg class="size-[18px] shrink-0" [lucideIcon]="icons.delete" aria-hidden="true" />
-                        {{ 'myJobs.delete' | translate }}
-                      </button>
-                    }
-                  </div>
-                </details>
+                  <details
+                    #actions
+                    class="job-actions group relative"
+                    name="job-actions"
+                    (keydown.escape)="closeMenu(actions)"
+                    (focusout)="closeMenuOnFocusOut($event, actions)"
+                  >
+                    <summary
+                      class="flex h-11 w-11 cursor-pointer list-none [&::-webkit-details-marker]:hidden group-open:bg-gray-100 group-open:text-gray-900 items-center justify-center rounded-xl text-gray-500 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-primary-500"
+                      [attr.aria-label]="('myJobs.actions' | translate) + ': ' + job.title"
+                    >
+                      <svg
+                        class="size-[18px] shrink-0"
+                        [lucideIcon]="icons.more"
+                        aria-hidden="true"
+                      />
+                    </summary>
+                    <div
+                      class="absolute end-0 top-full z-20 mt-1 w-44 rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg"
+                    >
+                      @if (allowed(job, 'edit')) {
+                        <button
+                          type="button"
+                          class="menu-action flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-start text-sm text-gray-700 hover:bg-gray-50 ui-action-focus"
+                          (click)="closeMenu(actions); openAction(job, 'edit')"
+                        >
+                          <svg
+                            class="size-[18px] shrink-0"
+                            [lucideIcon]="icons.edit"
+                            aria-hidden="true"
+                          />
+                          {{ 'myJobs.edit' | translate }}
+                        </button>
+                      }
+                      @if (allowed(job, 'cancel')) {
+                        <button
+                          type="button"
+                          class="menu-action flex min-h-11 w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-start text-sm ui-action-focus menu-action-danger rounded-none border-t border-slate-100 [&.menu-action-danger]:text-red-700 [&.menu-action-danger:hover]:bg-red-50"
+                          (click)="closeMenu(actions); openAction(job, 'cancel')"
+                        >
+                          <svg
+                            class="size-[18px] shrink-0"
+                            [lucideIcon]="icons.cancel"
+                            aria-hidden="true"
+                          />{{ 'myJobs.cancel' | translate }}
+                        </button>
+                      }
+                      @if (allowed(job, 'delete')) {
+                        <button
+                          type="button"
+                          class="menu-action flex min-h-11 w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-start text-sm ui-action-focus menu-action-danger rounded-none border-t border-slate-100 [&.menu-action-danger]:text-red-700 [&.menu-action-danger:hover]:bg-red-50"
+                          (click)="closeMenu(actions); openAction(job, 'delete')"
+                        >
+                          <svg
+                            class="size-[18px] shrink-0"
+                            [lucideIcon]="icons.delete"
+                            aria-hidden="true"
+                          />
+                          {{ 'myJobs.delete' | translate }}
+                        </button>
+                      }
+                    </div>
+                  </details>
                 }
-            </div>
-          </article></li>
+              </div>
+            </article>
+          </li>
         }
       </ul>
     }
   </section>
 </main>
 <app-footer />
-<dialog #actionDialog class="action-dialog m-auto max-h-[90dvh] w-[calc(100%_-_2rem)] max-w-[34rem] overflow-y-auto rounded-[20px] border-0 p-0 backdrop:bg-gray-900/45" aria-labelledby="action-heading" (cancel)="closeAction($event)">
-  @if (target(); as job) {
-    <form (ngSubmit)="submit()" class="p-6">
-      <div class="flex items-start justify-between gap-3">
-        <h2 id="action-heading" class="text-xl font-semibold text-gray-900">{{ actionLabels[action()] | translate }}</h2>
-        <button type="button" class="secondary-button ui-button ui-action-focus ui-button-secondary px-4 py-2.5 font-semibold whitespace-nowrap" [attr.aria-label]="'common.closeDialog' | translate" [disabled]="busy()" (click)="closeAction()"><svg class="size-[18px] shrink-0" [lucideIcon]="icons.cancel" aria-hidden="true" /></button>
-      </div>
-      @if (action() === 'edit') {
-        <p class="mt-2 text-sm text-gray-500">{{ 'myJobs.editIntro' | translate }}</p>
-        <fieldset [disabled]="busy()" class="mt-5 space-y-4">
-          <label class="block text-sm font-medium text-gray-700">{{ 'job.title' | translate }}<input name="title" class="field ui-profile-field" required maxlength="120" [(ngModel)]="draft.title" />
-          </label>
-          <label class="block text-sm font-medium text-gray-700">{{ 'job.description' | translate }}<textarea name="description" class="field ui-profile-field" rows="5" required [(ngModel)]="draft.description"></textarea>
-          </label>
-          <label class="block text-sm font-medium text-gray-700">{{ 'job.address' | translate }}<span class="font-normal text-gray-500">{{ 'common.optional' | translate }}</span>
-            <input name="address" class="field ui-profile-field" maxlength="200" [(ngModel)]="draft.addressLine" />
-          </label>
-        </fieldset>
-      } @else {
-        <p class="mt-5 break-words font-medium text-gray-900">{{ job.title }}</p>
-        <p class="mt-2 text-sm leading-6 text-gray-600">
-          @switch (action()) {
-            @case ('delete') { {{ 'myJobs.deleteConfirm' | translate }} }
-            @case ('cancel') { {{ 'myJobs.cancelConfirm' | translate }} }
-            @case ('complete') { {{ 'myJobs.completeConfirm' | translate }} }
-          }
-        </p>
-      }
-      @if (actionError()) { <p role="alert" class="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">{{ actionError() }}</p> }
-      <div class="mt-6 flex flex-wrap justify-end gap-3">
-        <button type="button" class="secondary-button ui-button ui-action-focus ui-button-secondary px-4 py-2.5 font-semibold whitespace-nowrap" [disabled]="busy()" (click)="closeAction()">{{ (action() === 'edit' ? 'myJobs.discard' : 'myJobs.keep') | translate }}</button>
-        <button type="submit" class="primary-button ui-button ui-action-focus ui-button-primary px-4 py-2.5 font-semibold whitespace-nowrap [&.danger-button]:bg-red-700 [&.danger-button:hover]:bg-red-800" [class.danger-button]="action() === 'delete' || action() === 'cancel'" [disabled]="busy()">
-          {{ (busy() ? 'myJobs.saving' : action() === 'edit' ? 'myJobs.save' : actionLabels[action()]) | translate }}
-        </button>
-      </div>
-    </form>
-  }
-</dialog>
+@if (pendingAction(); as selected) {
+  <app-job-action-dialog
+    [job]="selected.job"
+    [action]="selected.action"
+    (started)="notice.set(null)"
+    (completed)="actionCompleted($event)"
+    (refreshRequested)="refreshJobs($event)"
+    (closed)="pendingAction.set(null)"
+  />
+}
 @if (selectedJobId(); as jobId) {
-  <app-job-details-modal [jobId]="jobId" [startWithReview]="startWithReview()" (closed)="selectedJobId.set(null); startWithReview.set(false)" />
+  <app-job-details-modal
+    [jobId]="jobId"
+    [startWithReview]="startWithReview()"
+    (closed)="selectedJobId.set(null); startWithReview.set(false)"
+  />
 }

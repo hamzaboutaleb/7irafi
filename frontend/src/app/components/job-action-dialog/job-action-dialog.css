@@ -1,0 +1,125 @@
+@reference '../../../styles.css';
+
+.job-action-dialog {
+  @apply m-auto max-h-[90dvh] w-[calc(100%_-_2rem)] max-w-[34rem] overflow-y-auto rounded-[20px] p-0;
+  border: 0;
+}
+
+.job-action-dialog::backdrop {
+  background-color: color-mix(in oklab, var(--color-gray-900) 45%, transparent);
+}
+
+.job-action-dialog__form {
+  @apply p-6;
+}
+
+.job-action-dialog__header {
+  @apply flex items-start justify-between gap-3;
+}
+
+.job-action-dialog__heading {
+  @apply text-xl;
+  font-weight: 600;
+  color: var(--color-gray-900);
+}
+
+.job-action-dialog__button {
+  @apply inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm whitespace-nowrap;
+  font-weight: 600;
+}
+
+.job-action-dialog__button--secondary {
+  border: 1px solid var(--color-gray-300);
+  background-color: var(--color-white);
+  color: var(--color-gray-700);
+}
+
+.job-action-dialog__button--primary {
+  background-color: var(--color-primary-600);
+  color: var(--color-white);
+}
+
+.job-action-dialog__button--danger {
+  background-color: var(--color-red-700);
+}
+
+.job-action-dialog__button:focus-visible,
+.job-action-dialog__field:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 3px;
+}
+
+.job-action-dialog__button:disabled {
+  @apply cursor-not-allowed opacity-50;
+}
+
+.job-action-dialog__icon {
+  @apply size-[18px] shrink-0;
+}
+
+.job-action-dialog__intro {
+  @apply mt-2 text-sm;
+  color: var(--color-gray-500);
+}
+
+.job-action-dialog__fields {
+  @apply mt-5;
+}
+
+.job-action-dialog__label {
+  @apply block text-sm;
+  font-weight: 500;
+  color: var(--color-gray-700);
+}
+
+.job-action-dialog__label:not(:last-child) {
+  @apply mb-4;
+}
+
+.job-action-dialog__field {
+  @apply mt-2 w-full rounded-xl p-3;
+  border: 1px solid var(--color-gray-300);
+  background-color: var(--color-white);
+}
+
+.job-action-dialog__optional {
+  font-weight: 400;
+  color: var(--color-gray-500);
+}
+
+.job-action-dialog__job-title {
+  @apply mt-5;
+  overflow-wrap: break-word;
+  font-weight: 500;
+  color: var(--color-gray-900);
+}
+
+.job-action-dialog__confirmation {
+  @apply mt-2 text-sm;
+  line-height: 1.5rem;
+  color: var(--color-gray-600);
+}
+
+.job-action-dialog__error {
+  @apply mt-4 rounded-xl p-3 text-sm;
+  background-color: var(--color-red-50);
+  color: var(--color-red-700);
+}
+
+.job-action-dialog__footer {
+  @apply mt-6 flex flex-wrap justify-end gap-3;
+}
+
+@media (hover: hover) {
+  .job-action-dialog__button--secondary:hover {
+    background-color: var(--color-gray-50);
+  }
+
+  .job-action-dialog__button--primary:hover {
+    background-color: var(--color-primary-700);
+  }
+
+  .job-action-dialog__button--danger:hover {
+    background-color: var(--color-red-800);
+  }
+}
