@@ -10,7 +10,8 @@ import { JobResults } from '../../components/job-results/job-results.js';
 import { JobSort } from '../../components/job-sort/job-sort.js';
 import { Navbar } from '../../components/navbar/navbar.js';
 import { JobService } from '../../services/job.js';
-import { JobListItem, JobFilters as JobFilterValues, emptyFilters } from '../../types/job.js';
+import { JobListItem, JobFilters as JobFilterValues } from '../../types/job.js';
+import { emptyFilters } from '../../utils/job.js';
 import { TranslatePipe } from '../../pipes/translate-pipe.js';
 import { I18nService } from '../../services/i18n.js';
 

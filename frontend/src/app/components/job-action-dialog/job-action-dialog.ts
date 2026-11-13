@@ -21,7 +21,7 @@ import { TranslatePipe } from '../../pipes/translate-pipe.js';
 import { I18nService } from '../../services/i18n.js';
 import { JobService } from '../../services/job.js';
 import { JobAction, JobActionResult, JobResponse, UpdateJobRequest } from '../../types/job.js';
-import { canPerformJobAction } from '../../utils/job-actions.js';
+import { canPerformJobAction } from '../../utils/job.js';
 
 @Component({
   selector: 'app-job-action-dialog',
@@ -35,23 +35,32 @@ export class JobActionDialog implements OnInit, AfterViewInit, OnDestroy {
   private readonly destroyRef = inject(DestroyRef);
 
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('dialog');
+  private closeTimer?: ReturnType<typeof setTimeout>;
 
   readonly job = input.required<JobResponse>();
   readonly action = input.required<JobAction>();
 
-  readonly started = output<void>();
   readonly completed = output<JobActionResult>();
-  readonly refreshRequested = output<string>();
+  readonly refreshRequested = output<void>();
   readonly closed = output<void>();
 
   readonly busy = signal(false);
   readonly error = signal<string | null>(null);
+  readonly result = signal<JobActionResult | null>(null);
+  readonly needsRefresh = signal(false);
 
   readonly actionLabels: Record<JobAction, TranslationKey> = {
     edit: 'myJobs.edit',
     cancel: 'myJobs.cancel',
     complete: 'myJobs.complete',
     delete: 'myJobs.delete',
+  };
+
+  readonly successLabels: Record<JobAction, TranslationKey> = {
+    edit: 'myJobs.updated',
+    cancel: 'myJobs.cancelled',
+    complete: 'myJobs.completed',
+    delete: 'myJobs.deleted',
   };
 
   draft: UpdateJobRequest = {
@@ -75,6 +84,7 @@ export class JobActionDialog implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    clearTimeout(this.closeTimer);
     this.dialog().nativeElement.close();
   }
 
@@ -83,10 +93,23 @@ export class JobActionDialog implements OnInit, AfterViewInit, OnDestroy {
     if (!this.busy()) this.dialog().nativeElement.close();
   }
 
+  onClosed(): void {
+    clearTimeout(this.closeTimer);
+    const result = this.result();
+    if (result) {
+      this.completed.emit(result);
+    } else if (this.needsRefresh()) {
+      this.refreshRequested.emit();
+    } else {
+      this.closed.emit();
+    }
+  }
+
   submit(): void {
     const job = this.job();
     const action = this.action();
-    if (this.busy() || !canPerformJobAction(job, action)) return;
+    if (this.busy() || this.result() || this.needsRefresh() || !canPerformJobAction(job, action))
+      return;
 
     const request: UpdateJobRequest = {
       title: this.draft.title.trim(),
@@ -106,7 +129,6 @@ export class JobActionDialog implements OnInit, AfterViewInit, OnDestroy {
 
     this.busy.set(true);
     this.error.set(null);
-    this.started.emit();
 
     let operation: Observable<JobResponse | void>;
     switch (action) {
@@ -127,8 +149,7 @@ export class JobActionDialog implements OnInit, AfterViewInit, OnDestroy {
     operation.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (updated) => {
         this.busy.set(false);
-        this.close();
-        this.completed.emit(
+        this.result.set(
           action === 'delete'
             ? {
                 action,
@@ -139,12 +160,12 @@ export class JobActionDialog implements OnInit, AfterViewInit, OnDestroy {
                 job: updated ?? job,
               },
         );
+        this.closeTimer = setTimeout(() => this.close(), 2000);
       },
       error: (error: HttpErrorResponse) => {
         this.busy.set(false);
         if ([403, 404, 409].includes(error.status)) {
-          this.close();
-          this.refreshRequested.emit(this.i18n.translate('myJobs.changed'));
+          this.needsRefresh.set(true);
         } else {
           this.error.set(this.i18n.translate('myJobs.saveError'));
         }

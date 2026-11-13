@@ -646,7 +646,8 @@ export const en = {
   "myJobs.loadError": "Unable to load your jobs. Please try again.",
   "myJobs.connectionError": "The server could not be reached. Please try again.",
   "myJobs.validation": "Enter a title (up to 120 characters), a description, and an optional address (up to 200 characters).",
-  "myJobs.changed": "This job has changed or is no longer available. Your list has been refreshed.",
+  'myJobs.changed':
+    'This job has changed or is no longer available. Close this dialog to refresh your list.',
   "myJobs.saveError": "Unable to save this change. Please try again.",
   "myJobs.uncertain": "The server could not be reached. Close this dialog and refresh your jobs to check whether the change was saved.",
   "pageTitle.home": "Find trusted professionals",

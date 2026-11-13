@@ -100,13 +100,3 @@ export interface JobFilters {
   duration: EstimatedDuration | '';
   preferredTime: PreferredTime | '';
 }
-
-// function helper
-export const emptyFilters = (): JobFilters => ({
-  skill: '',
-  city: '',
-  minBudget: null,
-  maxBudget: null,
-  duration: '',
-  preferredTime: '',
-});

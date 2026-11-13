@@ -643,7 +643,8 @@ export const fr: Record<keyof typeof en, string> = {
   "myJobs.loadError": "Impossible de charger vos travaux. Réessayez.",
   "myJobs.connectionError": "Le serveur est inaccessible. Réessayez.",
   "myJobs.validation": "Saisissez un titre (120 caractères maximum), une description et une adresse facultative (200 caractères maximum).",
-  "myJobs.changed": "Ce travail a changé ou est indisponible. Votre liste a été actualisée.",
+  'myJobs.changed':
+    'Ce travail a changé ou n’est plus disponible. Fermez cette fenêtre pour actualiser la liste.',
   "myJobs.saveError": "Impossible d’enregistrer cette modification. Réessayez.",
   "myJobs.uncertain": "Le serveur est inaccessible. Fermez cette fenêtre et actualisez vos travaux pour vérifier si la modification a été enregistrée.",
   "pageTitle.home": "Trouvez des professionnels de confiance",

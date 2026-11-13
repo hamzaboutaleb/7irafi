@@ -1,5 +1,9 @@
 @reference '../../../styles.css';
 
+:host {
+  display: contents;
+}
+
 .job-action-dialog {
   @apply m-auto max-h-[90dvh] w-[calc(100%_-_2rem)] max-w-[34rem] overflow-y-auto rounded-[20px] p-0;
   border: 0;
@@ -18,7 +22,8 @@
 }
 
 .job-action-dialog__heading {
-  @apply text-xl;
+  font-size: 1.25rem;
+  line-height: 1.75rem;
   font-weight: 600;
   color: var(--color-gray-900);
 }
@@ -100,8 +105,15 @@
   color: var(--color-gray-600);
 }
 
-.job-action-dialog__error {
-  @apply mt-4 rounded-xl p-3 text-sm;
+.job-action-dialog__feedback {
+  @apply mt-4 rounded-xl p-3;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  background-color: var(--color-primary-50);
+  color: var(--color-primary-700);
+}
+
+.job-action-dialog__feedback--danger {
   background-color: var(--color-red-50);
   color: var(--color-red-700);
 }

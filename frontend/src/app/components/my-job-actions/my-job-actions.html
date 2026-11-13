@@ -1,0 +1,109 @@
+<div class="my-job-actions">
+  @switch (job().status) {
+    @case ('OPEN') {
+      <a
+        [routerLink]="['/jobs', job().id, 'applicants']"
+        class="my-job-actions__button my-job-actions__button--primary"
+      >
+        <svg class="my-job-actions__icon" [lucideIcon]="icons.people" aria-hidden="true" />
+        {{ 'myJobs.viewApplicants' | translate }}
+      </a>
+    }
+    @case ('ASSIGNED') {
+      <button
+        type="button"
+        class="my-job-actions__button my-job-actions__button--primary"
+        aria-haspopup="dialog"
+        (click)="openAction('complete')"
+      >
+        <svg class="my-job-actions__icon" [lucideIcon]="icons.check" aria-hidden="true" />
+        {{ 'myJobs.complete' | translate }}
+      </button>
+    }
+    @case ('COMPLETED') {
+      <button
+        type="button"
+        class="my-job-actions__button my-job-actions__button--secondary"
+        aria-haspopup="dialog"
+        (click)="reviewRequested.emit()"
+      >
+        <svg class="my-job-actions__icon" [lucideIcon]="icons.review" aria-hidden="true" />
+        {{
+          (ratings.hasReviewed(job().id) ? 'reviews.viewReview' : 'reviews.reviewJob') | translate
+        }}
+      </button>
+    }
+    @case ('CANCELLED') {
+      <button
+        type="button"
+        class="my-job-actions__button my-job-actions__button--secondary"
+        aria-haspopup="dialog"
+        (click)="detailsRequested.emit()"
+      >
+        {{ 'myJobs.viewDetails' | translate }}
+      </button>
+    }
+  }
+
+  @if (allowed(job(), 'delete')) {
+    <details
+      #menu
+      class="my-job-actions__menu"
+      name="job-actions"
+      (toggle)="menuOpen.set(menu.open)"
+      (focusout)="closeMenuOutside(menu, $event.relatedTarget)"
+      (document:click)="closeMenuOutside(menu, $event.target)"
+    >
+      <summary
+        class="my-job-actions__toggle"
+        [class.my-job-actions__toggle--open]="menuOpen()"
+        [attr.aria-label]="('myJobs.actions' | translate) + ': ' + job().title"
+      >
+        <svg class="my-job-actions__icon" [lucideIcon]="icons.more" aria-hidden="true" />
+      </summary>
+      <div class="my-job-actions__dropdown">
+        @if (allowed(job(), 'edit')) {
+          <button
+            type="button"
+            class="my-job-actions__menu-action"
+            aria-haspopup="dialog"
+            (click)="menu.open = false; openAction('edit')"
+          >
+            <svg class="my-job-actions__icon" [lucideIcon]="icons.edit" aria-hidden="true" />
+            {{ 'myJobs.edit' | translate }}
+          </button>
+        }
+        @if (allowed(job(), 'cancel')) {
+          <button
+            type="button"
+            class="my-job-actions__menu-action my-job-actions__menu-action--danger"
+            aria-haspopup="dialog"
+            (click)="menu.open = false; openAction('cancel')"
+          >
+            <svg class="my-job-actions__icon" [lucideIcon]="icons.cancel" aria-hidden="true" />
+            {{ 'myJobs.cancel' | translate }}
+          </button>
+        }
+        <button
+          type="button"
+          class="my-job-actions__menu-action my-job-actions__menu-action--danger"
+          aria-haspopup="dialog"
+          (click)="menu.open = false; openAction('delete')"
+        >
+          <svg class="my-job-actions__icon" [lucideIcon]="icons.delete" aria-hidden="true" />
+          {{ 'myJobs.delete' | translate }}
+        </button>
+      </div>
+    </details>
+  }
+</div>
+
+@if (selectedAction(); as action) {
+  <app-job-action-dialog
+    [job]="job()"
+    [action]="action"
+    (completed)="actionCompleted($event)"
+    (refreshRequested)="refreshJobs()"
+    (closed)="selectedAction.set(null)"
+  />
+}

@@ -20,7 +20,8 @@ import { TranslationKey } from '../../i18n/language.js';
 import { TranslatePipe } from '../../pipes/translate-pipe.js';
 import { I18nService } from '../../services/i18n.js';
 import { JobService } from '../../services/job.js';
-import { JobFilters as JobFilterValues, emptyFilters } from '../../types/job.js';
+import { JobFilters as JobFilterValues } from '../../types/job.js';
+import { emptyFilters } from '../../utils/job.js';
 import { Select } from '../select/select.js';
 
 @Component({
