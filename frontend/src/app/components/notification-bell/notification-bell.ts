@@ -1,6 +1,5 @@
 import {
   Component,
-  DestroyRef,
   ElementRef,
   HostListener,
   inject,
@@ -17,6 +16,9 @@ import { NotificationService } from '../../services/notification.js';
 import { TranslatePipe } from '../../pipes/translate-pipe.js';
 import { NotificationPanel } from '../notification-panel/notification-panel.js';
 
+const PANEL_MARGIN = 16;
+const NARROW_SCREEN_BREAKPOINT = 1280;
+
 @Component({
   selector: 'app-notification-bell',
   imports: [LucideBell, TranslatePipe, NotificationPanel],
@@ -24,22 +26,22 @@ import { NotificationPanel } from '../notification-panel/notification-panel.js';
   styleUrl: './notification-bell.css',
 })
 export class NotificationBell {
+  private readonly notifications = inject(NotificationService);
+  private readonly router = inject(Router);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+
   readonly controlId = input.required<string>();
   readonly opened = output<void>();
+
   readonly open = signal(false);
-  private readonly notifications = inject(NotificationService);
   readonly unread = this.notifications.unread;
-  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+
   private readonly trigger = viewChild.required<ElementRef<HTMLButtonElement>>('trigger');
+
   private readonly panel = viewChild.required<ElementRef<HTMLElement>>('panel');
 
   constructor() {
-    inject(Router)
-      .events.pipe(
-        filter((event) => event instanceof NavigationStart),
-        takeUntilDestroyed(inject(DestroyRef)),
-      )
-      .subscribe(() => this.close());
+    this.closeOnNavigation();
   }
 
   toggle(): void {
@@ -47,43 +49,43 @@ export class NotificationBell {
       this.close();
       return;
     }
-    this.opened.emit();
-    this.open.set(true);
-    const panel = this.panel().nativeElement;
-    panel.showPopover();
-    const rect = this.trigger().nativeElement.getBoundingClientRect();
-    const viewport = this.host.nativeElement.ownerDocument.documentElement;
-    const mobile = viewport.clientWidth < 1280;
-    const width = Math.min(400, viewport.clientWidth - 32);
-    const rtl = getComputedStyle(this.host.nativeElement).direction === 'rtl';
-    const left = mobile ? (viewport.clientWidth - width) / 2 : rtl ? rect.left : rect.right - width;
-    panel.style.width = `${width}px`;
-    panel.style.left = `${Math.max(16, Math.min(left, viewport.clientWidth - width - 16))}px`;
-    panel.style.top = `${(mobile ? (this.host.nativeElement.closest('.navbar-inner')?.getBoundingClientRect().bottom ?? rect.bottom) : rect.bottom) + 8}px`;
-    panel.focus();
-    if (this.notifications.loadError() && !this.notifications.loading()) this.notifications.load();
+
+    this.showPanel();
   }
 
   close(restoreFocus = false): void {
-    if (!this.open()) return;
+    if (!this.open()) {
+      return;
+    }
+
     this.panel().nativeElement.hidePopover();
     this.open.set(false);
-    if (restoreFocus) this.trigger().nativeElement.focus();
+
+    if (restoreFocus) {
+      this.trigger().nativeElement.focus();
+    }
   }
 
   @HostListener('document:pointerdown', ['$event'])
-  outside(event: PointerEvent): void {
-    if (!this.host.nativeElement.contains(event.target as Node)) this.close();
-  }
-
   @HostListener('document:focusin', ['$event'])
-  focusOutside(event: FocusEvent): void {
-    if (this.open() && !this.host.nativeElement.contains(event.target as Node)) this.close();
+  closeIfOutside(event: Event): void {
+    if (!this.open()) {
+      return;
+    }
+
+    const isInside = this.host.nativeElement.contains(event.target as Node);
+
+    if (!isInside) {
+      this.close();
+    }
   }
 
   @HostListener('keydown.escape', ['$event'])
   escape(event: Event): void {
-    if (!this.open()) return;
+    if (!this.open()) {
+      return;
+    }
+
     event.preventDefault();
     event.stopPropagation();
     this.close(true);
@@ -92,5 +94,83 @@ export class NotificationBell {
   @HostListener('window:resize')
   resize(): void {
     this.close();
+  }
+
+  private closeOnNavigation(): void {
+    this.router.events
+      .pipe(
+        filter((event) => event instanceof NavigationStart),
+        takeUntilDestroyed(),
+      )
+      .subscribe(() => this.close());
+  }
+
+  private showPanel(): void {
+    this.opened.emit();
+    this.open.set(true);
+
+    const panel = this.panel().nativeElement;
+
+    panel.showPopover();
+    this.positionPanel(panel);
+    panel.focus();
+
+    if (this.notifications.loadError() && !this.notifications.loading()) {
+      this.notifications.load();
+    }
+  }
+
+  private positionPanel(panel: HTMLElement): void {
+    const position = this.calculatePanelPosition();
+
+    panel.style.width = `${position.width}px`;
+    panel.style.left = `${position.left}px`;
+    panel.style.top = `${position.top}px`;
+  }
+
+  private calculatePanelPosition(): { width: number; left: number; top: number } {
+    const button = this.trigger().nativeElement.getBoundingClientRect();
+    const screenWidth = this.host.nativeElement.ownerDocument.documentElement.clientWidth;
+
+    const maximumWidth = 400;
+    const availableWidth = screenWidth - PANEL_MARGIN * 2;
+    const width = Math.min(maximumWidth, availableWidth);
+
+    const left = this.calculatePanelLeft(button, screenWidth, width);
+    const top = this.calculatePanelTop(button.bottom, screenWidth);
+
+    return { width, left, top };
+  }
+
+  private calculatePanelLeft(button: DOMRect, screenWidth: number, panelWidth: number): number {
+    const isNarrowScreen = screenWidth < NARROW_SCREEN_BREAKPOINT;
+    const isRtl = getComputedStyle(this.host.nativeElement).direction === 'rtl';
+
+    let left: number;
+
+    if (isNarrowScreen) {
+      left = (screenWidth - panelWidth) / 2;
+    } else if (isRtl) {
+      left = button.left;
+    } else {
+      left = button.right - panelWidth;
+    }
+
+    const maximumLeft = screenWidth - panelWidth - PANEL_MARGIN;
+
+    return Math.max(PANEL_MARGIN, Math.min(left, maximumLeft));
+  }
+
+  private calculatePanelTop(buttonBottom: number, screenWidth: number): number {
+    const gap = 8;
+
+    if (screenWidth >= NARROW_SCREEN_BREAKPOINT) {
+      return buttonBottom + gap;
+    }
+
+    const navbar = this.host.nativeElement.closest('.navbar-inner');
+    const navbarBottom = navbar?.getBoundingClientRect().bottom;
+
+    return (navbarBottom ?? buttonBottom) + gap;
   }
 }
