@@ -8,7 +8,7 @@ import { JobCard } from '../Job-card/job-card.js';
   selector: 'app-job-results',
   imports: [JobCard, TranslatePipe, LucideBriefcaseBusiness, LucideChevronLeft, LucideChevronRight],
   templateUrl: './job-results.html',
-  host: { class: 'block' },
+  styleUrl: './job-results.css',
 })
 export class JobResults {
   readonly jobs = input.required<readonly JobListItem[]>();

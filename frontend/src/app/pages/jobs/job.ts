@@ -18,6 +18,7 @@ import { I18nService } from '../../services/i18n.js';
   selector: 'app-job',
   imports: [Navbar, Footer, JobDetailsModal, JobFilters, JobResults, JobSort, TranslatePipe],
   templateUrl: './job.html',
+  styleUrl: './job.css',
 })
 export class Job implements OnInit {
   private readonly jobService = inject(JobService);
@@ -58,7 +59,6 @@ export class Job implements OnInit {
   }
 
   loadJobs(pageNumber = this.currentPage()): void {
-
     this.request?.unsubscribe();
 
     this.isLoading.set(true);

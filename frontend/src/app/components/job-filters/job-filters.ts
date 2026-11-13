@@ -27,7 +27,7 @@ import { Select } from '../select/select.js';
   selector: 'app-job-filters',
   imports: [NgTemplateOutlet, FormsModule, TranslatePipe, Select, LucideSlidersHorizontal, LucideX],
   templateUrl: './job-filters.html',
-  host: { class: 'block' },
+  styleUrl: './job-filters.css',
 })
 export class JobFilters implements OnInit, OnChanges, OnDestroy {
   private readonly i18n = inject(I18nService);

@@ -1,0 +1,29 @@
+@reference '../../../styles.css';
+
+:host {
+  display: block;
+}
+
+.job-sort {
+  @apply my-4 flex flex-wrap items-end justify-end gap-3;
+}
+
+.job-sort__field {
+  @apply flex min-w-0 items-center gap-2;
+}
+
+.job-sort__label {
+  @apply shrink-0 text-[13px];
+  color: var(--color-gray-500);
+}
+
+.job-sort__select {
+  @apply w-[200px];
+  display: block !important;
+}
+
+@media (width < 48rem) {
+  .job-sort__select {
+    @apply w-[180px];
+  }
+}

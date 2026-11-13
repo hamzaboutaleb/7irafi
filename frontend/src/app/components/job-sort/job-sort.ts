@@ -7,7 +7,7 @@ import { Select } from '../select/select.js';
   selector: 'app-job-sort',
   imports: [Select, TranslatePipe],
   templateUrl: './job-sort.html',
-  host: { class: 'block' },
+  styleUrl: './job-sort.css',
 })
 export class JobSort {
   private readonly i18n = inject(I18nService);

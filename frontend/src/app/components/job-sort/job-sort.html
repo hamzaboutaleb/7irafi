@@ -1,10 +1,10 @@
-<div class="my-4 flex flex-wrap items-end justify-end gap-3">
-  <div class="flex min-w-0 items-center gap-2">
-    <label for="jobs-sort" class="shrink-0 text-[13px] text-gray-500">
+<div class="job-sort">
+  <div class="job-sort__field">
+    <label for="jobs-sort" class="job-sort__label">
       {{ 'jobs.sortBy' | translate }}
     </label>
     <app-select
-      class="block! w-[200px] max-md:w-[180px]"
+      class="job-sort__select"
       controlId="jobs-sort"
       [label]="'jobs.sortBy' | translate"
       [options]="sortOptions()"

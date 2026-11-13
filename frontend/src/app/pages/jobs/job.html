@@ -1,11 +1,11 @@
 <app-navbar />
-<main class="min-h-screen bg-gray-50 px-4 pt-6 pb-10 md:px-6 md:pt-8 md:pb-12">
-  <section class="mx-auto max-w-[1120px]" aria-labelledby="jobs-heading">
-    <header class="mb-6">
-      <h1 id="jobs-heading" class="text-[28px] leading-9 font-semibold text-gray-900">
+<main class="job-page">
+  <section class="job-page__content" aria-labelledby="jobs-heading">
+    <header class="job-page__header">
+      <h1 id="jobs-heading" class="job-page__title">
         {{ 'jobs.findWork' | translate }}
       </h1>
-      <p class="mt-1 text-sm leading-6 text-gray-500">{{ 'jobs.subtitle' | translate }}</p>
+      <p class="job-page__subtitle">{{ 'jobs.subtitle' | translate }}</p>
     </header>
 
     <app-job-filters [filters]="filters()" (filtersChange)="applyFilters($event)" />
