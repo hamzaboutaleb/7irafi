@@ -4,7 +4,9 @@
   <div class="mx-auto max-w-3xl">
     <header class="mb-8">
       <p class="text-sm font-semibold text-primary-600">{{ 'proProfile.eyebrow' | translate }}</p>
-      <h1 class="mt-2 text-3xl font-bold text-gray-900">{{ 'profile.professional' | translate }}</h1>
+      <h1 class="mt-2 text-3xl font-bold text-gray-900">
+        {{ 'profile.professional' | translate }}
+      </h1>
       <p class="mt-2 max-w-2xl text-gray-600">
         {{ 'proProfile.intro' | translate }}
       </p>
@@ -60,7 +62,9 @@
 
           @if (professionalProfile(); as currentProfile) {
             <div class="shrink-0">
-              <p class="text-xs font-medium uppercase tracking-wide text-gray-500">{{ 'proProfile.status' | translate }}</p>
+              <p class="text-xs font-medium uppercase tracking-wide text-gray-500">
+                {{ 'proProfile.status' | translate }}
+              </p>
               <span
                 class="mt-1 inline-flex min-h-11 items-center rounded-full bg-primary-50 px-4 py-2 text-sm font-semibold text-primary-700"
               >
@@ -71,7 +75,9 @@
         </div>
 
         @if (professionalProfile()?.onboardingStatus === 'SUSPENDED') {
-          <div class="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <div
+            class="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"
+          >
             {{ 'proProfile.suspended' | translate }}
           </div>
         }
@@ -119,7 +125,9 @@
           </div>
 
           <fieldset>
-            <legend class="text-sm font-semibold text-gray-800">{{ 'profile.servicesProvided' | translate }}</legend>
+            <legend class="text-sm font-semibold text-gray-800">
+              {{ 'profile.servicesProvided' | translate }}
+            </legend>
             <p id="categories-help" class="mt-1 text-sm text-gray-500">
               {{ 'proProfile.selectCategory' | translate }}
             </p>
@@ -156,12 +164,16 @@
             </div>
 
             @if (categoryCodes.invalid && categoryCodes.touched) {
-              <p id="categories-error" class="mt-2 text-sm font-medium text-red-600" role="alert">{{ 'proProfile.selectCategory' | translate }}</p>
+              <p id="categories-error" class="mt-2 text-sm font-medium text-red-600" role="alert">
+                {{ 'proProfile.selectCategory' | translate }}
+              </p>
             }
           </fieldset>
 
           <fieldset>
-            <legend class="text-sm font-semibold text-gray-800">{{ 'proProfile.cities' | translate }}</legend>
+            <legend class="text-sm font-semibold text-gray-800">
+              {{ 'proProfile.cities' | translate }}
+            </legend>
             <p id="cities-help" class="mt-1 text-sm text-gray-500">
               {{ 'proProfile.citiesHint' | translate }}
             </p>
@@ -197,9 +209,7 @@
             }
           </fieldset>
 
-          <div
-            class="ui-dialog-actions"
-          >
+          <div class="ui-dialog-actions">
             <a
               routerLink="/profile"
               class="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-700 transition-colors duration-200 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2"
