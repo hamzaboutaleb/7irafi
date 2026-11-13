@@ -11,7 +11,7 @@ import { AppNotification } from '../../types/notification.js';
   selector: 'app-notification-panel',
   imports: [DatePipe, TranslatePipe, LucideBell, LucideX],
   templateUrl: './notification-panel.html',
-  host: { class: 'block' },
+  styleUrl: './notification-panel.css',
 })
 export class NotificationPanel {
   private readonly notifications = inject(NotificationService);
@@ -20,8 +20,11 @@ export class NotificationPanel {
   readonly headingId = input('notifications-heading');
   readonly activated = output<void>();
   readonly dismissRequested = output<void>();
-  readonly items = computed(() => [...this.notifications.list()].sort(
-    (a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)));
+  readonly items = computed(() =>
+    [...this.notifications.list()].sort(
+      (a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt),
+    ),
+  );
   readonly unread = this.notifications.unread;
   readonly loading = this.notifications.loading;
   readonly loadError = this.notifications.loadError;

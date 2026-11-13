@@ -1,4 +1,14 @@
-import { Component, DestroyRef, ElementRef, HostListener, inject, input, output, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  HostListener,
+  inject,
+  input,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { NavigationStart, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
@@ -11,7 +21,7 @@ import { NotificationPanel } from '../notification-panel/notification-panel.js';
   selector: 'app-notification-bell',
   imports: [LucideBell, TranslatePipe, NotificationPanel],
   templateUrl: './notification-bell.html',
-  host: { class: 'inline-flex' },
+  styleUrl: './notification-bell.css',
 })
 export class NotificationBell {
   readonly controlId = input.required<string>();
@@ -24,14 +34,19 @@ export class NotificationBell {
   private readonly panel = viewChild.required<ElementRef<HTMLElement>>('panel');
 
   constructor() {
-    inject(Router).events.pipe(
-      filter(event => event instanceof NavigationStart),
-      takeUntilDestroyed(inject(DestroyRef)),
-    ).subscribe(() => this.close());
+    inject(Router)
+      .events.pipe(
+        filter((event) => event instanceof NavigationStart),
+        takeUntilDestroyed(inject(DestroyRef)),
+      )
+      .subscribe(() => this.close());
   }
 
   toggle(): void {
-    if (this.open()) { this.close(); return; }
+    if (this.open()) {
+      this.close();
+      return;
+    }
     this.opened.emit();
     this.open.set(true);
     const panel = this.panel().nativeElement;
@@ -44,7 +59,7 @@ export class NotificationBell {
     const left = mobile ? (viewport.clientWidth - width) / 2 : rtl ? rect.left : rect.right - width;
     panel.style.width = `${width}px`;
     panel.style.left = `${Math.max(16, Math.min(left, viewport.clientWidth - width - 16))}px`;
-    panel.style.top = `${(mobile ? this.host.nativeElement.closest('.navbar-inner')?.getBoundingClientRect().bottom ?? rect.bottom : rect.bottom) + 8}px`;
+    panel.style.top = `${(mobile ? (this.host.nativeElement.closest('.navbar-inner')?.getBoundingClientRect().bottom ?? rect.bottom) : rect.bottom) + 8}px`;
     panel.focus();
     if (this.notifications.loadError() && !this.notifications.loading()) this.notifications.load();
   }
@@ -75,5 +90,7 @@ export class NotificationBell {
   }
 
   @HostListener('window:resize')
-  resize(): void { this.close(); }
+  resize(): void {
+    this.close();
+  }
 }
