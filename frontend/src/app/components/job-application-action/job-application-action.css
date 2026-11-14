@@ -1,0 +1,73 @@
+@reference '../../../styles.css';
+
+:host {
+  display: contents;
+}
+
+.job-application-action__note,
+.job-application-action__applied,
+.job-application-action__error {
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.job-application-action__note {
+  color: var(--color-gray-500);
+}
+
+.job-application-action__applied {
+  @apply flex items-center gap-1.5;
+  color: var(--color-primary-800);
+}
+
+.job-application-action__icon {
+  @apply size-4 shrink-0;
+  stroke-width: 1.5;
+}
+
+.job-application-action__link {
+  @apply inline-flex min-h-11 cursor-pointer items-center underline;
+  color: var(--color-primary-800);
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+  text-underline-offset: 4px;
+}
+
+.job-application-action__button {
+  @apply inline-flex min-h-11 cursor-pointer items-center justify-center rounded-lg;
+  padding: 8px 20px;
+  border: 1px solid transparent;
+  background-color: var(--color-primary-700);
+  color: var(--color-white);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.job-application-action__button:hover:enabled {
+  background-color: var(--color-primary-800);
+}
+
+.job-application-action__button:focus-visible,
+.job-application-action__link:focus-visible {
+  outline: 2px solid var(--color-primary-700);
+  outline-offset: 2px;
+}
+
+.job-application-action__button:disabled,
+.job-application-action__link:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.job-application-action__error {
+  color: var(--color-red-700);
+}
+
+@media (max-width: 639px) {
+  .job-application-action__button {
+    padding-inline: 16px;
+  }
+}

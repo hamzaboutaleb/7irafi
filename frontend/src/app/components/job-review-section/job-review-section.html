@@ -1,0 +1,57 @@
+@if (rateeId(); as recipientId) {
+  <section
+    class="job-review-section"
+    aria-labelledby="job-rating-heading"
+    [attr.aria-busy]="reviewState() === 'loading'"
+  >
+    <div class="job-review-section__heading">
+      <h3 id="job-rating-heading" class="job-review-section__title">
+        {{
+          (savedReview() ? 'reviews.saved' : isOwner() ? 'reviews.professional' : 'reviews.client')
+            | translate
+        }}
+      </h3>
+    </div>
+    @if (reviewState() === 'loading') {
+      <p class="job-review-section__message" role="status">{{ 'reviews.checking' | translate }}</p>
+    } @else if (reviewState() === 'error') {
+      <p class="job-review-section__message" role="alert">{{ 'reviews.checkError' | translate }}</p>
+      <button type="button" class="job-review-section__action" (click)="loadReview()">
+        {{ 'common.retry' | translate }}
+      </button>
+    } @else if (savedReview(); as review) {
+      @if (ratingSubmitted()) {
+        <p class="job-review-section__success" role="status">{{ 'reviews.thanks' | translate }}</p>
+      }
+      <div class="job-review-section__saved-heading">
+        <app-rating-stars [score]="review.score" />
+        <time class="job-review-section__date" [attr.datetime]="review.createdAt">{{
+          dateLabel(review.createdAt)
+        }}</time>
+      </div>
+      @if (review.rateeName) {
+        <p class="job-review-section__recipient">
+          {{ 'reviews.for' | translate: { name: review.rateeName } }}
+        </p>
+      }
+      @if (review.comment) {
+        <p class="job-review-section__comment" dir="auto">{{ review.comment }}</p>
+      }
+    } @else if (ratingOpen()) {
+      <app-rating-form
+        [jobId]="job().id"
+        [rateeId]="recipientId"
+        [recipientName]="recipientName()"
+        (busyChange)="busy.set($event)"
+        (submitted)="reviewSaved($event)"
+        (reloadRequested)="loadReview()"
+        (cancelled)="ratingOpen.set(false)"
+      />
+    } @else {
+      <p class="job-review-section__message">{{ 'reviews.formHint' | translate }}</p>
+      <button type="button" class="job-review-section__action" (click)="openReview()">
+        {{ 'reviews.leave' | translate }}
+      </button>
+    }
+  </section>
+}
