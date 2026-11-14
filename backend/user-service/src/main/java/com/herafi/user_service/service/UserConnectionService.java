@@ -8,15 +8,17 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.herafi.user_service.entity.ProfessionalOnboardingStatus;
 import com.herafi.user_service.entity.ProfessionalProfile;
 import com.herafi.user_service.entity.UserConnection;
+import com.herafi.user_service.event.NotificationRequestedEvent;
 import com.herafi.user_service.exception.ConnectionNotFoundException;
 import com.herafi.user_service.exception.NotAProfessionalException;
 import com.herafi.user_service.exception.SelfConnectionException;
 import com.herafi.user_service.repository.ProfessionalProfileRepository;
-import com.herafi.user_service.client.NotificationClient;
 import com.herafi.user_service.repository.UserConnectionRepository;
 
 /**
@@ -30,15 +32,15 @@ public class UserConnectionService {
 
     private final UserConnectionRepository userConnectionRepository;
     private final ProfessionalProfileRepository professionalProfileRepository;
-    private final NotificationClient notificationClient;
+    private final NotificationPublisher notificationPublisher;
 
     public UserConnectionService(
             UserConnectionRepository userConnectionRepository,
             ProfessionalProfileRepository professionalProfileRepository,
-            NotificationClient notificationClient) {
+            NotificationPublisher notificationPublisher) {
         this.userConnectionRepository = userConnectionRepository;
         this.professionalProfileRepository = professionalProfileRepository;
-        this.notificationClient = notificationClient;
+        this.notificationPublisher = notificationPublisher;
     }
 
     @Transactional
@@ -70,12 +72,13 @@ public class UserConnectionService {
 
         // Only on a genuinely new row: a double-click returns above, so nobody
         // gets told twice that the same person saved them.
-        notificationClient.notify(
-                targetId,
+        var notification = new NotificationRequestedEvent(
+                UUID.randomUUID(), targetId,
                 "NETWORK_CONNECTION_ADDED",
                 "Someone saved your profile",
                 "A client added you to their network of professionals.",
                 "/professionals");
+        afterCommit(() -> notificationPublisher.publish(notification));
     }
 
     @Transactional
@@ -108,5 +111,14 @@ public class UserConnectionService {
         return professionalProfileRepository.findByUserIdInAndOnboardingStatus(
                 savedIds,
                 ProfessionalOnboardingStatus.ACTIVE);
+    }
+
+    private void afterCommit(Runnable action) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                action.run();
+            }
+        });
     }
 }

@@ -12,12 +12,12 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.herafi.application_service.client.JobClient;
-import com.herafi.application_service.client.NotificationClient;
 import com.herafi.application_service.client.UserClient;
 import com.herafi.application_service.dto.ApplicationResponse;
 import com.herafi.application_service.dto.ChatContextResponse;
 import com.herafi.application_service.dto.PageResponse;
 import com.herafi.application_service.entity.JobApplication;
+import com.herafi.application_service.event.NotificationRequestedEvent;
 import com.herafi.application_service.exceptions.ApplicationException;
 import com.herafi.application_service.repository.JobApplicationRepository;
 
@@ -35,7 +35,7 @@ public class JobApplicationService {
     private final JobApplicationRepository repository;
     private final JobClient jobClient;
     private final UserClient userClient;
-    private final NotificationClient notificationClient;
+    private final NotificationPublisher notificationPublisher;
     private final MeterRegistry meterRegistry;
     private final ApplicationSubmissionService submissionService;
 
@@ -51,6 +51,9 @@ public class JobApplicationService {
                     "Applications are only allowed for open jobs");
         }
         JobApplication application = submissionService.submit(job, applicantId);
+        var notification = new NotificationRequestedEvent(UUID.randomUUID(), job.clientId(),
+                "APPLICATION_RECEIVED", "New application",
+                "A professional applied to your job.", "/jobs/" + jobId + "/applicants");
         afterCommit(() -> {
             Counter.builder("herafi.applications.submitted")
                     .description("Job applications submitted")
@@ -58,9 +61,7 @@ public class JobApplicationService {
                     .increment();
             log.atInfo().addKeyValue("event", "application_submitted")
                     .log("Application submitted applicationId={}", application.getId());
-            notificationClient.notify(
-                    job.clientId(), "APPLICATION_RECEIVED", "New application",
-                    "A professional applied to your job.", "/jobs/" + jobId + "/applicants");
+            notificationPublisher.publish(notification);
         });
 
         return new ApplicationResponse(application.getId(), jobId, applicantId,
@@ -105,12 +106,12 @@ public class JobApplicationService {
             log.atInfo().addKeyValue("event", "application_accepted")
                     .log("Application accepted applicationId={}", applicationId);
 
-            notificationClient.notify(
-                    application.getApplicantId(),
+            notificationPublisher.publish(new NotificationRequestedEvent(
+                    UUID.randomUUID(), application.getApplicantId(),
                     "APPLICATION_ACCEPTED",
                     "You were accepted",
                     "A client accepted your application. You can now agree the details.",
-                    "/applications");
+                    "/applications"));
         }
         return new ApplicationResponse(application.getId(), application.getJobId(),
                 application.getApplicantId(), application.getCreatedAt(),

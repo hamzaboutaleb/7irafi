@@ -1,4 +1,4 @@
-package com.herafi.notification_service.dto;
+package com.herafi.application_service.event;
 
 import java.util.UUID;
 
@@ -6,11 +6,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-/**
- * What another service sends when something happened. The producing service
- * decides the wording, because only it knows the context.
- */
-public record CreateNotificationRequest(
+public record NotificationRequestedEvent(
+        @NotNull UUID eventId,
         @NotNull UUID recipientId,
         @NotBlank @Size(max = 60) String type,
         @NotBlank @Size(max = 150) String title,

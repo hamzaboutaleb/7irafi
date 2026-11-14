@@ -18,13 +18,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class TrustedCallerFilter extends OncePerRequestFilter {
     private final String gatewaySharedSecret;
-    private final String internalApiKey;
 
     public TrustedCallerFilter(
-            @Value("${service.security.gateway-shared-secret}") String gatewaySharedSecret,
-            @Value("${service.security.internal-api-key}") String internalApiKey) {
+            @Value("${service.security.gateway-shared-secret}") String gatewaySharedSecret) {
         this.gatewaySharedSecret = gatewaySharedSecret;
-        this.internalApiKey = internalApiKey;
     }
 
     @Override
@@ -36,12 +33,6 @@ public class TrustedCallerFilter extends OncePerRequestFilter {
 
         if (path.startsWith("/notifications") && !matches(request.getHeader("X-Gateway-Key"), gatewaySharedSecret)) {
             reject(response, "UNTRUSTED_GATEWAY", "Request did not come from the API gateway");
-            return;
-        }
-
-        if (path.startsWith("/internal/")
-                && !matches(request.getHeader("X-Internal-Api-Key"), internalApiKey)) {
-            reject(response, "UNAUTHORIZED_INTERNAL_REQUEST", "Invalid internal service key");
             return;
         }
 

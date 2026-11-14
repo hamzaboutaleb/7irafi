@@ -14,6 +14,8 @@ import com.herafi.notification_service.entity.Notification;
 
 public interface NotificationRepository extends JpaRepository<Notification, UUID> {
 
+    boolean existsByEventId(UUID eventId);
+
     Page<Notification> findByRecipientId(UUID recipientId, Pageable pageable);
 
     long countByRecipientIdAndReadAtIsNull(UUID recipientId);

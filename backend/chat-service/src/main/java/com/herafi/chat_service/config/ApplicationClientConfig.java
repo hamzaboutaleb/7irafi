@@ -12,6 +12,8 @@ import org.springframework.web.client.RestClient;
 
 @Configuration
 public class ApplicationClientConfig {
+    // Eureka also injects a RestClient.Builder. It needs a direct HTTP client
+    // to reach the registry before service discovery is available.
     @Primary
     @Bean
     RestClient.Builder restClientBuilder(RequestIdInterceptor requestIdInterceptor) {
