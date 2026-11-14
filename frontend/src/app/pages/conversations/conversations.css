@@ -1,0 +1,246 @@
+@reference '../../../styles.css';
+
+:host {
+  @apply block;
+}
+
+.conversations {
+  @apply bg-gray-50;
+  height: calc(100dvh - 69px);
+  min-height: 0;
+  padding: 1rem;
+}
+
+.conversations__container {
+  @apply mx-auto flex h-full flex-col;
+  max-width: 1200px;
+  gap: 1rem;
+}
+
+.conversations__title {
+  @apply text-gray-900;
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 600;
+}
+
+.conversations__subtitle {
+  @apply text-gray-500;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.conversations__shell {
+  @apply grid flex-1 overflow-hidden rounded-xl border border-gray-200 bg-white;
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.conversations__sidebar {
+  @apply flex flex-col;
+  min-height: 0;
+}
+
+.conversations__search {
+  @apply relative shrink-0 border-b border-gray-100;
+  padding: 1rem;
+}
+
+.conversations__icon {
+  @apply shrink-0;
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.5;
+}
+
+.conversations__icon--search {
+  @apply pointer-events-none absolute text-gray-500;
+  inset-inline-start: 1.75rem;
+  top: 30px;
+  width: 1rem;
+  height: 1rem;
+}
+
+.conversations__search-input {
+  @apply w-full rounded-lg border border-gray-200 bg-gray-50 text-gray-900;
+  min-height: 2.75rem;
+  padding-block: 0.5rem;
+  padding-inline-start: 2.25rem;
+  padding-inline-end: 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.conversations__search-input:focus-visible,
+.conversations__action:focus-visible,
+.conversations__row:focus-visible {
+  outline: 2px solid var(--color-primary-700);
+  outline-offset: 2px;
+}
+
+.conversations__list-content {
+  @apply flex-1 overflow-y-auto overscroll-contain;
+  min-height: 0;
+}
+
+.conversations__state {
+  @apply grid text-gray-500;
+  gap: 0.75rem;
+  padding: 1.5rem 1rem;
+  font-size: 0.875rem;
+  line-height: 1.5rem;
+}
+
+.conversations__state--empty {
+  @apply justify-items-start;
+}
+
+.conversations__icon--empty,
+.conversations__icon--placeholder {
+  @apply text-gray-400;
+  width: 2rem;
+  height: 2rem;
+}
+
+.conversations__state-title {
+  @apply text-gray-700;
+  font-weight: 500;
+}
+
+.conversations__action {
+  @apply inline-flex cursor-pointer items-center justify-self-start text-primary-800 underline underline-offset-4;
+  min-height: 2.75rem;
+  font-weight: 500;
+}
+
+.conversations__list {
+  padding: 0.25rem 0.5rem;
+}
+
+.conversations__item:not(:last-child) {
+  @apply border-b border-gray-100;
+}
+
+.conversations__row {
+  @apply flex items-center rounded-lg;
+  min-height: 5rem;
+  gap: 0.75rem;
+  padding: 1rem 0.75rem;
+  transition-property:
+    color, background-color, border-color, outline-color, text-decoration-color, fill, stroke,
+    --tw-gradient-from, --tw-gradient-via, --tw-gradient-to;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.conversations__row:focus-visible {
+  outline-offset: -2px;
+}
+
+.conversations__avatar {
+  @apply shrink-0 rounded-full object-cover;
+  width: 2.75rem;
+  height: 2.75rem;
+}
+
+.conversations__avatar--fallback {
+  @apply grid place-items-center bg-gray-100 text-gray-600;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 500;
+}
+
+.conversations__labels {
+  @apply grid;
+  min-width: 0;
+  gap: 0.25rem;
+}
+
+.conversations__name {
+  @apply truncate text-gray-900;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+}
+
+.conversations__job {
+  @apply truncate text-gray-500;
+  font-size: 13px;
+  line-height: 1.25rem;
+}
+
+.conversations__thread {
+  @apply flex flex-col;
+  min-height: 0;
+  min-width: 0;
+}
+
+.conversations__placeholder {
+  @apply flex flex-1 flex-col items-center justify-center text-center;
+  gap: 0.75rem;
+  padding: 2rem;
+}
+
+.conversations__placeholder-title {
+  @apply text-gray-700;
+  font-size: 1.125rem;
+  line-height: 1.5rem;
+  font-weight: 500;
+}
+
+.conversations__placeholder-hint {
+  @apply text-gray-500;
+  max-width: 280px;
+  font-size: 0.875rem;
+  line-height: 1.5rem;
+}
+
+@media (width < 48rem) {
+  .conversations--thread-open .conversations__heading,
+  .conversations--thread-open .conversations__sidebar,
+  .conversations:not(.conversations--thread-open) .conversations__thread {
+    @apply hidden;
+  }
+}
+
+@media (width >= 48rem) {
+  .conversations {
+    min-height: 440px;
+    padding: 1.5rem;
+  }
+
+  .conversations__container {
+    gap: 1.25rem;
+  }
+
+  .conversations__title {
+    font-size: 28px;
+    line-height: 2.25rem;
+  }
+
+  .conversations__shell {
+    grid-template-columns: 320px minmax(0, 1fr);
+  }
+
+  .conversations__sidebar {
+    @apply border-e border-gray-200;
+  }
+}
+
+@media (hover: hover) {
+  .conversations__row:hover {
+    @apply bg-gray-50;
+  }
+}
+
+.conversations__row--selected,
+.conversations__row--selected:hover {
+  @apply bg-primary-50;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .conversations__row {
+    transition-property: none;
+  }
+}

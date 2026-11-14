@@ -12,7 +12,6 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Test;
 
 import com.herafi.application_service.client.JobClient;
-import com.herafi.application_service.client.NotificationClient;
 import com.herafi.application_service.client.UserClient;
 import com.herafi.application_service.entity.JobApplication;
 import com.herafi.application_service.repository.JobApplicationRepository;
@@ -25,11 +24,11 @@ class JobApplicationServiceMetricsTests {
         JobApplicationRepository repository = mock(JobApplicationRepository.class);
         JobClient jobClient = mock(JobClient.class);
         UserClient userClient = mock(UserClient.class);
-        NotificationClient notificationClient = mock(NotificationClient.class);
+        NotificationPublisher notificationPublisher = mock(NotificationPublisher.class);
         ApplicationSubmissionService submissionService = mock(ApplicationSubmissionService.class);
 
         JobApplicationService service = new JobApplicationService(
-                repository, jobClient, userClient, notificationClient, registry, submissionService);
+                repository, jobClient, userClient, notificationPublisher, registry, submissionService);
 
         UUID jobId = UUID.randomUUID();
         UUID applicantId = UUID.randomUUID();
@@ -51,11 +50,11 @@ class JobApplicationServiceMetricsTests {
         JobApplicationRepository repository = mock(JobApplicationRepository.class);
         JobClient jobClient = mock(JobClient.class);
         UserClient userClient = mock(UserClient.class);
-        NotificationClient notificationClient = mock(NotificationClient.class);
+        NotificationPublisher notificationPublisher = mock(NotificationPublisher.class);
         ApplicationSubmissionService submissionService = mock(ApplicationSubmissionService.class);
 
         JobApplicationService service = new JobApplicationService(
-                repository, jobClient, userClient, notificationClient, registry, submissionService);
+                repository, jobClient, userClient, notificationPublisher, registry, submissionService);
 
         UUID applicationId = UUID.randomUUID();
         UUID jobId = UUID.randomUUID();

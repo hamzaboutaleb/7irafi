@@ -91,8 +91,8 @@ for the exact evidence and demo sequence. The supporting architecture notes cove
 ## Kafka foundation
 
 Local development now includes a single-node KRaft Kafka broker with separate internal
-and host listeners, persistent storage, and automatic creation of `analytics.events`
-and `jobs.lifecycle`. Both job-service and application-service have their Kafka client
+and host listeners, persistent storage, and automatic creation of `analytics.events`,
+`jobs.lifecycle`, and `notification.request`. Both job-service and application-service have their Kafka client
 connections configured. Both services publish analytics events through their own
 database outboxes with retries and ordering per entity. Application-service consumes
 job lifecycle events to derive accepted/rejected analytics outcomes, with duplicate

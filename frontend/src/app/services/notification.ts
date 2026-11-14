@@ -22,6 +22,7 @@ export class NotificationService {
   private connectedToken: string | null = null;
 
   private readonly items = signal<AppNotification[]>([]);
+
   readonly list = this.items.asReadonly();
   readonly loading = signal(false);
   readonly loadError = signal(false);
@@ -30,68 +31,61 @@ export class NotificationService {
   /** Safe to call repeatedly; reconnects only if the tab's account changed. */
   connect(): void {
     const token = this.auth.getToken();
+
     if (!token) {
       this.disconnect();
       return;
     }
 
-    if (this.client && this.connectedToken === token) return;
+    const hasClientForCurrentToken = this.client !== null && this.connectedToken === token;
+
+    if (hasClientForCurrentToken) {
+      return;
+    }
 
     this.disconnect();
     this.connectedToken = token;
     this.load();
 
-    this.client = new Client({
-      brokerURL: environment.notificationSocketUrl || this.sameHostSocketUrl(),
-      reconnectDelay: 3000,
-      heartbeatIncoming: 10000,
-      heartbeatOutgoing: 10000,
-      beforeConnect: (client) => {
-        client.connectHeaders = { Authorization: `Bearer ${this.auth.getToken() ?? ''}` };
-      },
-      onConnect: () => {
-        this.client?.subscribe('/user/queue/notifications', (frame) => {
-          const notification = JSON.parse(frame.body) as AppNotification;
-          // Prepended, and deduplicated by id: a reload after a reconnect can
-          // return something already shown live.
-          this.items.update((current) => [
-            notification,
-            ...current.filter((item) => item.id !== notification.id),
-          ]);
-        });
-
-        // Anything that arrived while the socket was down is only in the database.
-        this.load();
-      },
-      onStompError: () => this.disconnect(),
-    });
-
+    this.client = this.createClient();
     this.client.activate();
   }
 
   disconnect(): void {
-    const client = this.client;
+    const previousClient = this.client;
+
     this.client = null;
     this.connectedToken = null;
     this.items.set([]);
     this.loading.set(false);
     this.loadError.set(false);
-    void client?.deactivate();
+
+    if (previousClient) {
+      void previousClient.deactivate();
+    }
   }
 
   load(): void {
     const token = this.connectedToken;
+
     this.loading.set(true);
     this.loadError.set(false);
-    this.http.get<Page<AppNotification>>('notifications', { params: { page: 0, size: 20 } })
+    this.http
+      .get<Page<AppNotification>>('notifications', { params: { page: 0, size: 20 } })
       .subscribe({
         next: (page) => {
-          if (this.connectedToken !== token) return;
+          if (this.connectedToken !== token) {
+            return;
+          }
+
           this.items.set(page.content);
           this.loading.set(false);
         },
         error: () => {
-          if (this.connectedToken !== token) return;
+          if (this.connectedToken !== token) {
+            return;
+          }
+
           // Keep existing activity visible, but distinguish failure from no activity.
           this.loading.set(false);
           this.loadError.set(true);
@@ -100,26 +94,83 @@ export class NotificationService {
   }
 
   markRead(notification: AppNotification): void {
-    if (notification.read) return;
+    if (notification.read) {
+      return;
+    }
 
     // Updated immediately: the person clicked it, and a failed call is corrected
     // by the next load.
-    this.items.update((current) =>
-      current.map((item) => (item.id === notification.id ? { ...item, read: true } : item)));
+    this.items.update((current) => {
+      return current.map((item) => {
+        if (item.id !== notification.id) {
+          return item;
+        }
 
-    this.http.patch<AppNotification>(`notifications/${notification.id}/read`, null)
+        return { ...item, read: true };
+      });
+    });
+
+    this.http
+      .patch<AppNotification>(`notifications/${notification.id}/read`, null)
       .subscribe({ error: () => this.load() });
   }
 
   markAllRead(): void {
     this.items.update((current) => current.map((item) => ({ ...item, read: true })));
 
-    this.http.patch<{ unread: number }>('notifications/read', null)
+    this.http
+      .patch<{ unread: number }>('notifications/read', null)
       .subscribe({ error: () => this.load() });
   }
 
-  private sameHostSocketUrl(): string {
-    const scheme = location.protocol === 'https:' ? 'wss' : 'ws';
+  private createClient(): Client {
+    return new Client({
+      brokerURL: this.getSocketUrl(),
+      reconnectDelay: 3000,
+      heartbeatIncoming: 10000,
+      heartbeatOutgoing: 10000,
+
+      beforeConnect: (client) => {
+        const token = this.auth.getToken() ?? '';
+
+        client.connectHeaders = {
+          Authorization: `Bearer ${token}`,
+        };
+      },
+
+      onConnect: () => {
+        this.client?.subscribe('/user/queue/notifications', (frame) => {
+          const notification = JSON.parse(frame.body) as AppNotification;
+
+          this.addNotification(notification);
+        });
+
+        // Reload notifications missed while the socket was disconnected.
+        this.load();
+      },
+
+      onStompError: () => {
+        this.disconnect();
+      },
+    });
+  }
+
+  private addNotification(notification: AppNotification): void {
+    this.items.update((current) => {
+      const otherNotifications = current.filter((item) => item.id !== notification.id);
+
+      return [notification, ...otherNotifications];
+    });
+  }
+
+  private getSocketUrl(): string {
+    if (environment.notificationSocketUrl) {
+      return environment.notificationSocketUrl;
+    }
+
+    const usesHttps = location.protocol === 'https:';
+    const scheme = usesHttps ? 'wss' : 'ws';
+
     return `${scheme}://${location.host}/notifications-ws`;
   }
 }

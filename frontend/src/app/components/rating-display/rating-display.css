@@ -1,0 +1,111 @@
+@reference '../../../styles.css';
+
+:host {
+  @apply block;
+}
+
+.rating-display {
+  @apply grid items-center gap-8;
+  grid-template-columns: minmax(9rem, 1fr) minmax(12rem, 2fr);
+  padding-block: 1rem 1.75rem;
+}
+
+/* Average score and total review count. */
+.rating-display__label,
+.rating-display__count {
+  color: #68747e;
+  font-size: 0.8125rem;
+}
+
+.rating-display__score-line {
+  @apply flex items-baseline;
+  gap: 0.4rem;
+  margin-block: 0.25rem 0.5rem;
+}
+
+.rating-display__score {
+  color: #17212b;
+  font-size: 2.75rem;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+}
+
+.rating-display__scale {
+  @apply text-gray-400;
+  font-size: 0.9rem;
+}
+
+.rating-display__count {
+  margin-block-start: 0.4rem;
+}
+
+/* One distribution row per score, from five stars down to one. */
+.rating-display__distribution {
+  @apply grid gap-2;
+}
+
+.rating-display__distribution-row {
+  @apply grid items-center gap-3 text-gray-500;
+  grid-template-columns: 2.25rem 1fr 2rem;
+  font-size: 0.75rem;
+}
+
+.rating-display__distribution-label {
+  @apply flex items-center;
+  gap: 0.4rem;
+}
+
+.rating-display__star {
+  color: #b7790b;
+}
+
+.rating-display__bar {
+  @apply overflow-hidden;
+  height: 0.45rem;
+  background: #f1f3f5;
+  border-radius: 1rem;
+}
+
+.rating-display__bar-fill {
+  @apply h-full;
+  background: #f0b544;
+  border-radius: inherit;
+}
+
+.rating-display__distribution-count {
+  @apply text-end tabular-nums;
+}
+
+/* Compact summary used by the dashboard sidebar. */
+.rating-display--compact {
+  @apply flex p-0;
+}
+
+.rating-display--compact .rating-display__label {
+  @apply hidden;
+}
+
+.rating-display--compact .rating-display__score-line {
+  @apply gap-1;
+  margin-block: 0 0.25rem;
+}
+
+.rating-display--compact .rating-display__score {
+  @apply font-medium;
+  font-size: 1.25rem;
+}
+
+.rating-display--compact .rating-display__scale {
+  font-size: 0.8125rem;
+}
+
+.rating-display--compact .rating-display__count {
+  @apply mt-1;
+  font-size: 0.75rem;
+}
+
+@media (max-width: 480px) {
+  .rating-display {
+    @apply grid-cols-1 gap-5;
+  }
+}

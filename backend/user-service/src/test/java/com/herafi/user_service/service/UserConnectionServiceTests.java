@@ -1,12 +1,12 @@
 package com.herafi.user_service.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -18,15 +18,18 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionSynchronizationUtils;
 
-import com.herafi.user_service.client.NotificationClient;
 import com.herafi.user_service.entity.ProfessionalOnboardingStatus;
 import com.herafi.user_service.entity.ProfessionalProfile;
 import com.herafi.user_service.entity.UserConnection;
 import com.herafi.user_service.entity.UserProfile;
+import com.herafi.user_service.event.NotificationRequestedEvent;
 import com.herafi.user_service.exception.ConnectionNotFoundException;
 import com.herafi.user_service.exception.NotAProfessionalException;
 import com.herafi.user_service.exception.SelfConnectionException;
@@ -37,7 +40,7 @@ class UserConnectionServiceTests {
 
     private UserConnectionRepository userConnectionRepository;
     private ProfessionalProfileRepository professionalProfileRepository;
-    private NotificationClient notificationClient;
+    private NotificationPublisher notificationPublisher;
     private UserConnectionService service;
 
     private UUID owner;
@@ -47,12 +50,18 @@ class UserConnectionServiceTests {
     void setUp() {
         userConnectionRepository = mock(UserConnectionRepository.class);
         professionalProfileRepository = mock(ProfessionalProfileRepository.class);
-        notificationClient = mock(NotificationClient.class);
+        notificationPublisher = mock(NotificationPublisher.class);
         service = new UserConnectionService(
-                userConnectionRepository, professionalProfileRepository, notificationClient);
+                userConnectionRepository, professionalProfileRepository, notificationPublisher);
+        TransactionSynchronizationManager.initSynchronization();
 
         owner = UUID.randomUUID();
         target = UUID.randomUUID();
+    }
+
+    @AfterEach
+    void clearTransactionSynchronization() {
+        TransactionSynchronizationManager.clearSynchronization();
     }
 
     @Test
@@ -208,8 +217,16 @@ class UserConnectionServiceTests {
 
         service.addConnection(owner, target);
 
-        verify(notificationClient).notify(
-                eq(target), eq("NETWORK_CONNECTION_ADDED"), any(), any(), any());
+        verifyNoInteractions(notificationPublisher);
+        TransactionSynchronizationUtils.triggerAfterCommit();
+        var notification = ArgumentCaptor.forClass(NotificationRequestedEvent.class);
+        verify(notificationPublisher).publish(notification.capture());
+        assertNotNull(notification.getValue().eventId());
+        assertEquals(target, notification.getValue().recipientId());
+        assertEquals("NETWORK_CONNECTION_ADDED", notification.getValue().type());
+        assertEquals("Someone saved your profile", notification.getValue().title());
+        assertEquals("A client added you to their network of professionals.", notification.getValue().body());
+        assertEquals("/professionals", notification.getValue().targetUrl());
     }
 
     @Test
@@ -219,6 +236,7 @@ class UserConnectionServiceTests {
 
         service.addConnection(owner, target);
 
-        verifyNoInteractions(notificationClient);
+        TransactionSynchronizationUtils.triggerAfterCommit();
+        verifyNoInteractions(notificationPublisher);
     }
 }

@@ -115,7 +115,7 @@ export class DashboardData {
   }
 
   private checkReview(job: JobResponse, userId: string): Observable<ActionCheck> {
-    return this.ratings.getByJobId(job.id).pipe(
+    return this.ratings.getJobReviews(job.id).pipe(
       map(reviews => ({
         action: reviews.some(review => review.raterId === userId)
           ? null : { jobId: job.id, title: job.title, kind: 'review' as const },

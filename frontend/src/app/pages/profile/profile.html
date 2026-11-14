@@ -336,9 +336,9 @@
               }
               <div class="flex flex-wrap gap-1 border-b border-gray-200" role="group" [attr.aria-label]="'reviews.type' | translate">
                 <button type="button" (click)="ratingType.set('received')" [attr.aria-pressed]="ratingType() === 'received'" class="min-h-11 cursor-pointer border-b-2 border-transparent px-3 py-3 text-sm font-semibold text-gray-500 hover:text-primary-800 focus-visible:outline-2 focus-visible:outline-primary-600 aria-pressed:border-primary-700 aria-pressed:text-primary-800">{{ 'reviews.aboutMe' | translate }}</button>
-                <button type="button" (click)="ratingType.set('given')" [attr.aria-pressed]="ratingType() === 'given'" class="min-h-11 cursor-pointer border-b-2 border-transparent px-3 py-3 text-sm font-semibold text-gray-500 hover:text-primary-800 focus-visible:outline-2 focus-visible:outline-primary-600 aria-pressed:border-primary-700 aria-pressed:text-primary-800">{{ 'reviews.byMe' | translate }}</button>
+                <button type="button" (click)="ratingType.set('written')" [attr.aria-pressed]="ratingType() === 'written'" class="min-h-11 cursor-pointer border-b-2 border-transparent px-3 py-3 text-sm font-semibold text-gray-500 hover:text-primary-800 focus-visible:outline-2 focus-visible:outline-primary-600 aria-pressed:border-primary-700 aria-pressed:text-primary-800">{{ 'reviews.byMe' | translate }}</button>
               </div>
-              <app-rating-list [userId]="currentProfile.id" [type]="ratingType()" (stateChange)="reviewListState.set($event)" (retryRequested)="loadRatingSummary()" (viewJob)="reviewJobId.set($event)" />
+              <app-rating-list [userId]="currentProfile.id" [reviewType]="ratingType()" (loadStateChange)="reviewListState.set($event)" (retryRequested)="loadRatingSummary()" (viewJobRequested)="reviewJobId.set($event)" />
             </section>
             <div class="[&[hidden]]:hidden!" id="profile-notifications-panel" [hidden]="section() !== 'notifications'">
               <app-notification-panel />
