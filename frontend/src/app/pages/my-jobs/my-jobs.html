@@ -12,15 +12,6 @@
       </div>
     </header>
     <nav class="my-jobs-page__status-tabs" [attr.aria-label]="'myJobs.status' | translate">
-      <button
-        class="my-jobs-page__status-tab"
-        type="button"
-        [class.my-jobs-page__status-tab--active]="status() === ''"
-        [attr.aria-current]="status() === '' ? 'true' : null"
-        (click)="status.set('')"
-      >
-        {{ 'myJobs.all' | translate }}
-      </button>
       @for (value of statuses; track value) {
         <button
           class="my-jobs-page__status-tab"
@@ -67,16 +58,16 @@
       (reloadRequested)="load()"
       (showAllRequested)="status.set('')"
       (completed)="actionCompleted($event)"
-      (detailsRequested)="selectedJobId.set($event)"
+      (detailsRequested)="jobModal.set({ jobId: $event, startWithReview: false })"
       (reviewRequested)="openReview($event)"
     />
   </section>
 </main>
 <app-footer />
-@if (selectedJobId(); as jobId) {
+@if (jobModal(); as modal) {
   <app-job-details-modal
-    [jobId]="jobId"
-    [startWithReview]="startWithReview()"
-    (closed)="selectedJobId.set(null); startWithReview.set(false)"
+    [jobId]="modal.jobId"
+    [startWithReview]="modal.startWithReview"
+    (closed)="jobModal.set(null)"
   />
 }

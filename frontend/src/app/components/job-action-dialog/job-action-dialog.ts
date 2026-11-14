@@ -111,30 +111,27 @@ export class JobActionDialog implements OnInit, AfterViewInit, OnDestroy {
     if (this.busy() || this.result() || this.needsRefresh() || !canPerformJobAction(job, action))
       return;
 
-    const request: UpdateJobRequest = {
-      title: this.draft.title.trim(),
-      description: this.draft.description.trim(),
-      addressLine: this.draft.addressLine?.trim() || null,
-    };
-    if (
-      action === 'edit' &&
-      (!request.title ||
-        request.title.length > 120 ||
-        !request.description ||
-        (request.addressLine?.length ?? 0) > 200)
-    ) {
-      this.error.set(this.i18n.translate('myJobs.validation'));
-      return;
-    }
-
-    this.busy.set(true);
-    this.error.set(null);
-
     let operation: Observable<JobResponse | void>;
     switch (action) {
-      case 'edit':
+      case 'edit': {
+        const request: UpdateJobRequest = {
+          title: this.draft.title.trim(),
+          description: this.draft.description.trim(),
+          addressLine: this.draft.addressLine?.trim() || null,
+        };
+        if (
+          !request.title ||
+          request.title.length > 120 ||
+          !request.description ||
+          (request.addressLine?.length ?? 0) > 200
+        ) {
+          this.error.set(this.i18n.translate('myJobs.validation'));
+          return;
+        }
+
         operation = this.service.updateJob(job.id, request);
         break;
+      }
       case 'cancel':
         operation = this.service.cancelJob(job.id);
         break;
@@ -145,6 +142,9 @@ export class JobActionDialog implements OnInit, AfterViewInit, OnDestroy {
         operation = this.service.deleteJob(job.id);
         break;
     }
+
+    this.busy.set(true);
+    this.error.set(null);
 
     operation.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (updated) => {

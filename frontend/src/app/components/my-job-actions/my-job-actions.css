@@ -48,7 +48,7 @@
   display: none;
 }
 
-.my-job-actions__toggle--open {
+.my-job-actions__menu[open] > .my-job-actions__toggle {
   background-color: var(--color-gray-100);
   color: var(--color-gray-900);
 }

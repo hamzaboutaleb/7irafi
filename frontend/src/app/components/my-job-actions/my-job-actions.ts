@@ -33,7 +33,6 @@ export class MyJobActions {
   readonly reviewRequested = output<void>();
 
   readonly selectedAction = signal<JobAction | null>(null);
-  readonly menuOpen = signal(false);
 
   readonly allowed = canPerformJobAction;
   readonly icons = {

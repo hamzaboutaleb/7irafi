@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { finalize } from 'rxjs';
 import { Footer } from '../../components/footer/footer.js';
 import { JobDetailsModal } from '../../components/job-details-modal/job-details-modal.js';
 import { MyJobsResults } from '../../components/my-jobs-results/my-jobs-results.js';
@@ -29,27 +30,25 @@ export class MyJobs implements OnInit {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly completedJobToReview = signal<JobResponse | null>(null);
-  readonly startWithReview = signal(false);
   readonly status = signal<JobStatus | ''>('');
-  readonly statuses: JobStatus[] = ['OPEN', 'ASSIGNED', 'COMPLETED', 'CANCELLED'];
+  readonly statuses: (JobStatus | '')[] = ['', 'OPEN', 'ASSIGNED', 'COMPLETED', 'CANCELLED'];
 
   readonly visibleJobs = computed(() =>
     this.jobs().filter((job) => !this.status() || job.status === this.status()),
   );
 
-  readonly selectedJobId = signal<string | null>(null);
+  readonly jobModal = signal<{ jobId: string; startWithReview: boolean } | null>(null);
 
   ngOnInit(): void {
     this.load();
   }
 
-  statusLabel(status: JobStatus): TranslationKey {
-    return `dashboard.status.${status}`;
+  statusLabel(status: JobStatus | ''): TranslationKey {
+    return status ? `dashboard.status.${status}` : 'myJobs.all';
   }
 
   openReview(jobId: string): void {
-    this.startWithReview.set(true);
-    this.selectedJobId.set(jobId);
+    this.jobModal.set({ jobId, startWithReview: true });
   }
 
   load(): void {
@@ -58,21 +57,18 @@ export class MyJobs implements OnInit {
     this.error.set(null);
     this.service
       .getMyJobs()
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.loading.set(false)),
+      )
       .subscribe({
         next: (jobs) => {
           this.jobs.set([...jobs].sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
-          this.loading.set(false);
         },
         error: (error: HttpErrorResponse) => {
           this.error.set(
-            error.status === 0
-              ? this.i18n.translate('myJobs.connectionError')
-              : (error.error?.error?.message ??
-                  error.error?.message ??
-                  this.i18n.translate('myJobs.loadError')),
+            this.i18n.translate(error.status === 0 ? 'myJobs.connectionError' : 'myJobs.loadError'),
           );
-          this.loading.set(false);
         },
       });
   }

@@ -50,13 +50,11 @@
       #menu
       class="my-job-actions__menu"
       name="job-actions"
-      (toggle)="menuOpen.set(menu.open)"
       (focusout)="closeMenuOutside(menu, $event.relatedTarget)"
       (document:click)="closeMenuOutside(menu, $event.target)"
     >
       <summary
         class="my-job-actions__toggle"
-        [class.my-job-actions__toggle--open]="menuOpen()"
         [attr.aria-label]="('myJobs.actions' | translate) + ': ' + job().title"
       >
         <svg class="my-job-actions__icon" [lucideIcon]="icons.more" aria-hidden="true" />
