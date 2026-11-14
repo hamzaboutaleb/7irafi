@@ -1,46 +1,65 @@
-<section class="notification-panel group/notifications ui-panel [&.compact]:border-0 [&.compact]:p-0" [class.compact]="compact()" [attr.aria-labelledby]="headingId()">
-  <header class="notification-header flex items-center justify-between gap-2 group-[.compact]/notifications:border-b group-[.compact]/notifications:border-gray-100 group-[.compact]/notifications:px-3 group-[.compact]/notifications:py-1">
-    <h2 class="me-auto text-xl leading-7 font-semibold text-gray-900 group-[.compact]/notifications:text-base group-[.compact]/notifications:leading-6" [id]="headingId()">{{ 'notifications.title' | translate }}</h2>
+<section class="notification-panel" [class.notification-panel--compact]="compact()">
+  <header class="notification-panel__header">
+    <h2 class="notification-panel__heading" [id]="headingId()">
+      {{ 'notifications.title' | translate }}
+    </h2>
     @if (unread()) {
-      <button type="button" class="text-action min-h-11 cursor-pointer text-[13px] leading-5 font-medium text-primary-800 underline underline-offset-4 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary-700 mark-all group-[.compact]/notifications:px-1 group-[.compact]/notifications:text-xs group-[.compact]/notifications:whitespace-nowrap group-[.compact]/notifications:no-underline group-[.compact]/notifications:hover:underline" (click)="markAllRead()"
-        [attr.aria-label]="'notifications.markAllRead' | translate">
+      <button
+        type="button"
+        class="notification-panel__action notification-panel__action--mark-all"
+        (click)="markAllRead()"
+      >
         {{ (compact() ? 'notifications.readAllShort' : 'notifications.markAllRead') | translate }}
       </button>
     }
     @if (compact()) {
-      <button type="button" class="close-notifications grid size-11 shrink-0 cursor-pointer place-items-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary-700" (click)="dismissRequested.emit()"
-        [attr.aria-label]="'notifications.close' | translate">
-        <svg class="size-[18px] stroke-[1.5]" lucideX aria-hidden="true"></svg>
+      <button type="button" class="notification-panel__close" (click)="dismissRequested.emit()">
+        <svg class="notification-panel__icon" lucideX></svg>
       </button>
     }
   </header>
-  <div class="notification-content group-[.compact]/notifications:max-h-[min(480px,calc(100dvh_-_208px))] group-[.compact]/notifications:overflow-y-auto group-[.compact]/notifications:overscroll-contain group-[.compact]/notifications:px-2 group-[.compact]/notifications:pt-1 group-[.compact]/notifications:pb-2" [attr.aria-busy]="loading()">
+  <div class="notification-panel__content">
     @if (loading()) {
-      <p class="notification-state px-3 py-4 text-sm leading-5 text-gray-500" role="status">{{ 'notifications.loading' | translate }}</p>
+      <p class="notification-panel__state" role="status">
+        {{ 'notifications.loading' | translate }}
+      </p>
     }
     @if (loadError()) {
-      <div class="notification-error flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-sm leading-5 text-gray-600" role="alert">
+      <div class="notification-panel__error" role="alert">
         <p>{{ 'notifications.loadError' | translate }}</p>
-        <button type="button" class="text-action min-h-11 cursor-pointer text-[13px] leading-5 font-medium text-primary-800 underline underline-offset-4 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary-700" (click)="retry()">{{ 'common.retry' | translate }}</button>
+        <button type="button" class="notification-panel__action" (click)="retry()">
+          {{ 'common.retry' | translate }}
+        </button>
       </div>
     }
     @if (!loading() && !loadError() && items().length === 0) {
-      <div class="notification-empty grid justify-items-center gap-3 px-4 py-8 text-center text-sm leading-6 text-gray-500 [&>svg]:size-6" role="status">
-        <svg class="size-[18px] stroke-[1.5]" lucideBell aria-hidden="true"></svg>
+      <div class="notification-panel__empty" role="status">
+        <svg class="notification-panel__icon" lucideBell></svg>
         <p>{{ 'notifications.empty' | translate }}</p>
       </div>
     }
     @if (items().length) {
-      <ul class="notification-list divide-y divide-gray-100">
+      <ul class="notification-panel__list">
         @for (notification of items(); track notification.id) {
-          <li>
-            <button type="button" class="notification-item group/item flex w-full cursor-pointer items-start gap-3 rounded-lg px-3 py-4 text-start transition-colors duration-[160ms] hover:bg-gray-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary-700 motion-reduce:transition-none" [class.unread]="!notification.read" (click)="activate(notification)">
-              <span class="unread-dot mt-[7px] size-1.5 shrink-0 rounded-full [&.visible]:bg-primary-700" [class.visible]="!notification.read" aria-hidden="true"></span>
-              <span class="notification-copy grid min-w-0 gap-1 [overflow-wrap:anywhere]">
-                @if (!notification.read) { <span class="sr-only">{{ 'notifications.unread' | translate }}: </span> }
-                <span class="notification-title text-sm leading-5 font-normal text-gray-600 group-[.unread]/item:font-semibold group-[.unread]/item:text-gray-900">{{ notification.title }}</span>
-                <span class="notification-body text-[13px] leading-5 text-gray-500">{{ notification.body }}</span>
-                <time class="mt-1 text-xs leading-4 text-gray-500" [attr.datetime]="notification.createdAt">{{ notification.createdAt | date: 'MMM d, HH:mm' }}</time>
+          <li class="notification-panel__list-item">
+            <button
+              type="button"
+              class="notification-panel__item"
+              [class.notification-panel__item--unread]="!notification.read"
+              (click)="activate(notification)"
+            >
+              <span class="notification-panel__dot"></span>
+              <span class="notification-panel__copy">
+                @if (!notification.read) {
+                  <span class="notification-panel__unread-label"
+                    >{{ 'notifications.unread' | translate }}:
+                  </span>
+                }
+                <span class="notification-panel__item-title">{{ notification.title }}</span>
+                <span class="notification-panel__body">{{ notification.body }}</span>
+                <time class="notification-panel__time" [attr.datetime]="notification.createdAt">{{
+                  notification.createdAt | date: 'MMM d, HH:mm'
+                }}</time>
               </span>
             </button>
           </li>

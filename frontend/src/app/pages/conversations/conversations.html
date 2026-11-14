@@ -1,55 +1,88 @@
 <app-navbar />
-<main class="inbox-page h-[calc(100dvh-69px)] min-h-0 bg-gray-50 p-4 md:min-h-[440px] md:p-6 max-md:[&.thread-open_.inbox-heading]:hidden" [class.thread-open]="selectedId()">
-  <div class="inbox-container mx-auto flex h-full max-w-[1200px] flex-col gap-4 md:gap-5">
-    <header class="inbox-heading [&>h1]:text-2xl [&>h1]:leading-8 [&>h1]:font-semibold [&>h1]:text-gray-900 md:[&>h1]:text-[28px] md:[&>h1]:leading-9 [&>p]:mt-1 [&>p]:text-sm [&>p]:leading-5 [&>p]:text-gray-500">
-      <h1>{{ 'chat.title' | translate }}</h1>
-      <p>{{ 'chat.subtitle' | translate }}</p>
+<main class="conversations" [class.conversations--thread-open]="selectedId()">
+  <div class="conversations__container">
+    <header class="conversations__heading">
+      <h1 class="conversations__title">{{ 'chat.title' | translate }}</h1>
+      <p class="conversations__subtitle">{{ 'chat.subtitle' | translate }}</p>
     </header>
-    <section class="inbox-shell grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)] overflow-hidden rounded-xl border border-gray-200 bg-white md:grid-cols-[320px_minmax(0,1fr)] max-md:[&:not(.has-selection)_.thread-pane]:hidden max-md:[&.has-selection_.inbox-list]:hidden" [class.has-selection]="selectedId()" [attr.aria-label]="'chat.title' | translate">
-      <aside class="inbox-list flex min-h-0 flex-col md:border-e md:border-gray-200" [attr.aria-label]="'chat.conversations' | translate">
-        <div class="inbox-search relative shrink-0 border-b border-gray-100 p-4 [&>svg]:pointer-events-none [&>svg]:absolute [&>svg]:start-7 [&>svg]:top-[30px] [&>svg]:size-4 [&>svg]:text-gray-500 [&>input]:min-h-11 [&>input]:w-full [&>input]:rounded-lg [&>input]:border [&>input]:border-gray-200 [&>input]:bg-gray-50 [&>input]:py-2 [&>input]:ps-9 [&>input]:pe-3 [&>input]:text-sm [&>input]:leading-5 [&>input]:text-gray-900 [&>input]:focus-visible:outline-2 [&>input]:focus-visible:outline-offset-2 [&>input]:focus-visible:outline-primary-700">
-          <label for="conversation-search" class="sr-only">{{ 'chat.search' | translate }}</label>
-          <svg class="size-[18px] shrink-0 stroke-1.5" lucideSearch aria-hidden="true"></svg>
-          <input id="conversation-search" type="search" autocomplete="off" [value]="query()"
-            (input)="query.set($any($event.target).value)" [placeholder]="'chat.search' | translate" />
+    <section class="conversations__shell" [attr.aria-label]="'chat.title' | translate">
+      <aside class="conversations__sidebar" [attr.aria-label]="'chat.conversations' | translate">
+        <div class="conversations__search">
+          <svg
+            class="conversations__icon conversations__icon--search"
+            lucideSearch
+            aria-hidden="true"
+          ></svg>
+          <input
+            class="conversations__search-input"
+            id="conversation-search"
+            type="search"
+            [attr.aria-label]="'chat.search' | translate"
+            autocomplete="off"
+            [value]="query()"
+            (input)="query.set($any($event.target).value)"
+            [placeholder]="'chat.search' | translate"
+          />
         </div>
-        <div class="conversation-list-content min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        <div class="conversations__list-content">
           @if (loading()) {
-            <p class="list-state ui-list-state" role="status">{{ 'common.loading' | translate }}</p>
+            <p class="conversations__state" role="status">{{ 'common.loading' | translate }}</p>
           } @else if (error()) {
-            <div class="list-state ui-list-state" role="alert">
+            <div class="conversations__state" role="alert">
               <p>{{ error() }}</p>
-              <button type="button" class="inbox-text-button ui-inbox-link" (click)="load()">{{ 'common.retry' | translate }}</button>
+              <button type="button" class="conversations__action" (click)="load()">
+                {{ 'common.retry' | translate }}
+              </button>
             </div>
           } @else if (!rows().length) {
-            <div class="list-state ui-list-state empty-list justify-items-start [&>svg]:size-8 [&>svg]:text-gray-400 [&>h2]:font-medium [&>h2]:text-gray-700">
-              <svg class="size-[18px] shrink-0 stroke-1.5" lucideMessageSquare aria-hidden="true"></svg>
-              <h2>{{ 'chat.empty' | translate }}</h2>
+            <div class="conversations__state conversations__state--empty">
+              <svg
+                class="conversations__icon conversations__icon--empty"
+                lucideMessageSquare
+                aria-hidden="true"
+              ></svg>
+              <h2 class="conversations__state-title">{{ 'chat.empty' | translate }}</h2>
               <p>{{ 'chat.emptyHint' | translate }}</p>
-              <a routerLink="/jobs/my" class="inbox-text-button ui-inbox-link">{{ 'chat.goToMyJobs' | translate }}</a>
+              <a routerLink="/jobs/my" class="conversations__action">{{
+                'chat.goToMyJobs' | translate
+              }}</a>
             </div>
           } @else if (!filteredRows().length) {
-            <div class="list-state ui-list-state" role="status">
+            <div class="conversations__state" role="status">
               <p>{{ 'chat.noResults' | translate }}</p>
-              <button type="button" class="inbox-text-button ui-inbox-link" (click)="query.set('')">{{ 'chat.clearSearch' | translate }}</button>
+              <button type="button" class="conversations__action" (click)="query.set('')">
+                {{ 'chat.clearSearch' | translate }}
+              </button>
             </div>
           } @else {
-            <ul class="conversation-list divide-y divide-gray-100 px-2 py-1" [attr.aria-label]="'chat.conversations' | translate">
+            <ul class="conversations__list" [attr.aria-label]="'chat.conversations' | translate">
               @for (row of filteredRows(); track row.conversation.id) {
-                <li>
-                  <a [routerLink]="['/conversations', row.conversation.id]" routerLinkActive="selected"
-                    ariaCurrentWhenActive="page" class="conversation-row flex min-h-20 items-center gap-3 rounded-lg px-3 py-4 transition-colors duration-150 hover:bg-gray-50 [&.selected]:bg-primary-50 motion-reduce:transition-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary-700">
+                <li class="conversations__item">
+                  <a
+                    [routerLink]="['/conversations', row.conversation.id]"
+                    routerLinkActive="conversations__row--selected"
+                    ariaCurrentWhenActive="page"
+                    class="conversations__row"
+                  >
                     @if (row.avatarUrl) {
-                      <img [src]="row.avatarUrl" alt="" class="conversation-avatar size-11 shrink-0 rounded-full object-cover" />
+                      <img [src]="row.avatarUrl" alt="" class="conversations__avatar" />
                     } @else {
-                      <span class="conversation-avatar size-11 shrink-0 rounded-full object-cover initials grid place-items-center bg-gray-100 text-base font-medium text-gray-600" aria-hidden="true">
-                        @if (row.otherName) { {{ row.otherName.slice(0, 1).toUpperCase() }} }
-                        @else { <svg class="size-[18px] shrink-0 stroke-1.5" lucideUserRound aria-hidden="true"></svg> }
+                      <span
+                        class="conversations__avatar conversations__avatar--fallback"
+                        aria-hidden="true"
+                      >
+                        @if (row.otherName) {
+                          {{ row.otherName.slice(0, 1).toUpperCase() }}
+                        } @else {
+                          <svg class="conversations__icon" lucideUserRound aria-hidden="true"></svg>
+                        }
                       </span>
                     }
-                    <span class="conversation-labels grid min-w-0 gap-1">
-                      <span class="conversation-name truncate text-sm leading-5 font-medium text-gray-900">{{ nameFor(row) }}</span>
-                      <span class="conversation-job truncate text-[13px] leading-5 text-gray-500">{{ row.jobTitle ?? ('chat.jobUnavailable' | translate) }}</span>
+                    <span class="conversations__labels">
+                      <span class="conversations__name">{{ nameFor(row) }}</span>
+                      <span class="conversations__job">{{
+                        row.jobTitle ?? ('chat.jobUnavailable' | translate)
+                      }}</span>
                     </span>
                   </a>
                 </li>
@@ -58,13 +91,19 @@
           }
         </div>
       </aside>
-      <div class="thread-pane flex min-h-0 min-w-0 flex-col">
+      <div class="conversations__thread">
         <router-outlet />
         @if (!selectedId()) {
-          <div class="thread-placeholder flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center [&>svg]:size-8 [&>svg]:text-gray-400 [&>h2]:text-lg [&>h2]:leading-6 [&>h2]:font-medium [&>h2]:text-gray-700 [&>p]:max-w-[280px] [&>p]:text-sm [&>p]:leading-6 [&>p]:text-gray-500">
-            <svg class="size-[18px] shrink-0 stroke-1.5" lucideMessageSquare aria-hidden="true"></svg>
-            <h2>{{ 'chat.selectConversation' | translate }}</h2>
-            <p>{{ 'chat.selectHint' | translate }}</p>
+          <div class="conversations__placeholder">
+            <svg
+              class="conversations__icon conversations__icon--placeholder"
+              lucideMessageSquare
+              aria-hidden="true"
+            ></svg>
+            <h2 class="conversations__placeholder-title">
+              {{ 'chat.selectConversation' | translate }}
+            </h2>
+            <p class="conversations__placeholder-hint">{{ 'chat.selectHint' | translate }}</p>
           </div>
         }
       </div>
