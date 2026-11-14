@@ -131,7 +131,7 @@ export class Dashboard implements OnInit {
     const userId = this.profile()?.id;
     if (!userId || this.summaryState() === 'loading') return;
     this.summaryState.set('loading');
-    this.ratings.getSummary(userId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    this.ratings.getUserRatingSummary(userId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: summary => {
         this.summary.set(summary);
         this.summaryState.set('loaded');

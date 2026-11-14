@@ -13,7 +13,7 @@
     </nav>
     @if (notice()) { <p role="status" class="page-notice mb-6 rounded-lg border border-primary-200 bg-white p-5 text-sm text-primary-700">{{ notice() }}</p> }
     @if (completedJobToReview(); as completedJob) {
-      @if (!ratings.hasReviewed(completedJob.id)) {
+      @if (!ratings.hasReviewedJob(completedJob.id)) {
         <aside class="review-prompt mb-6 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-primary-200 bg-white p-5">
           <div><p class="font-semibold">{{ 'reviews.completePrompt' | translate }}</p><p class="text-sm text-gray-500">{{ completedJob.title }}</p></div>
           <div class="row-buttons flex items-center gap-2"><button type="button" class="primary-button ui-button ui-action-focus ui-button-primary px-4 py-2.5 font-semibold whitespace-nowrap [&.danger-button]:bg-red-700 [&.danger-button:hover]:bg-red-800" (click)="openReview(completedJob.id)">{{ 'reviews.leave' | translate }}</button><button type="button" class="secondary-button ui-button ui-action-focus ui-button-secondary px-4 py-2.5 font-semibold whitespace-nowrap" (click)="completedJobToReview.set(null)">{{ 'reviews.later' | translate }}</button></div>
@@ -47,7 +47,7 @@
                 @case ('OPEN') { <a [routerLink]="['/jobs', job.id, 'applicants']" class="primary-button ui-button ui-action-focus ui-button-primary px-4 py-2.5 font-semibold whitespace-nowrap [&.danger-button]:bg-red-700 [&.danger-button:hover]:bg-red-800"><svg class="size-[18px] shrink-0" [lucideIcon]="icons.people" aria-hidden="true" />{{ 'myJobs.viewApplicants' | translate }}</a> }
                 @case ('ASSIGNED') { <button type="button" class="primary-button ui-button ui-action-focus ui-button-primary px-4 py-2.5 font-semibold whitespace-nowrap [&.danger-button]:bg-red-700 [&.danger-button:hover]:bg-red-800" (click)="openAction(job, 'complete')"><svg class="size-[18px] shrink-0" [lucideIcon]="icons.check" aria-hidden="true" />{{ 'myJobs.complete' | translate }}</button> }
                 @case ('COMPLETED') {
-                  @if (job.assignedWorkerId) { <button type="button" class="secondary-button ui-button ui-action-focus ui-button-secondary px-4 py-2.5 font-semibold whitespace-nowrap" (click)="openReview(job.id)" aria-haspopup="dialog"><svg class="size-[18px] shrink-0" [lucideIcon]="icons.review" aria-hidden="true" />{{ (ratings.hasReviewed(job.id) ? 'reviews.viewReview' : 'reviews.reviewJob') | translate }}</button> }
+                  @if (job.assignedWorkerId) { <button type="button" class="secondary-button ui-button ui-action-focus ui-button-secondary px-4 py-2.5 font-semibold whitespace-nowrap" (click)="openReview(job.id)" aria-haspopup="dialog"><svg class="size-[18px] shrink-0" [lucideIcon]="icons.review" aria-hidden="true" />{{ (ratings.hasReviewedJob(job.id) ? 'reviews.viewReview' : 'reviews.reviewJob') | translate }}</button> }
                   @else { <button type="button" class="secondary-button ui-button ui-action-focus ui-button-secondary px-4 py-2.5 font-semibold whitespace-nowrap" (click)="selectedJobId.set(job.id)">{{ 'myJobs.viewDetails' | translate }}</button> }
                 }
                 @case ('CANCELLED') { <button type="button" class="secondary-button ui-button ui-action-focus ui-button-secondary px-4 py-2.5 font-semibold whitespace-nowrap" (click)="selectedJobId.set(job.id)">{{ 'myJobs.viewDetails' | translate }}</button> }

@@ -1,0 +1,40 @@
+@reference '../../../styles.css';
+
+:host {
+  @apply inline-flex align-middle;
+}
+
+.rating-stars {
+  @apply inline-flex;
+  gap: 0.18rem;
+}
+
+.rating-stars__star {
+  @apply relative block;
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.rating-stars__outline,
+.rating-stars__filled-icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  stroke-width: 1.7;
+}
+
+.rating-stars__outline {
+  @apply text-gray-300;
+  fill: #f3f4f6;
+}
+
+/* Clip the filled star from its logical start edge, including in RTL layouts. */
+.rating-stars__fill {
+  @apply absolute start-0 overflow-hidden;
+  inset-block: 0;
+  color: #b7790b;
+}
+
+.rating-stars__filled-icon {
+  @apply absolute start-0;
+  fill: #f5b841;
+}

@@ -1,101 +1,156 @@
-import { ChangeDetectorRef, Component, EventEmitter, inject, Input, Output, OnChanges, OnDestroy, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RatingStars } from '../rating-stars/rating-stars.js';
+import { DatePipe } from '@angular/common';
+import {
+  Component,
+  DestroyRef,
+  inject,
+  input,
+  OnChanges,
+  OnInit,
+  output,
+  signal,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { TranslatePipe } from '../../pipes/translate-pipe.js';
-import { RatingService, RatingResponse, PageResponse } from '../../services/rating.js';
-import { Subject, takeUntil } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 
+import { TranslatePipe } from '../../pipes/translate-pipe.js';
+import { I18nService } from '../../services/i18n.js';
+import { RatingResponse, RatingService } from '../../services/rating.js';
+import { Page } from '../../types/api.js';
+import { RatingStars } from '../rating-stars/rating-stars.js';
+
+type ReviewType = 'received' | 'written';
+type ReviewLoadState = 'loading' | 'loaded' | 'error';
+
+/**
+ * Displays one page of a user's received or written reviews.
+ * Input changes start at the first page. Publishing a review refreshes the list.
+ * Existing reviews stay visible during pagination, retry, and refresh requests.
+ */
 @Component({
   selector: 'app-rating-list',
-  standalone: true,
-  imports: [CommonModule, RatingStars, TranslatePipe, RouterLink],
+  imports: [DatePipe, RouterLink, RatingStars, TranslatePipe],
   templateUrl: './rating-list.html',
-  host: { class: 'block' },
+  styleUrl: './rating-list.css',
 })
-export class RatingListComponent implements OnChanges, OnDestroy, OnInit {
-  @Input() userId!: string;
-  @Input() type: 'received' | 'given' = 'received';
-  @Input() pageSize = 10;
-  @Output() stateChange = new EventEmitter<'loading' | 'loaded' | 'error'>();
-  @Output() retryRequested = new EventEmitter<void>();
-  @Output() viewJob = new EventEmitter<string>();
+export class RatingListComponent implements OnChanges, OnInit {
+  readonly userId = input.required<string>();
+  readonly reviewType = input<ReviewType>('received');
+  readonly pageSize = input(10);
 
-  ratings: RatingResponse[] = [];
-  pagination = { page: 0, size: 10, totalElements: 0, totalPages: 0 };
-  loading = false;
-  error: string | null = null;
-  private destroy$ = new Subject<void>();
-  private cancelRequest$ = new Subject<void>();
-  private readonly changeDetector = inject(ChangeDetectorRef);
+  readonly loadStateChange = output<ReviewLoadState>();
+  readonly retryRequested = output<void>();
+  readonly viewJobRequested = output<string>();
 
-  constructor(private ratingService: RatingService) {}
+  private readonly ratingService = inject(RatingService);
+  private readonly i18n = inject(I18nService);
+  private readonly destroyRef = inject(DestroyRef);
 
-  ngOnInit(): void {
-    // A review submitted in the job dialog should appear without refreshing the page.
-    this.ratingService.reviewsChanged.pipe(takeUntil(this.destroy$)).subscribe(() => this.loadRatings(0));
-  }
+  // Keep reviews and pagination from the same response together.
+  readonly reviewPage = signal<Page<RatingResponse>>(this.createEmptyPage());
+  private readonly loadState = signal<ReviewLoadState>('loaded');
+  private reviewRequest?: Subscription;
 
   ngOnChanges(): void {
-    this.ratings = [];
-    this.pagination = { page: 0, size: this.pageSize, totalElements: 0, totalPages: 0 };
-    this.loadRatings();
+    this.reviewPage.set(this.createEmptyPage());
+    this.loadReviews(0);
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-    this.cancelRequest$.complete();
+  ngOnInit(): void {
+    this.ratingService.reviewsChanged
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.loadReviews(0));
   }
 
-  loadRatings(page = this.pagination.page): void {
-    this.cancelRequest$.next();
-    if (!this.userId) return;
-    this.loading = true;
-    this.stateChange.emit('loading');
-    this.error = null;
-    const request$ = this.type === 'received'
-      ? this.ratingService.getReceivedByUserId(this.userId, page, this.pagination.size)
-      : this.ratingService.getGivenByUserId(this.userId, page, this.pagination.size);
-
-    request$.pipe(takeUntil(this.destroy$), takeUntil(this.cancelRequest$)).subscribe({
-      next: (response: PageResponse<RatingResponse>) => {
-        this.ratings = response.content;
-        this.pagination = {
-          page: response.page,
-          size: response.size,
-          totalElements: response.totalElements,
-          totalPages: response.totalPages,
-        };
-        this.loading = false;
-        this.stateChange.emit('loaded');
-        this.changeDetector.markForCheck();
-      },
-      error: () => {
-        this.error = 'reviews.loadError';
-        this.stateChange.emit('error');
-        this.loading = false;
-        this.changeDetector.markForCheck();
-      },
-    });
+  reviews(): RatingResponse[] {
+    return this.reviewPage().content;
   }
 
-  onPageChange(page: number): void {
-    if (!this.loading && page >= 0 && page < this.pagination.totalPages && page !== this.pagination.page) {
-      this.loadRatings(page);
+  isLoading(): boolean {
+    return this.loadState() === 'loading';
+  }
+
+  hasLoadError(): boolean {
+    return this.loadState() === 'error';
+  }
+
+  personLabel(review: RatingResponse): string {
+    const unknownName = this.i18n.translate('reviews.unknownUser');
+
+    if (this.reviewType() === 'received') {
+      return review.raterName || unknownName;
     }
+
+    const reviewedUserName = review.rateeName || unknownName;
+
+    return this.i18n.translate('reviews.for', { name: reviewedUserName });
   }
 
-  goToPrevious(): void {
-    this.onPageChange(this.pagination.page - 1);
+  personInitial(review: RatingResponse): string {
+    const personName = this.reviewType() === 'received' ? review.raterName : review.rateeName;
+
+    return (personName || '?').slice(0, 1).toUpperCase();
   }
 
-  goToNext(): void {
-    this.onPageChange(this.pagination.page + 1);
+  /** A newer request replaces the old one; late responses cannot overwrite this page. */
+  loadReviews(pageNumber = this.reviewPage().page): void {
+    this.reviewRequest?.unsubscribe();
+
+    const userId = this.userId();
+    if (!userId) {
+      this.setLoadState('loaded');
+      return;
+    }
+
+    this.setLoadState('loading');
+
+    this.reviewRequest = this.requestReviewPage(userId, pageNumber)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (reviewPage) => {
+          this.reviewPage.set(reviewPage);
+          this.setLoadState('loaded');
+        },
+        error: () => this.setLoadState('error'),
+      });
   }
 
-  retry(): void {
+  goToPage(pageNumber: number): void {
+    if (this.isLoading()) return;
+
+    const { page, totalPages } = this.reviewPage();
+    if (pageNumber < 0 || pageNumber >= totalPages || pageNumber === page) return;
+
+    this.loadReviews(pageNumber);
+  }
+
+  retryLoadingReviews(): void {
     this.retryRequested.emit();
-    this.loadRatings();
+    this.loadReviews();
+  }
+
+  private createEmptyPage(): Page<RatingResponse> {
+    return {
+      content: [],
+      page: 0,
+      size: this.pageSize(),
+      totalElements: 0,
+      totalPages: 0,
+    };
+  }
+
+  private requestReviewPage(userId: string, pageNumber: number): Observable<Page<RatingResponse>> {
+    const pageSize = this.reviewPage().size;
+
+    if (this.reviewType() === 'received') {
+      return this.ratingService.getReceivedReviews(userId, pageNumber, pageSize);
+    }
+
+    return this.ratingService.getWrittenReviews(userId, pageNumber, pageSize);
+  }
+
+  private setLoadState(state: ReviewLoadState): void {
+    this.loadState.set(state);
+    this.loadStateChange.emit(state);
   }
 }

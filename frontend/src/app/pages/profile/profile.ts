@@ -59,7 +59,7 @@ export class Profile implements OnInit {
   readonly ratingsError = signal<string | null>(null);
   readonly reviewListState = signal<'loading' | 'loaded' | 'error'>('loading');
   readonly reviewJobId = signal<string | null>(null);
-  readonly ratingType = signal<'received' | 'given'>('received');
+  readonly ratingType = signal<'received' | 'written'>('received');
 
   readonly profile = signal<UserProfile | null>(null);
   readonly isLoading = signal(true);
@@ -133,7 +133,7 @@ export class Profile implements OnInit {
     if (!userId || this.ratingsLoading()) return;
     this.ratingsLoading.set(true);
     this.ratingsError.set(null);
-    this.ratingService.getSummary(userId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    this.ratingService.getUserRatingSummary(userId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: summary => {
         this.ratingSummary.set(summary);
         this.ratingsLoading.set(false);

@@ -1,0 +1,152 @@
+@reference '../../../styles.css';
+
+:host {
+  @apply block;
+}
+
+.rating-form {
+  @apply grid gap-4;
+}
+
+/* Context shown above the score and comment fields. */
+.rating-form__recipient {
+  @apply font-medium text-gray-900;
+}
+
+.rating-form__context,
+.rating-form__intro {
+  @apply text-gray-500;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.rating-form__intro {
+  margin-block-start: 0.3rem;
+}
+
+.rating-form__label {
+  @apply mb-2 block font-medium text-gray-700;
+  font-size: 0.85rem;
+}
+
+/* Interactive score selection; the modifier is used for both hover and selection. */
+.rating-form__score-picker {
+  @apply flex flex-wrap items-center gap-3;
+}
+
+.rating-form__stars {
+  @apply flex;
+}
+
+.rating-form__star {
+  @apply grid size-11 cursor-pointer place-items-center border-0 bg-transparent text-gray-400;
+  border-radius: 0.5rem;
+}
+
+.rating-form__star-icon {
+  @apply size-6;
+  stroke-width: 1.6;
+}
+
+.rating-form__star--filled {
+  color: #b7790b;
+}
+
+.rating-form__star--filled .rating-form__star-icon {
+  fill: #f5b841;
+}
+
+.rating-form__score-description {
+  @apply min-w-20 text-gray-500;
+  font-size: 0.8rem;
+}
+
+.rating-form__validation-error {
+  @apply text-red-700;
+  font-size: 0.8rem;
+}
+
+/* Comment field and character count. */
+.rating-form__comment {
+  @apply block min-h-24 w-full resize-y rounded-lg bg-white text-gray-900;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  font: inherit;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.rating-form__comment::placeholder {
+  @apply text-gray-400;
+}
+
+.rating-form__comment:focus {
+  @apply border-primary-600 outline-none;
+  box-shadow: 0 0 0 1px var(--color-primary-600);
+}
+
+.rating-form__character-count {
+  @apply text-end text-gray-500;
+  margin-block-start: 0.4rem;
+  font-size: 0.75rem;
+}
+
+/* Submission feedback and actions. */
+.rating-form__submission-error {
+  @apply rounded-lg;
+  padding: 12px 16px;
+  background: #fff7ed;
+  color: #9a3412;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.rating-form__reload {
+  @apply mt-2 cursor-pointer underline;
+}
+
+.rating-form__actions {
+  @apply flex flex-wrap justify-end gap-3;
+  padding-block-start: 0.25rem;
+}
+
+.rating-form__button {
+  @apply min-h-11 cursor-pointer rounded-lg font-medium;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+}
+
+.rating-form__button--secondary {
+  @apply bg-white text-gray-600;
+  border: 1px solid #d1d5db;
+}
+
+.rating-form__button--primary {
+  @apply bg-primary-700 text-white;
+  border: 1px solid var(--color-primary-700);
+}
+
+.rating-form__button--primary:hover:not(:disabled) {
+  @apply bg-primary-800;
+}
+
+.rating-form__star:disabled,
+.rating-form__reload:disabled,
+.rating-form__button:disabled {
+  @apply cursor-not-allowed;
+  opacity: 0.55;
+}
+
+.rating-form__star:focus-visible,
+.rating-form__reload:focus-visible,
+.rating-form__button:focus-visible {
+  outline: 2px solid var(--color-primary-600);
+  outline-offset: 3px;
+}
+
+@media (max-width: 400px) {
+  .rating-form__button {
+    @apply flex-1;
+  }
+}

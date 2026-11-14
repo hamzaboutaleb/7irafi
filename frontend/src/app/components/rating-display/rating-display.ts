@@ -10,7 +10,7 @@ import { UserRatingSummary } from '../../services/rating.js';
   standalone: true,
   imports: [CommonModule, RatingStars, TranslatePipe],
   templateUrl: './rating-display.html',
-  host: { class: 'block' },
+  styleUrl: './rating-display.css',
 })
 export class RatingDisplayComponent {
   @Input() summary: UserRatingSummary | null = null;
