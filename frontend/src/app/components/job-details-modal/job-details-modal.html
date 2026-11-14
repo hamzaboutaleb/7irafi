@@ -87,8 +87,8 @@
             @if (review.rateeName) { <p class="review-recipient mt-3 text-gray-700 [font-size:14px] font-medium">{{ 'reviews.for' | translate: { name: review.rateeName } }}</p> }
             @if (review.comment) { <p class="review-comment mt-3 whitespace-pre-wrap [overflow-wrap:anywhere] text-gray-600 [font-size:14px] [line-height:26px]" dir="auto">{{ review.comment }}</p> }
           } @else if (ratingOpen()) {
-            <app-rating-form [jobId]="detail.id" [rateeId]="recipientId" [recipientName]="recipientName() || (!isOwner() ? ownerName() : '')"
-              (busyChange)="ratingBusy.set($event)" (submitted)="reviewSaved($event)" (reloadRequested)="loadReview()" (cancelled)="ratingOpen.set(false)" />
+            <app-rating-form [jobId]="detail.id" [reviewedUserId]="recipientId" [recipientName]="recipientName() || (!isOwner() ? ownerName() : '')"
+              (submittingChange)="ratingBusy.set($event)" (submitted)="reviewSaved($event)" (reloadRequested)="loadReview()" (cancelled)="ratingOpen.set(false)" />
           } @else {
             <p class="muted-text text-gray-500 [font-size:14px] [line-height:24px]">{{ 'reviews.formHint' | translate }}</p>
             <button type="button" class="text-button ui-underlined-action [&:disabled]:[opacity:.5] [&:disabled]:cursor-not-allowed" (click)="focusReview(true)">{{ 'reviews.leave' | translate }}</button>

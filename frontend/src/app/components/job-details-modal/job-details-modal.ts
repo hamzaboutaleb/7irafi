@@ -126,7 +126,7 @@ export class JobDetailsModal implements OnInit, AfterViewInit, OnDestroy {
   loadReview(): void {
     if (!this.rateeId() || this.ratingBusy()) return;
     this.reviewState.set('loading');
-    this.ratings.getByJobId(this.jobId()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    this.ratings.getJobReviews(this.jobId()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: reviews => {
         const ownReview = reviews.find(review => review.raterId === this.currentUserId());
         this.savedReview.set(ownReview ?? null);

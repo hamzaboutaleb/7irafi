@@ -146,7 +146,7 @@ export class Professionals implements OnInit {
   loadRatings(): void {
     const person = this.selected(); if (!person) return;
     this.ratingsRequest?.unsubscribe(); this.ratingsLoading.set(true);
-    this.ratingsRequest = this.ratings.getSummary(person.userId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    this.ratingsRequest = this.ratings.getUserRatingSummary(person.userId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: summary => { this.ratingSummary.set(summary); this.ratingsLoading.set(false); },
       error: () => { this.ratingSummary.set(null); this.ratingsLoading.set(false); },
     });
