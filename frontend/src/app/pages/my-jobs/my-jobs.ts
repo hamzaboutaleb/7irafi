@@ -16,6 +16,7 @@ import { JobActionResult, JobResponse, JobStatus } from '../../types/job.js';
   selector: 'app-my-jobs',
   imports: [Navbar, Footer, MyJobsResults, JobDetailsModal, TranslatePipe],
   templateUrl: './my-jobs.html',
+  styleUrl: './my-jobs.css',
 })
 export class MyJobs implements OnInit {
   private readonly i18n = inject(I18nService);

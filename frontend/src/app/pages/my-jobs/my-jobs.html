@@ -1,29 +1,21 @@
 <app-navbar />
-<main
-  class="my-jobs-page min-h-[75dvh] bg-[#f8f9fa] px-4 pt-6 pb-12 text-gray-900 min-[601px]:px-6 min-[601px]:pt-10 min-[601px]:pb-16"
->
-  <section class="jobs-content mx-auto max-w-[1120px]" aria-labelledby="my-jobs-title">
-    <header
-      class="page-heading flex flex-wrap items-start justify-between gap-4 min-[601px]:flex-nowrap min-[601px]:items-center min-[601px]:gap-6 mb-5 min-[601px]:mb-7"
-    >
+<main class="my-jobs-page">
+  <section class="my-jobs-page__content" aria-labelledby="my-jobs-title">
+    <header class="my-jobs-page__header">
       <div>
-        <h1
-          class="text-2xl leading-8 font-semibold min-[601px]:text-[28px] min-[601px]:leading-9"
-          id="my-jobs-title"
-        >
+        <h1 class="my-jobs-page__title" id="my-jobs-title">
           {{ 'myJobs.heading' | translate }}
         </h1>
-        <p class="mt-1 text-sm text-slate-500">{{ 'myJobs.subtitle' | translate }}</p>
+        <p class="my-jobs-page__subtitle">
+          {{ 'myJobs.subtitle' | translate }}
+        </p>
       </div>
     </header>
-    <nav
-      class="status-tabs mb-6 flex gap-4 overflow-x-auto border-b border-slate-200 min-[601px]:gap-6"
-      [attr.aria-label]="'myJobs.status' | translate"
-    >
+    <nav class="my-jobs-page__status-tabs" [attr.aria-label]="'myJobs.status' | translate">
       <button
-        class="ui-status-tab"
+        class="my-jobs-page__status-tab"
         type="button"
-        [class.active]="status() === ''"
+        [class.my-jobs-page__status-tab--active]="status() === ''"
         [attr.aria-current]="status() === '' ? 'true' : null"
         (click)="status.set('')"
       >
@@ -31,9 +23,9 @@
       </button>
       @for (value of statuses; track value) {
         <button
-          class="ui-status-tab"
+          class="my-jobs-page__status-tab"
           type="button"
-          [class.active]="status() === value"
+          [class.my-jobs-page__status-tab--active]="status() === value"
           [attr.aria-current]="status() === value ? 'true' : null"
           (click)="status.set(value)"
         >
@@ -43,23 +35,22 @@
     </nav>
     @if (completedJobToReview(); as completedJob) {
       @if (!ratings.hasReviewed(completedJob.id)) {
-        <aside
-          class="review-prompt mb-6 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-primary-200 bg-white p-5"
-        >
+        <aside class="my-jobs-page__review-prompt">
           <div>
-            <p class="font-semibold">{{ 'reviews.completePrompt' | translate }}</p>
-            <p class="text-sm text-gray-500">{{ completedJob.title }}</p>
+            <p class="my-jobs-page__review-heading">{{ 'reviews.completePrompt' | translate }}</p>
+            <p class="my-jobs-page__review-title">{{ completedJob.title }}</p>
           </div>
-          <div class="row-buttons flex items-center gap-2">
+          <div class="my-jobs-page__review-actions">
             <button
               type="button"
-              class="primary-button ui-button ui-action-focus ui-button-primary px-4 py-2.5 font-semibold whitespace-nowrap [&.danger-button]:bg-red-700 [&.danger-button:hover]:bg-red-800"
+              class="my-jobs-page__button my-jobs-page__button--primary"
               (click)="openReview(completedJob.id)"
             >
-              {{ 'reviews.leave' | translate }}</button
-            ><button
+              {{ 'reviews.leave' | translate }}
+            </button>
+            <button
               type="button"
-              class="secondary-button ui-button ui-action-focus ui-button-secondary px-4 py-2.5 font-semibold whitespace-nowrap"
+              class="my-jobs-page__button my-jobs-page__button--secondary"
               (click)="completedJobToReview.set(null)"
             >
               {{ 'reviews.later' | translate }}
