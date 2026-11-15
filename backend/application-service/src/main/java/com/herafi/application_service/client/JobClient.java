@@ -14,7 +14,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 
-import com.herafi.application_service.config.RequestIdInterceptor;
+import com.herafi.shared.observability.RequestIdInterceptor;
 import com.herafi.application_service.exceptions.ApplicationException;
 
 import lombok.extern.slf4j.Slf4j;

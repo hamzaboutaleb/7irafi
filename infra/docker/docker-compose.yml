@@ -44,7 +44,7 @@ services:
       POSTGRES_USER: ${DB_USERNAME:-herafi}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-herafi}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./postgres/init:/docker-entrypoint-initdb.d:ro
@@ -78,8 +78,8 @@ services:
 
   auth-service:
     build:
-      context: ../../backend/auth-service
-      dockerfile: Dockerfile
+      context: ../../backend
+      dockerfile: auth-service/Dockerfile
     environment:
       SERVER_PORT: 8081
       APP_ENVIRONMENT: ${APP_ENVIRONMENT:-dev}
@@ -108,8 +108,8 @@ services:
 
   user-service:
     build:
-      context: ../../backend/user-service
-      dockerfile: Dockerfile
+      context: ../../backend
+      dockerfile: user-service/Dockerfile
     environment:
       DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka/
       SERVER_PORT: 8082
@@ -145,8 +145,8 @@ services:
 
   notification-service:
     build:
-      context: ../../backend/notification-service
-      dockerfile: Dockerfile
+      context: ../../backend
+      dockerfile: notification-service/Dockerfile
     environment:
       DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka/
       SERVER_PORT: 8086
@@ -179,8 +179,8 @@ services:
 
   chat-service:
     build:
-      context: ../../backend/chat-service
-      dockerfile: Dockerfile
+      context: ../../backend
+      dockerfile: chat-service/Dockerfile
     environment:
       DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka/
       SERVER_PORT: 8085
@@ -215,8 +215,8 @@ services:
   job-service:
     container_name: job-service-dev
     build:
-      context: ../../backend/job-service
-      dockerfile: Dockerfile
+      context: ../../backend
+      dockerfile: job-service/Dockerfile
     environment:
       SERVER_PORT: 8083
       APP_ENVIRONMENT: ${APP_ENVIRONMENT:-dev}
@@ -236,8 +236,12 @@ services:
     volumes:
       - ../../backend/job-service/src:/app/src
       - job-maven-cache:/root/.m2
-    entrypoint: ["mvn"]
-    command: ["spring-boot:run"]
+    # job-maven-cache hides the image's ~/.m2, so the shared-kernel jar installed
+    # at build time is missing from a volume created before it. Installing it
+    # again on start keeps the volume in step with the image.
+    entrypoint: ["sh", "-c"]
+    command:
+      - mvn -q -f /shared-kernel/pom.xml -DskipTests install && exec mvn spring-boot:run
     develop:
       watch:
         - action: rebuild
@@ -261,8 +265,8 @@ services:
 
   application-service:
     build:
-      context: ../../backend/application-service
-      dockerfile: Dockerfile
+      context: ../../backend
+      dockerfile: application-service/Dockerfile
     environment:
       SERVER_PORT: 8084
       APP_ENVIRONMENT: ${APP_ENVIRONMENT:-dev}
@@ -352,8 +356,8 @@ services:
   api-gateway:
     container_name: api-gateway-dev
     build:
-      context: ../../backend/api-gateway
-      dockerfile: Dockerfile
+      context: ../../backend
+      dockerfile: api-gateway/Dockerfile
     environment:
       SERVER_PORT: 8080
       APP_ENVIRONMENT: ${APP_ENVIRONMENT:-dev}
