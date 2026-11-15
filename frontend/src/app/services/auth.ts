@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { Presence } from './presence.js';
 
 export interface AuthUser {
@@ -26,6 +26,8 @@ export interface RegisterRequest {
   providedIn: 'root',
 })
 export class AuthService {
+  private readonly revision = signal(0);
+  readonly sessionRevision = this.revision.asReadonly();
   private http = inject(HttpClient);
   private presence = inject(Presence);
 
@@ -45,6 +47,7 @@ export class AuthService {
   saveToken(token: string) {
     // Keep each tab's account independent, including across page reloads.
     sessionStorage.setItem('token', token);
+    this.revision.update(value => value + 1);
     this.presence.start();
   }
 
@@ -70,6 +73,7 @@ export class AuthService {
 
   logout() {
     sessionStorage.removeItem('token');
+    this.revision.update(value => value + 1);
     this.presence.stop();
   }
 }

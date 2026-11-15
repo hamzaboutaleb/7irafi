@@ -5,4 +5,6 @@ export const environment = {
   // socket sits behind the same reverse proxy as the app.
   chatSocketUrl: '',
   notificationSocketUrl: '',
+  // Same convention; requires the proxy to forward /ws/analytics to analytics-service.
+  analyticsSocketUrl: '',
 };
