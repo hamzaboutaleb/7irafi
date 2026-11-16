@@ -19,8 +19,6 @@ final class AnalyticsParameters {
                 .addValue("granularity", filter.granularity().sqlValue())
                 .addValue("status", status == null ? null : status.name(), Types.VARCHAR)
                 .addValue("skill", filter.skill(), Types.VARCHAR)
-                .addValue("city", filter.city(), Types.VARCHAR)
-                .addValue("size", filter.size())
-                .addValue("offset", filter.offset());
+                .addValue("city", filter.city(), Types.VARCHAR);
     }
 }

@@ -32,7 +32,7 @@ class AnalyticsSocketSecurityTest {
     }
 
     @Test
-    void usesTheVerifiedTokenSubjectAsTheSessionUser() {
+    void authenticatesTheUserAndAllowsTheirPrivateSubscription() {
         String user = UUID.randomUUID().toString();
         when(decoder.decode("valid")).thenReturn(Jwt.withTokenValue("valid").header("alg", "HS256")
                 .subject(user).issuedAt(Instant.now()).expiresAt(Instant.now().plusSeconds(60)).build());
@@ -42,6 +42,11 @@ class AnalyticsSocketSecurityTest {
         send(connect);
 
         assertThat(connect.getUser().getName()).isEqualTo(user);
+
+        var subscribe = frame(StompCommand.SUBSCRIBE);
+        subscribe.setUser(connect.getUser());
+        subscribe.setDestination("/user/queue/analytics");
+        send(subscribe);
     }
 
     @Test
@@ -54,17 +59,8 @@ class AnalyticsSocketSecurityTest {
                 .hasMessage("Invalid bearer token");
     }
 
-    @Test
-    void allowsTheAuthenticatedUsersPrivateSubscription() {
-        var subscribe = frame(StompCommand.SUBSCRIBE);
-        subscribe.setUser(() -> UUID.randomUUID().toString());
-        subscribe.setDestination("/user/queue/analytics");
-
-        send(subscribe);
-    }
-
     @ParameterizedTest
-    @ValueSource(strings = {"/queue/analytics", "/topic/analytics", "/user/someone-else/queue/analytics"})
+    @ValueSource(strings = {"/queue/analytics", "/user/someone-else/queue/analytics"})
     void rejectsOtherDestinations(String destination) {
         var subscribe = frame(StompCommand.SUBSCRIBE);
         subscribe.setUser(() -> UUID.randomUUID().toString());

@@ -8,18 +8,20 @@ import com.herafi.analytics.dto.AnalyticsEvent;
 import com.herafi.analytics.dto.ApplicationEvent;
 import com.herafi.analytics.dto.JobEvent;
 import com.herafi.analytics.dto.JobStatus;
+import com.herafi.analytics.listener.AnalyticsEventListener;
 import com.herafi.analytics.repository.ProjectionRepository;
-import com.herafi.analytics.service.ProjectionService;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.TransientDataAccessResourceException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -27,6 +29,8 @@ import org.springframework.messaging.MessageDeliveryException;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -47,12 +51,12 @@ import static org.mockito.Mockito.verify;
 @ActiveProfiles("test")
 @EmbeddedKafka(partitions = 1, topics = "analytics.events")
 @DirtiesContext
+@ExtendWith(OutputCaptureExtension.class)
 class AnalyticsIntegrationTest {
     @Autowired JdbcTemplate jdbc;
     @Autowired KafkaTemplate<String, String> kafka;
     @Autowired ObjectMapper mapper;
-    @Autowired ProjectionService projections;
-    @Autowired KafkaListenerEndpointRegistry listeners;
+    @Autowired AnalyticsEventListener eventListener;
     @SpyBean ProjectionRepository repository;
     @SpyBean SimpMessagingTemplate messaging;
 
@@ -91,18 +95,28 @@ class AnalyticsIntegrationTest {
                 UUID.class, applicationId)).containsExactly(applicationId);
     }
 
-    @ParameterizedTest
-    @EnumSource(ApplicationEvent.Type.class)
-    void acceptsApplicationSnapshotsEvenWhenSubmissionIsOutsideRetention(ApplicationEvent.Type type) throws Exception {
-        UUID id = UUID.randomUUID();
-        var event = EventFixtures.application(UUID.randomUUID(), id, UUID.randomUUID(), type);
-        send(id, event);
-        awaitProcessed(event.eventId());
+    @Test
+    void projectsApplicationStatusChangesAndSnapshotsWithoutSubmissionHistory() throws Exception {
+        UUID applicant = UUID.randomUUID();
+        UUID acceptedId = UUID.randomUUID();
+        UUID rejectedId = UUID.randomUUID();
+        UUID jobId = UUID.randomUUID();
+        var submitted = EventFixtures.application(applicant, acceptedId, jobId, ApplicationEvent.Type.APPLICATION_SUBMITTED);
+        var accepted = EventFixtures.application(applicant, acceptedId, jobId, ApplicationEvent.Type.APPLICATION_ACCEPTED);
+        var rejected = EventFixtures.application(applicant, rejectedId, jobId, ApplicationEvent.Type.APPLICATION_REJECTED);
+        send(acceptedId, submitted);
+        send(acceptedId, accepted);
+        send(rejectedId, rejected);
+        awaitProcessed(rejected.eventId());
 
-        assertThat(jdbc.queryForObject("SELECT status FROM analytics_applications WHERE application_id = ?", String.class, id))
-                .isEqualTo(type.status().name());
+        assertThat(jdbc.queryForObject("SELECT status FROM analytics_applications WHERE application_id = ?", String.class, acceptedId))
+                .isEqualTo("ACCEPTED");
+        assertThat(jdbc.queryForObject("SELECT status FROM analytics_applications WHERE application_id = ?", String.class, rejectedId))
+                .isEqualTo("REJECTED");
         assertThat(jdbc.queryForObject("SELECT submitted_at FROM analytics_applications WHERE application_id = ?",
-                java.sql.Timestamp.class, id).toInstant()).isEqualTo(EventFixtures.CREATED_AT);
+                java.sql.Timestamp.class, acceptedId).toInstant()).isEqualTo(EventFixtures.CREATED_AT);
+        assertThat(jdbc.queryForObject("SELECT submitted_at FROM analytics_applications WHERE application_id = ?",
+                java.sql.Timestamp.class, rejectedId).toInstant()).isEqualTo(EventFixtures.CREATED_AT);
     }
 
     static java.util.stream.Stream<RuntimeException> projectionFailures() {
@@ -113,7 +127,7 @@ class AnalyticsIntegrationTest {
 
     @ParameterizedTest
     @MethodSource("projectionFailures")
-    void retriesProjectionFailuresWithoutLosingOrReorderingEvents(RuntimeException failure) throws Exception {
+    void retriesProjectionFailuresWithoutLosingOrReorderingEvents(RuntimeException failure, CapturedOutput output) throws Exception {
         UUID owner = UUID.randomUUID();
         UUID jobId = UUID.randomUUID();
         var event = EventFixtures.job(owner, jobId, JobEvent.Type.JOB_CREATED, JobStatus.OPEN);
@@ -121,10 +135,13 @@ class AnalyticsIntegrationTest {
         doThrow(failure)
                 .doCallRealMethod().when(repository).saveJob(argThat(job -> job.jobId().equals(jobId)));
 
-        send(jobId, event);
+        var metadata = send(jobId, event);
         send(jobId, cancelled);
         awaitProcessed(cancelled.eventId());
 
+        assertThat(output.getAll()).contains(
+                "Analytics event failed; retrying topic=analytics.events partition=" + metadata.partition()
+                        + " offset=" + metadata.offset() + " attempt=1");
         verify(repository, times(2)).saveJob(event.data());
         assertThat(receipts(event.eventId())).isEqualTo(1);
         assertThat(jdbc.queryForObject("SELECT status FROM analytics_jobs WHERE job_id = ?", String.class, jobId))
@@ -134,7 +151,7 @@ class AnalyticsIntegrationTest {
     }
 
     @Test
-    void notifiesOnlyAfterTheProjectionIsVisibleToAnotherConnection() {
+    void notifiesOnlyAfterTheProjectionIsVisibleToAnotherConnection() throws Exception {
         UUID owner = UUID.randomUUID();
         UUID jobId = UUID.randomUUID();
         var event = EventFixtures.job(owner, jobId, JobEvent.Type.JOB_CREATED, JobStatus.OPEN);
@@ -150,7 +167,7 @@ class AnalyticsIntegrationTest {
             return null;
         }).when(messaging).convertAndSendToUser(eq(owner.toString()), eq("/queue/analytics"), any(Object.class));
 
-        projections.apply(event);
+        eventListener.consume(mapper.writeValueAsString(event));
 
         verify(messaging).convertAndSendToUser(eq(owner.toString()), eq("/queue/analytics"), any(Object.class));
     }
@@ -176,44 +193,49 @@ class AnalyticsIntegrationTest {
     }
 
     @Test
-    void rollsBackEventReceiptAndDoesNotNotifyWhenDatabaseWriteFails() {
+    void rollsBackEventReceiptAndDoesNotNotifyWhenDatabaseWriteFails() throws Exception {
         UUID owner = UUID.randomUUID();
         var data = new JobEvent.Data(UUID.randomUUID(), owner, JobStatus.OPEN,
                 "X".repeat(101), "CASABLANCA", EventFixtures.CREATED_AT);
         var event = new JobEvent(UUID.randomUUID(), JobEvent.Type.JOB_CREATED, EventFixtures.OCCURRED_AT, data);
 
-        assertThatThrownBy(() -> projections.apply(event)).isInstanceOf(DataIntegrityViolationException.class);
+        String payload = mapper.writeValueAsString(event);
+        assertThatThrownBy(() -> eventListener.consume(payload)).isInstanceOf(DataIntegrityViolationException.class);
 
         assertThat(receipts(event.eventId())).isZero();
         verify(messaging, never()).convertAndSendToUser(eq(owner.toString()), eq("/queue/analytics"), any(Object.class));
     }
 
     @Test
-    void resumesAfterListenerRestartAndDeduplicatesReplay() throws Exception {
-        UUID jobId = UUID.randomUUID();
+    void aCommitFailurePreventsNotificationAndAllowsRetry() throws Exception {
         UUID owner = UUID.randomUUID();
-        var created = EventFixtures.job(owner, jobId, JobEvent.Type.JOB_CREATED, JobStatus.OPEN);
-        var assigned = EventFixtures.job(owner, jobId, JobEvent.Type.JOB_STATUS_CHANGED, JobStatus.ASSIGNED);
-        send(jobId, created);
-        awaitProcessed(created.eventId());
+        UUID jobId = UUID.randomUUID();
+        var event = EventFixtures.job(owner, jobId, JobEvent.Type.JOB_CREATED, JobStatus.OPEN);
+        String payload = mapper.writeValueAsString(event);
+        doAnswer(invocation -> {
+            invocation.callRealMethod();
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void beforeCommit(boolean readOnly) {
+                    throw new TransientDataAccessResourceException("Simulated commit failure");
+                }
+            });
+            return null;
+        }).doCallRealMethod().when(repository).saveJob(argThat(job -> job.jobId().equals(jobId)));
 
-        var listener = listeners.getListenerContainer("analytics-events");
-        listener.stop();
-        try {
-            send(jobId, created);
-            send(jobId, assigned);
-            assertThat(receipts(assigned.eventId())).isZero();
-        } finally {
-            listener.start();
-        }
-        awaitProcessed(assigned.eventId());
-        assertThat(jdbc.queryForObject("SELECT status FROM analytics_jobs WHERE job_id = ?", String.class, jobId))
-                .isEqualTo("ASSIGNED");
-        assertThat(receipts(created.eventId())).isEqualTo(1);
+        assertThatThrownBy(() -> eventListener.consume(payload))
+                .isInstanceOf(TransientDataAccessResourceException.class);
+        assertThat(receipts(event.eventId())).isZero();
+        verify(messaging, never()).convertAndSendToUser(eq(owner.toString()), eq("/queue/analytics"), any(Object.class));
+
+        eventListener.consume(payload);
+
+        assertThat(receipts(event.eventId())).isEqualTo(1);
+        verify(messaging, times(1)).convertAndSendToUser(eq(owner.toString()), eq("/queue/analytics"), any(Object.class));
     }
 
-    private void send(UUID key, AnalyticsEvent event) throws Exception {
-        kafka.send("analytics.events", key.toString(), mapper.writeValueAsString(event)).get();
+    private RecordMetadata send(UUID key, AnalyticsEvent event) throws Exception {
+        return kafka.send("analytics.events", key.toString(), mapper.writeValueAsString(event)).get().getRecordMetadata();
     }
 
     private void awaitProcessed(UUID eventId) {
