@@ -5,6 +5,7 @@ import { TranslatePipe } from '../../pipes/translate-pipe.js';
   selector: 'app-posting-status-modal',
   imports: [TranslatePipe],
   templateUrl: './posting-status-modal.html',
+  styleUrl: './posting-status-modal.css',
 })
 export class PostingStatusModal implements AfterViewInit {
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('dialog');

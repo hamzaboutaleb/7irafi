@@ -1,10 +1,10 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { DOCUMENT, TitleCasePipe } from '@angular/common';
-import { afterNextRender, Component, computed, DestroyRef, HostListener, inject, Injector, OnInit, signal } from '@angular/core';
+import { TitleCasePipe } from '@angular/common';
+import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { catchError, concatMap, forkJoin, from, of, tap, throwError } from 'rxjs';
+import { forkJoin } from 'rxjs';
 
 import { Footer } from '../footer/footer.js';
 import { PostingStatusModal } from '../posting-status-modal/posting-status-modal.js';
@@ -13,61 +13,112 @@ import { JobService } from '../../services/job.js';
 import {
   CreateJobRequest,
   EstimatedDuration,
-  JobApiError,
   JobResponse,
+  JobPhoto,
   PreferredTime,
 } from '../../types/job.js';
-import { JobPhoto } from '../../types/job.js';
 import { Select, SelectOption } from '../select/select.js';
 import { I18nService } from '../../services/i18n.js';
-import { LucideDynamicIcon, LucideArrowLeft, LucidePlus, LucideX, LucideImage, LucideLoaderCircle } from '@lucide/angular';
+import { LucideDynamicIcon, LucideArrowLeft, LucideLoaderCircle } from '@lucide/angular';
 import { TranslatePipe } from '../../pipes/translate-pipe.js';
+import { JobPhotoPicker } from '../job-photo-picker/job-photo-picker.js';
+import { CreateJobPhotos } from './create-job-photos.js';
 
 @Component({
   selector: 'app-create-job',
-  imports: [Navbar, Footer, RouterLink, ReactiveFormsModule, PostingStatusModal, TranslatePipe, Select, LucideDynamicIcon],
+  imports: [
+    Navbar,
+    Footer,
+    RouterLink,
+    ReactiveFormsModule,
+    PostingStatusModal,
+    TranslatePipe,
+    Select,
+    LucideDynamicIcon,
+    JobPhotoPicker,
+  ],
+  providers: [CreateJobPhotos],
   templateUrl: './create-job.html',
+  styleUrl: './create-job.css',
 })
 export class CreateJob implements OnInit {
   private readonly i18n = inject(I18nService);
-  private readonly document = inject(DOCUMENT);
-  private readonly injector = inject(Injector);
-  private readonly titleCase = new TitleCasePipe();
-  readonly icons = { back: LucideArrowLeft, add: LucidePlus, remove: LucideX, image: LucideImage, loading: LucideLoaderCircle };
-  readonly skillOptions = computed(() => [{ value: '', label: this.i18n.translate('createJob.selectSkill'), disabled: true }, ...this.skills().map(value => ({ value, label: this.titleCase.transform(value.replaceAll('_', ' ')) }))]);
-  readonly cityOptions = computed(() => [{ value: '', label: this.i18n.translate('createJob.selectCity'), disabled: true }, ...this.cities().map(value => ({ value, label: this.titleCase.transform(value.replaceAll('_', ' ')) }))]);
-  readonly durationOptions = computed<readonly SelectOption<EstimatedDuration | ''>[]>(() => [
-    { value: '', label: this.i18n.translate('createJob.selectDuration'), disabled: true },
-    { value: 'HALF_DAY', label: this.i18n.translate('createJob.halfDay') },
-    { value: 'FULL_DAY', label: this.i18n.translate('createJob.fullDay') },
-    { value: 'MULTI_DAY', label: this.i18n.translate('createJob.multipleDays') },
-  ]);
-  readonly timeOptions = computed<readonly SelectOption<PreferredTime>[]>(() => [
-    { value: 'ANYTIME', label: this.i18n.translate('createJob.anytime') },
-    { value: 'MORNING', label: this.i18n.translate('createJob.morning') },
-    { value: 'AFTERNOON', label: this.i18n.translate('createJob.afternoon') },
-    { value: 'EVENING', label: this.i18n.translate('createJob.evening') },
-  ]);
-  setChoice(field: 'skill' | 'city', value: string): void {
-    const control = this.form.controls[field]; control.setValue(value); control.markAsDirty(); control.markAsTouched();
-  }
-  setDuration(value: EstimatedDuration | ''): void {
-    const control = this.form.controls.estimatedDuration; control.setValue(value || null); control.markAsDirty(); control.markAsTouched();
-  }
-  setTime(value: PreferredTime): void {
-    const control = this.form.controls.preferredTime; control.setValue(value); control.markAsDirty(); control.markAsTouched();
-  }
-  private focusInvalid(): void {
-    afterNextRender(() => {
-      const fields = ['title', 'description', 'skill', 'budget', 'city', 'addressLine', 'estimatedDuration', 'preferredTime'] as const;
-      const field = fields.find(name => this.form.controls[name].invalid);
-      if (field) this.document.getElementById(field)?.focus();
-    }, { injector: this.injector });
-  }
   private readonly formBuilder = inject(FormBuilder);
   private readonly jobService = inject(JobService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
+
+  private readonly titleCase = new TitleCasePipe();
+
+  readonly icons = {
+    back: LucideArrowLeft,
+    loading: LucideLoaderCircle,
+  };
+  readonly skillOptions = computed(() => [
+    {
+      value: '',
+      label: this.i18n.translate('createJob.selectSkill'),
+      disabled: true,
+    },
+    ...this.skills().map((value) => ({
+      value,
+      label: this.titleCase.transform(value.replaceAll('_', ' ')),
+    })),
+  ]);
+  readonly cityOptions = computed(() => [
+    {
+      value: '',
+      label: this.i18n.translate('createJob.selectCity'),
+      disabled: true,
+    },
+    ...this.cities().map((value) => ({
+      value,
+      label: this.titleCase.transform(value.replaceAll('_', ' ')),
+    })),
+  ]);
+  readonly durationOptions = computed<readonly SelectOption<EstimatedDuration | ''>[]>(() => [
+    {
+      value: '',
+      label: this.i18n.translate('createJob.selectDuration'),
+      disabled: true,
+    },
+    {
+      value: 'HALF_DAY',
+      label: this.i18n.translate('createJob.halfDay'),
+    },
+    {
+      value: 'FULL_DAY',
+      label: this.i18n.translate('createJob.fullDay'),
+    },
+    {
+      value: 'MULTI_DAY',
+      label: this.i18n.translate('createJob.multipleDays'),
+    },
+  ]);
+  readonly timeOptions = computed<readonly SelectOption<PreferredTime>[]>(() => [
+    {
+      value: 'ANYTIME',
+      label: this.i18n.translate('createJob.anytime'),
+    },
+    {
+      value: 'MORNING',
+      label: this.i18n.translate('createJob.morning'),
+    },
+    {
+      value: 'AFTERNOON',
+      label: this.i18n.translate('createJob.afternoon'),
+    },
+    {
+      value: 'EVENING',
+      label: this.i18n.translate('createJob.evening'),
+    },
+  ]);
+
+  setControl<T>(control: FormControl<T>, value: T): void {
+    control.setValue(value);
+    control.markAsDirty();
+    control.markAsTouched();
+  }
 
   readonly skills = signal<string[]>([]);
   readonly cities = signal<string[]>([]);
@@ -77,113 +128,53 @@ export class CreateJob implements OnInit {
   readonly errorMessage = signal<string | null>(null);
   readonly createdJob = signal<JobResponse | null>(null);
   readonly showFailure = signal(false);
-  readonly photos = signal<JobPhoto[]>([]);
-  readonly photoErrors = signal<string[]>([]);
-  readonly isUploading = signal(false);
+  readonly photoState = inject(CreateJobPhotos);
   readonly isRedirecting = signal(false);
-  readonly isPosting = computed(() => this.isSaving() || this.isUploading() || this.isRedirecting());
-  readonly uploadedPhotoCount = computed(() =>
-    this.photos().filter((photo) => photo.status === 'uploaded').length,
+  readonly isPosting = computed(
+    () => this.isSaving() || this.photoState.isUploading() || this.isRedirecting(),
   );
-  readonly uploadErrors = computed(() => this.photos()
-    .filter((photo) => photo.status === 'failed')
-    .map((photo) => `${photo.file.name}: ${photo.error}`));
-  readonly maxPhotos = 10;
-  readonly maxPhotoBytes = 10 * 1024 * 1024;
-
-  constructor() {
-    this.destroyRef.onDestroy(() => {
-      for (const photo of this.photos()) URL.revokeObjectURL(photo.previewUrl);
-    });
-  }
+  readonly formLocked = computed(() => this.isPosting() || !!this.createdJob());
+  readonly referencesDisabled = computed(
+    () => this.isLoading() || !!this.referenceError() || this.formLocked(),
+  );
+  readonly postingLabel = computed(() =>
+    this.photoState.isUploading()
+      ? 'createJob.uploadingPhotos'
+      : this.isSaving()
+        ? 'createJob.posting'
+        : this.isRedirecting()
+          ? 'createJob.openingJobs'
+          : 'createJob.post',
+  );
 
   private hasUnfinishedWork(): boolean {
     if (this.isRedirecting()) return false;
-    return this.isSaving() || this.isUploading() ||
-      (!this.createdJob() && (this.form.dirty || this.photos().length > 0));
-  }
-
-  canLeave(): boolean {
-    return !this.hasUnfinishedWork() || window.confirm(
-      this.i18n.translate('createJob.leaveConfirm'),
+    return (
+      this.isSaving() ||
+      this.photoState.isUploading() ||
+      (!this.createdJob() && (this.form.dirty || this.photoState.photos().length > 0))
     );
   }
 
-  @HostListener('window:beforeunload', ['$event'])
-  beforeUnload(event: BeforeUnloadEvent): void {
-    if (this.hasUnfinishedWork()) event.preventDefault();
+  canLeave(): boolean {
+    return (
+      !this.hasUnfinishedWork() || window.confirm(this.i18n.translate('createJob.leaveConfirm'))
+    );
   }
 
-  selectPhotos(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (this.isSaving() || this.createdJob()) return;
-    const errors: string[] = [];
-    const photos = [...this.photos()];
-    for (const file of Array.from(input.files ?? [])) {
-      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-        errors.push(this.i18n.translate('createJob.photoTypeError', { name: file.name }));
-      } else if (!file.size || file.size > this.maxPhotoBytes) {
-        errors.push(this.i18n.translate('createJob.photoSizeError', { name: file.name }));
-      } else if (photos.length >= this.maxPhotos) {
-        errors.push(this.i18n.translate('createJob.photoCountError', { name: file.name }));
-      } else if (!photos.some((photo) => photo.file.name === file.name &&
-        photo.file.size === file.size && photo.file.lastModified === file.lastModified)) {
-        photos.push({ file, previewUrl: URL.createObjectURL(file), status: 'queued', error: null });
-      }
-    }
-    this.photos.set(photos);
-    this.photoErrors.set(errors);
-    input.value = '';
+  selectPhotos(files: File[]): void {
+    if (this.isPosting() || this.createdJob()) return;
+    this.photoState.select(files);
   }
 
   removePhoto(photo: JobPhoto): void {
     if (this.isPosting() || this.createdJob()) return;
-    URL.revokeObjectURL(photo.previewUrl);
-    this.photos.update((photos) => photos.filter((item) => item !== photo));
-    this.photoErrors.set([]);
-  }
-
-  private uploadPhotos(): void {
-    const job = this.createdJob();
-    if (!job || this.isUploading()) return;
-    const queued = this.photos().filter((photo) => photo.status === 'queued');
-    if (!queued.length) {
-      void this.finishPosting();
-      return;
-    }
-
-    this.isUploading.set(true);
-    from(queued).pipe(
-      concatMap((photo) => {
-        this.updatePhoto(photo, 'uploading');
-        return this.jobService.uploadImage(job.id, photo.file).pipe(
-          tap(() => this.updatePhoto(photo, 'uploaded')),
-          catchError((error: HttpErrorResponse) => {
-            const body = error.error as JobApiError | undefined;
-            const message = error.status === 0
-              ? this.i18n.translate('createJob.uploadUncertain')
-              : error.status === 403
-                ? this.i18n.translate('createJob.uploadDenied')
-                : body?.message ?? this.i18n.translate('createJob.uploadError');
-            this.updatePhoto(photo, 'failed', message);
-            if (error.status === 401) return throwError(() => error);
-            return of(null);
-          }),
-        );
-      }),
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe({
-      error: () => this.isUploading.set(false),
-      complete: () => {
-        this.isUploading.set(false);
-        if (!this.destroyRef.destroyed) void this.finishPosting();
-      },
-    });
+    this.photoState.remove(photo);
   }
 
   private async finishPosting(): Promise<void> {
     if (!this.createdJob()) return;
-    if (this.uploadErrors().length) {
+    if (this.photoState.uploadErrors().length) {
       this.errorMessage.set(this.i18n.translate('jobs.photosFailed'));
       this.showFailure.set(true);
       return;
@@ -200,18 +191,10 @@ export class CreateJob implements OnInit {
     this.isRedirecting.set(true);
     try {
       if (await this.router.navigate(['/jobs'])) return;
-    } catch {
-      // Keep the posted job visible when navigation cannot complete.
-    }
+    } catch {}
     this.isRedirecting.set(false);
     this.errorMessage.set(this.i18n.translate('createJob.postedRedirectError'));
     this.showFailure.set(true);
-  }
-
-  private updatePhoto(photo: JobPhoto, status: JobPhoto['status'], error: string | null = null): void {
-    this.photos.update((photos) => photos.map((item) =>
-      item.file === photo.file ? { ...item, status, error } : item,
-    ));
   }
 
   readonly form = this.formBuilder.nonNullable.group({
@@ -226,7 +209,10 @@ export class CreateJob implements OnInit {
       Validators.max(99999999.99),
       Validators.pattern(/^\d+(\.\d{1,2})?$/),
     ]),
-    estimatedDuration: this.formBuilder.control<EstimatedDuration | null>(null, Validators.required),
+    estimatedDuration: this.formBuilder.control<EstimatedDuration | null>(
+      null,
+      Validators.required,
+    ),
     preferredTime: this.formBuilder.nonNullable.control<PreferredTime>('ANYTIME'),
   });
 
@@ -262,10 +248,11 @@ export class CreateJob implements OnInit {
     const control = this.form.controls[field];
     if (!control.touched || !control.errors) return null;
 
-    if (control.hasError('server')) return control.getError('server') as string;
     if (control.hasError('required')) return this.i18n.translate('createJob.requiredError');
     if (control.hasError('maxlength')) {
-      return field === 'title' ? this.i18n.translate('createJob.titleLimit') : this.i18n.translate('createJob.addressLimit');
+      return field === 'title'
+        ? this.i18n.translate('createJob.titleLimit')
+        : this.i18n.translate('createJob.addressLimit');
     }
     if (field === 'budget') return this.i18n.translate('createJob.budgetError');
     return this.i18n.translate('createJob.whitespaceError');
@@ -276,7 +263,7 @@ export class CreateJob implements OnInit {
 
     this.errorMessage.set(null);
     this.form.markAllAsTouched();
-    if (this.form.invalid) { this.focusInvalid(); return; }
+    if (this.form.invalid) return;
 
     const value = this.form.getRawValue();
     if (value.budget === null || value.estimatedDuration === null) return;
@@ -293,41 +280,35 @@ export class CreateJob implements OnInit {
     };
 
     this.isSaving.set(true);
-    this.jobService.createJob(request).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (job) => {
-        this.createdJob.set(job);
-        this.isSaving.set(false);
-        this.uploadPhotos();
-      },
-      error: (error: HttpErrorResponse) => {
-        this.isSaving.set(false);
-        this.showFailure.set(true);
-        if (error.status === 0) {
-          this.errorMessage.set(
-            this.i18n.translate('createJob.postUncertain'),
-          );
-          return;
-        }
-        if (error.status === 401) {
-          this.errorMessage.set(this.i18n.translate('createJob.sessionExpired'));
-          return;
-        }
-        if (error.status === 403) {
-          this.errorMessage.set(this.i18n.translate('createJob.postDenied'));
-          return;
-        }
+    this.jobService
+      .createJob(request)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (job) => {
+          this.createdJob.set(job);
+          this.isSaving.set(false);
+          this.photoState.upload(job.id, () => {
+            void this.finishPosting();
+          });
+        },
+        error: (error: HttpErrorResponse) => {
+          this.isSaving.set(false);
+          this.showFailure.set(true);
+          if (error.status === 0) {
+            this.errorMessage.set(this.i18n.translate('createJob.postUncertain'));
+            return;
+          }
+          if (error.status === 401) {
+            this.errorMessage.set(this.i18n.translate('createJob.sessionExpired'));
+            return;
+          }
+          if (error.status === 403) {
+            this.errorMessage.set(this.i18n.translate('createJob.postDenied'));
+            return;
+          }
 
-        const body = error.error as JobApiError | undefined;
-        this.errorMessage.set(body?.message ?? this.i18n.translate('createJob.postError'));
-        for (const fieldError of body?.fieldErrors ?? []) {
-          const control = this.form.get(fieldError.field);
-          control?.setErrors({ ...control.errors, server: fieldError.message });
-        }
-        if (body?.fieldErrors?.length) {
-          this.showFailure.set(false);
-          this.focusInvalid();
-        }
-      },
-    });
+          this.errorMessage.set(error.error?.message ?? this.i18n.translate('createJob.postError'));
+        },
+      });
   }
 }
