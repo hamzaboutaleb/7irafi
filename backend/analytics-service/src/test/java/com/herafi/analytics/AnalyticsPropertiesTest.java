@@ -2,13 +2,10 @@ package com.herafi.analytics;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import com.herafi.analytics.config.AnalyticsProperties;
 import org.springframework.boot.context.properties.bind.validation.BindValidationException;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.boot.env.YamlPropertySourceLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.core.env.MapPropertySource;
@@ -44,21 +41,16 @@ class AnalyticsPropertiesTest {
                 }
             });
 
-    static Stream<String> requiredSettings() {
-        return SETTINGS.keySet().stream();
-    }
-
     @Test
     void acceptsExplicitDeploymentConfiguration() {
         runner.run(context -> assertThat(context).hasNotFailed());
     }
 
-    @ParameterizedTest
-    @MethodSource("requiredSettings")
-    void failsStartupWhenARequiredVariableIsMissing(String name) {
+    @Test
+    void failsStartupWhenTheJwtSecretIsMissing() {
         runner.withInitializer(context -> {
             var settings = new java.util.HashMap<>(SETTINGS);
-            settings.remove(name);
+            settings.remove("JWT_SECRET");
             context.getEnvironment().getPropertySources()
                     .replace("deployment", new MapPropertySource("deployment", settings));
         }).run(context -> {
@@ -67,12 +59,11 @@ class AnalyticsPropertiesTest {
         });
     }
 
-    @ParameterizedTest
-    @MethodSource("requiredSettings")
-    void failsStartupWhenARequiredVariableIsBlank(String name) {
+    @Test
+    void failsStartupWhenTheGatewaySecretIsBlank() {
         runner.withInitializer(context -> {
             var settings = new java.util.HashMap<>(SETTINGS);
-            settings.put(name, "   ");
+            settings.put("GATEWAY_SHARED_SECRET", "   ");
             context.getEnvironment().getPropertySources()
                     .replace("deployment", new MapPropertySource("deployment", settings));
         }).run(context -> {

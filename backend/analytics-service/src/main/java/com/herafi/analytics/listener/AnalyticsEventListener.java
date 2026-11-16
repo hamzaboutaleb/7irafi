@@ -11,14 +11,20 @@ import org.springframework.stereotype.Component;
 public class AnalyticsEventListener {
     private final ObjectMapper mapper;
     private final ProjectionService projections;
+    private final InvalidationPublisher notifications;
 
-    public AnalyticsEventListener(ObjectMapper mapper, ProjectionService projections) {
+    public AnalyticsEventListener(ObjectMapper mapper, ProjectionService projections,
+                                  InvalidationPublisher notifications) {
         this.mapper = mapper;
         this.projections = projections;
+        this.notifications = notifications;
     }
 
     @KafkaListener(id = "analytics-events", idIsGroup = false, topics = "analytics.events")
     public void consume(String payload) throws JsonProcessingException {
-        projections.apply(mapper.readValue(payload, AnalyticsEvent.class));
+        var event = mapper.readValue(payload, AnalyticsEvent.class);
+        // The separate transactional service commits before returning to this listener.
+        var change = projections.apply(event);
+        change.ifPresent(notifications::send);
     }
 }

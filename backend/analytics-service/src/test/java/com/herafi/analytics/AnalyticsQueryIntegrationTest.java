@@ -39,29 +39,34 @@ class AnalyticsQueryIntegrationTest {
 
         mvc.perform(request("/jobs", owner)).andExpect(status().isOk())
                 .andExpect(jsonPath("$.total").value(1))
-                .andExpect(jsonPath("$.records[0].job_id").value(jobId.toString()))
-                .andExpect(jsonPath("$.records[0].client_id").value(owner.toString()));
+                .andExpect(jsonPath("$.records").doesNotExist())
+                .andExpect(jsonPath("$.page").doesNotExist())
+                .andExpect(jsonPath("$.size").doesNotExist());
         mvc.perform(request("/jobs", applicant)).andExpect(status().isOk()).andExpect(jsonPath("$.total").value(0));
         mvc.perform(request("/applications", applicant)).andExpect(status().isOk())
-                .andExpect(jsonPath("$.total").value(1))
-                .andExpect(jsonPath("$.records[0].applicant_id").value(applicant.toString()));
+                .andExpect(jsonPath("$.total").value(1));
         mvc.perform(request("/applications", owner)).andExpect(status().isOk()).andExpect(jsonPath("$.total").value(0));
     }
 
     @Test
-    void usesTheSameJobFiltersForTotalsDistributionActivityAndRecords() throws Exception {
+    void usesTheSameJobFiltersForTotalsDistributionAndActivity() throws Exception {
         UUID owner = UUID.randomUUID();
         addJob(owner, JobStatus.OPEN, "PLUMBING", "CASABLANCA", EventFixtures.CREATED_AT);
         addJob(owner, JobStatus.CANCELLED, "PLUMBING", "CASABLANCA", EventFixtures.CREATED_AT);
         addJob(owner, JobStatus.OPEN, "PAINTING", "RABAT", EventFixtures.CREATED_AT);
 
+        mvc.perform(request("/jobs", owner))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.total").value(3))
+                .andExpect(jsonPath("$.statusDistribution.length()").value(2))
+                .andExpect(jsonPath("$.statusDistribution[0].count").value(1))
+                .andExpect(jsonPath("$.statusDistribution[1].count").value(2))
+                .andExpect(jsonPath("$.activity[0].count").value(3));
         mvc.perform(request("/jobs", owner).param("status", "OPEN").param("skill", "PLUMBING").param("city", "CASABLANCA"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.total").value(1))
                 .andExpect(jsonPath("$.statusDistribution.length()").value(1))
                 .andExpect(jsonPath("$.statusDistribution[0].value").value("OPEN"))
                 .andExpect(jsonPath("$.statusDistribution[0].count").value(1))
-                .andExpect(jsonPath("$.activity[0].count").value(1))
-                .andExpect(jsonPath("$.records.length()").value(1));
+                .andExpect(jsonPath("$.activity[0].count").value(1));
     }
 
     @Test
@@ -70,32 +75,20 @@ class AnalyticsQueryIntegrationTest {
         projections.apply(EventFixtures.application(owner, UUID.randomUUID(), UUID.randomUUID(), ApplicationEvent.Type.APPLICATION_SUBMITTED));
         projections.apply(EventFixtures.application(owner, UUID.randomUUID(), UUID.randomUUID(), ApplicationEvent.Type.APPLICATION_ACCEPTED));
 
+        mvc.perform(request("/applications", owner))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.total").value(2))
+                .andExpect(jsonPath("$.statusDistribution.length()").value(2))
+                .andExpect(jsonPath("$.activity[0].count").value(2));
         mvc.perform(request("/applications", owner).param("status", "ACCEPTED")
                         .param("skill", "PLUMBING").param("city", "CASABLANCA"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.total").value(1))
                 .andExpect(jsonPath("$.statusDistribution[0].value").value("ACCEPTED"))
                 .andExpect(jsonPath("$.statusDistribution[0].count").value(1))
-                .andExpect(jsonPath("$.activity[0].count").value(1))
-                .andExpect(jsonPath("$.records[0].status").value("ACCEPTED"));
+                .andExpect(jsonPath("$.activity[0].count").value(1));
         mvc.perform(request("/applications", owner).param("city", "RABAT"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.total").value(0))
                 .andExpect(jsonPath("$.statusDistribution").isEmpty())
-                .andExpect(jsonPath("$.activity").isEmpty()).andExpect(jsonPath("$.records").isEmpty());
-    }
-
-    @Test
-    void pagesRecordsWithoutPagingTheAggregates() throws Exception {
-        UUID owner = UUID.randomUUID();
-        addJob(owner, JobStatus.OPEN, "PLUMBING", "CASABLANCA", EventFixtures.CREATED_AT);
-        UUID newer = addJob(owner, JobStatus.OPEN, "PLUMBING", "CASABLANCA", EventFixtures.CREATED_AT.plusSeconds(60));
-
-        mvc.perform(request("/jobs", owner).param("size", "1"))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.total").value(2))
-                .andExpect(jsonPath("$.records[0].job_id").value(newer.toString()))
-                .andExpect(jsonPath("$.activity[0].count").value(2));
-        mvc.perform(request("/jobs", owner).param("page", "2").param("size", "1"))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.total").value(2))
-                .andExpect(jsonPath("$.records").isEmpty());
+                .andExpect(jsonPath("$.activity").isEmpty());
     }
 
     @Test
@@ -105,9 +98,9 @@ class AnalyticsQueryIntegrationTest {
         projections.apply(EventFixtures.application(owner, UUID.randomUUID(), UUID.randomUUID(), ApplicationEvent.Type.APPLICATION_SUBMITTED));
 
         for (String resource : new String[]{"/jobs", "/applications"}) {
-            mvc.perform(request(resource, owner).param("from", EventFixtures.CREATED_AT.toString()))
+            mvc.perform(request(resource, owner, EventFixtures.CREATED_AT.toString(), "2027-01-01T00:00:00Z"))
                     .andExpect(status().isOk()).andExpect(jsonPath("$.total").value(1));
-            mvc.perform(request(resource, owner).param("to", EventFixtures.CREATED_AT.toString()))
+            mvc.perform(request(resource, owner, "2026-01-01T00:00:00Z", EventFixtures.CREATED_AT.toString()))
                     .andExpect(status().isOk()).andExpect(jsonPath("$.total").value(0));
         }
     }
@@ -128,18 +121,42 @@ class AnalyticsQueryIntegrationTest {
     }
 
     @ParameterizedTest
-    @CsvSource({"size,0", "size,21", "page,-1", "granularity,year", "status,ACCEPTED", "from,invalid"})
+    @CsvSource({"granularity,year", "status,ACCEPTED"})
     void rejectsInvalidJobFilters(String name, String value) throws Exception {
         mvc.perform(request("/jobs", UUID.randomUUID()).param(name, value)).andExpect(status().isBadRequest());
     }
 
     @Test
+    void rejectsMalformedDates() throws Exception {
+        mvc.perform(request("/jobs", UUID.randomUUID(), "invalid", "2027-01-01T00:00:00Z"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(request("/jobs", UUID.randomUUID(), "2026-01-01T00:00:00Z", "invalid"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @ParameterizedTest
+    @CsvSource({"from,to", "to,from"})
+    void requiresEachDateBoundary(String missing, String supplied) throws Exception {
+        mvc.perform(get("/analytics/my/jobs")
+                        .header("X-Gateway-Key", "test-gateway-key").header("X-User-Id", UUID.randomUUID())
+                        .param(supplied, "2026-05-01T00:00:00Z"))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.errors[0].field").value(missing));
+    }
+
+    @Test
+    void rejectsAnOmittedDateRange() throws Exception {
+        mvc.perform(get("/analytics/my/jobs")
+                        .header("X-Gateway-Key", "test-gateway-key").header("X-User-Id", UUID.randomUUID()))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.errors.length()").value(2));
+    }
+
+    @Test
     void returnsFieldValidationErrorsAndRejectsReversedRanges() throws Exception {
-        mvc.perform(request("/jobs", UUID.randomUUID()).param("size", "0"))
-                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.errors[0].field").value("size"));
+        mvc.perform(request("/jobs", UUID.randomUUID()).param("skill", "X".repeat(101)))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.errors[0].field").value("skill"));
         mvc.perform(request("/jobs", UUID.randomUUID()).param("skill", "   "))
                 .andExpect(status().isBadRequest());
-        mvc.perform(request("/jobs", UUID.randomUUID()).param("from", "2026-06-01T00:00:00Z").param("to", "2026-05-01T00:00:00Z"))
+        mvc.perform(request("/jobs", UUID.randomUUID(), "2026-06-01T00:00:00Z", "2026-05-01T00:00:00Z"))
                 .andExpect(status().isBadRequest());
         mvc.perform(request("/applications", UUID.randomUUID()).param("status", "OPEN"))
                 .andExpect(status().isBadRequest());
@@ -163,6 +180,11 @@ class AnalyticsQueryIntegrationTest {
     }
 
     private MockHttpServletRequestBuilder request(String resource, UUID owner) {
-        return get("/analytics/my" + resource).header("X-Gateway-Key", "test-gateway-key").header("X-User-Id", owner);
+        return request(resource, owner, "2026-01-01T00:00:00Z", "2027-01-01T00:00:00Z");
+    }
+
+    private MockHttpServletRequestBuilder request(String resource, UUID owner, String from, String to) {
+        return get("/analytics/my" + resource).header("X-Gateway-Key", "test-gateway-key").header("X-User-Id", owner)
+                .param("from", from).param("to", to);
     }
 }

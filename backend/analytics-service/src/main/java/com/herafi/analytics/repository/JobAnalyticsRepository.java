@@ -6,10 +6,11 @@ import java.util.UUID;
 import com.herafi.analytics.dto.AnalyticsFilter;
 import com.herafi.analytics.dto.AnalyticsResponse;
 import com.herafi.analytics.dto.AnalyticsResponse.Count;
-import com.herafi.analytics.dto.AnalyticsResponse.JobRecord;
 import com.herafi.analytics.dto.JobStatus;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public class JobAnalyticsRepository {
@@ -28,26 +29,18 @@ public class JobAnalyticsRepository {
         this.jdbc = jdbc;
     }
 
-    public AnalyticsResponse<JobRecord> summarize(UUID owner, AnalyticsFilter filter, JobStatus status) {
+    @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
+    public AnalyticsResponse summarize(UUID owner, AnalyticsFilter filter, JobStatus status) {
         var parameters = AnalyticsParameters.of(owner, filter, status);
-        long total = jdbc.queryForObject("SELECT count(*)" + FILTER, parameters, Long.class);
-
         var distribution = jdbc.query("SELECT status, count(*)" + FILTER + " GROUP BY status ORDER BY status",
                 parameters, (rs, row) -> new Count(rs.getString(1), rs.getLong(2)));
+        long total = distribution.stream().mapToLong(Count::count).sum();
 
         var activity = jdbc.query("""
                 SELECT date_trunc(:granularity, created_at AT TIME ZONE 'Africa/Casablanca'), count(*)
                 """ + FILTER + " GROUP BY 1 ORDER BY 1",
                 parameters, (rs, row) -> new Count(rs.getObject(1, LocalDateTime.class).toString(), rs.getLong(2)));
 
-        var records = jdbc.query("""
-                SELECT job_id, client_id, status, skill, city, created_at
-                """ + FILTER + " ORDER BY created_at DESC, job_id DESC LIMIT :size OFFSET :offset",
-                parameters, (rs, row) -> new JobRecord(
-                        rs.getObject("job_id", UUID.class), rs.getObject("client_id", UUID.class),
-                        JobStatus.valueOf(rs.getString("status")), rs.getString("skill"), rs.getString("city"),
-                        rs.getTimestamp("created_at").toInstant()));
-
-        return new AnalyticsResponse<>(total, distribution, activity, records, filter.page(), filter.size());
+        return new AnalyticsResponse(total, distribution, activity);
     }
 }

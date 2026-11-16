@@ -7,8 +7,6 @@ import com.herafi.analytics.service.ProjectionService.Invalidation;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionalEventListener;
-import org.springframework.transaction.event.TransactionPhase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,8 +19,7 @@ public class InvalidationPublisher {
         this.messaging = messaging;
     }
 
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void afterCommit(Invalidation event) {
+    public void send(Invalidation event) {
         try {
             messaging.convertAndSendToUser(event.userId().toString(), "/queue/analytics",
                     new Message(event.eventId(), event.resource(), event.occurredAt()));

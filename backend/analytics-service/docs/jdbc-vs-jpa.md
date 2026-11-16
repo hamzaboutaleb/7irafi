@@ -95,44 +95,44 @@ For an already-loaded managed entity, `entity.apply(snapshot)` inside a transact
 is enough: dirty checking writes changes at flush. This is useful when working with
 entity state; our input is already a complete snapshot, so loading it first adds a read.
 
-## 2. Querying and pagination
+## 2. Querying chart summaries
 
 Today [JobAnalyticsRepository](../src/main/java/com/herafi/analytics/repository/JobAnalyticsRepository.java)
-shares one SQL filter between the total, distribution, activity and page queries,
-then maps rows directly to response records.
+shares one SQL filter between the distribution and activity queries,
+derives the total from the distribution, then maps aggregate rows to count records.
+Individual records and pagination are outside the chart API.
 
-JPA can express the page in JPQL and let Spring Data apply pagination and a count
-query. The same predicates are still required:
+JPA can express status grouping in JPQL and return an interface projection.
+The same predicates are still required:
 
 ```java
 public interface JobRepository extends JpaRepository<AnalyticsJob, UUID> {
     @Query("""
-            select j from AnalyticsJob j
+            select j.status as status, count(j) as count from AnalyticsJob j
             where j.clientId = :owner
               and j.createdAt >= :from and j.createdAt < :to
               and (:status is null or j.status = :status)
               and (:skill is null or j.skill = :skill)
               and (:city is null or j.city = :city)
+            group by j.status order by j.status
             """)
-    Page<AnalyticsJob> search(
+    List<StatusCount> countByStatus(
             @Param("owner") UUID owner,
             @Param("from") Instant from,
             @Param("to") Instant to,
             @Param("status") JobStatus status,
             @Param("skill") String skill,
-            @Param("city") String city,
-            Pageable pageable);
-}
+            @Param("city") String city);
 
-var pageable = PageRequest.of(filter.page(), filter.size(),
-        Sort.by(Sort.Direction.DESC, "createdAt", "jobId"));
-var page = jobs.search(owner, filter.from(), filter.to(), status,
-        filter.skill(), filter.city(), pageable);
+    interface StatusCount {
+        JobStatus getStatus();
+        long getCount();
+    }
+}
 ```
 
-This replaces explicit limit/offset and entity row mapping. Map entities to the
-existing response DTOs inside the service, or use a DTO projection directly in
-the query. Status grouping still needs an aggregate query. Dynamic filters can use
+This replaces the JDBC aggregate row mapper with a projection. The total can still
+be calculated by summing the returned counts. Dynamic filters can use
 Specifications, but sharing predicates with grouped queries requires additional
 Criteria code. An ORM does not automatically keep those filters consistent.
 [Spring Data query documentation](https://docs.spring.io/spring-data/jpa/reference/jpa/query-methods.html).
@@ -170,9 +170,9 @@ field would track local entity updates, not a producer event version or Kafka or
 | --- | --- | --- |
 | Dependencies | JDBC starter | Data JPA starter, Hibernate supplied by Boot |
 | Schema | Flyway migrations | Same migrations; `ddl-auto=validate`, never `update` |
-| Configuration | No persistence context | Disable open-in-view; keep transactions in services |
+| Configuration | No persistence context | Disable open-in-view; preserve transaction boundaries |
 | Snapshot writes | Explicit atomic upsert | Entity `save`/dirty checking, or retain native upsert |
-| Paged records | SQL plus row mapper | JPQL/Specifications, Pageable, DTO projection |
+| Status counts | SQL plus row mapper | JPQL plus aggregate projection |
 | Time buckets | PostgreSQL SQL | Native query or provider-specific functions |
 | Deduplication | Atomic native insert | Same native insert through a JPA repository |
 | Tests | Current PostgreSQL/Kafka suite | Rerun unchanged contracts; test flush-time failures too |
