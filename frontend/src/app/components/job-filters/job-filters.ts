@@ -21,7 +21,13 @@ import { TranslatePipe } from '../../pipes/translate-pipe.js';
 import { I18nService } from '../../services/i18n.js';
 import { JobService } from '../../services/job.js';
 import { JobFilters as JobFilterValues } from '../../types/job.js';
-import { emptyFilters } from '../../utils/job.js';
+import {
+  emptyFilters,
+  jobDurationLabels,
+  jobDurations,
+  jobTimeLabels,
+  jobTimes,
+} from '../../utils/job.js';
 import { Select } from '../select/select.js';
 
 @Component({
@@ -50,19 +56,6 @@ export class JobFilters implements OnInit, OnChanges, OnDestroy {
   readonly optionsError = signal(false);
   readonly budgetError = signal<TranslationKey | null>(null);
   readonly moreFilters = signal(false);
-
-  readonly durations = [
-    { value: 'HALF_DAY', label: 'createJob.halfDay' },
-    { value: 'FULL_DAY', label: 'createJob.fullDay' },
-    { value: 'MULTI_DAY', label: 'createJob.multipleDays' },
-  ] as const;
-
-  readonly times = [
-    { value: 'MORNING', label: 'createJob.morning' },
-    { value: 'AFTERNOON', label: 'createJob.afternoon' },
-    { value: 'EVENING', label: 'createJob.evening' },
-    { value: 'ANYTIME', label: 'createJob.anytime' },
-  ] as const;
 
   readonly tradeOptions = computed(() => [
     // default
@@ -94,9 +87,9 @@ export class JobFilters implements OnInit, OnChanges, OnDestroy {
       value: '',
       label: this.i18n.translate('jobs.anyDuration'),
     },
-    ...this.durations.map((option) => ({
-      value: option.value,
-      label: this.i18n.translate(option.label),
+    ...jobDurations.map((value) => ({
+      value,
+      label: this.i18n.translate(jobDurationLabels[value]),
     })),
   ]);
 
@@ -106,9 +99,9 @@ export class JobFilters implements OnInit, OnChanges, OnDestroy {
       value: '',
       label: this.i18n.translate('jobs.anyTime'),
     },
-    ...this.times.map((option) => ({
-      value: option.value,
-      label: this.i18n.translate(option.label),
+    ...jobTimes.map((value) => ({
+      value,
+      label: this.i18n.translate(jobTimeLabels[value]),
     })),
   ]);
 
@@ -217,9 +210,13 @@ export class JobFilters implements OnInit, OnChanges, OnDestroy {
       case 'maxBudget':
         return this.i18n.translate('jobs.budgetTo', { amount: filters.maxBudget! });
       case 'duration':
-        return this.durationOptions().find((option) => option.value === filters.duration)!.label;
+        return this.i18n.translate(
+          filters.duration ? jobDurationLabels[filters.duration] : 'jobs.anyDuration',
+        );
       case 'preferredTime':
-        return this.timeOptions().find((option) => option.value === filters.preferredTime)!.label;
+        return this.i18n.translate(
+          filters.preferredTime ? jobTimeLabels[filters.preferredTime] : 'jobs.anyTime',
+        );
       default:
         return this.titleCase.transform(filters[key].replaceAll('_', ' '));
     }

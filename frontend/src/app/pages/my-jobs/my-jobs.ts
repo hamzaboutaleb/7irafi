@@ -12,6 +12,7 @@ import { I18nService } from '../../services/i18n.js';
 import { JobService } from '../../services/job.js';
 import { RatingService } from '../../services/rating.js';
 import { JobActionResult, JobResponse, JobStatus } from '../../types/job.js';
+import { jobStatuses, jobStatusLabels } from '../../utils/job.js';
 
 @Component({
   selector: 'app-my-jobs',
@@ -31,7 +32,7 @@ export class MyJobs implements OnInit {
   readonly error = signal<string | null>(null);
   readonly completedJobToReview = signal<JobResponse | null>(null);
   readonly status = signal<JobStatus | ''>('');
-  readonly statuses: (JobStatus | '')[] = ['', 'OPEN', 'ASSIGNED', 'COMPLETED', 'CANCELLED'];
+  readonly statuses: (JobStatus | '')[] = ['', ...jobStatuses];
 
   readonly visibleJobs = computed(() =>
     this.jobs().filter((job) => !this.status() || job.status === this.status()),
@@ -44,7 +45,7 @@ export class MyJobs implements OnInit {
   }
 
   statusLabel(status: JobStatus | ''): TranslationKey {
-    return status ? `dashboard.status.${status}` : 'myJobs.all';
+    return status ? jobStatusLabels[status] : 'myJobs.all';
   }
 
   openReview(jobId: string): void {

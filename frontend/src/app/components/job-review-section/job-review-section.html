@@ -40,9 +40,9 @@
     } @else if (ratingOpen()) {
       <app-rating-form
         [jobId]="job().id"
-        [rateeId]="recipientId"
+        [reviewedUserId]="recipientId"
         [recipientName]="recipientName()"
-        (busyChange)="busy.set($event)"
+        (submittingChange)="busy.set($event)"
         (submitted)="reviewSaved($event)"
         (reloadRequested)="loadReview()"
         (cancelled)="ratingOpen.set(false)"

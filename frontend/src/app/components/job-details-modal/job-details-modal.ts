@@ -25,6 +25,7 @@ import { JobGallery } from '../job-gallery/job-gallery.js';
 import { JobReviewSection } from '../job-review-section/job-review-section.js';
 import { JobOwnerCard } from '../job-owner-card/job-owner-card.js';
 import { JobApplicationAction } from '../job-application-action/job-application-action.js';
+import { jobDurationLabels, jobStatusLabels, jobTimeLabels } from '../../utils/job.js';
 
 @Component({
   selector: 'app-job-details-modal',
@@ -77,32 +78,15 @@ export class JobDetailsModal implements OnInit, AfterViewInit, OnDestroy {
       this.job()?.budget ?? 0,
     ),
   );
-  readonly statusLabel = computed(() => {
-    const keys = {
-      OPEN: 'dashboard.status.OPEN',
-      ASSIGNED: 'dashboard.status.ASSIGNED',
-      COMPLETED: 'dashboard.status.COMPLETED',
-      CANCELLED: 'dashboard.status.CANCELLED',
-    } as const;
-    return this.i18n.translate(keys[this.job()?.status ?? 'OPEN']);
-  });
-  readonly durationLabel = computed(() => {
-    const keys = {
-      HALF_DAY: 'createJob.halfDay',
-      FULL_DAY: 'createJob.fullDay',
-      MULTI_DAY: 'createJob.multipleDays',
-    } as const;
-    return this.i18n.translate(keys[this.job()?.estimatedDuration ?? 'HALF_DAY']);
-  });
-  readonly timeLabel = computed(() => {
-    const keys = {
-      MORNING: 'createJob.morning',
-      AFTERNOON: 'createJob.afternoon',
-      EVENING: 'createJob.evening',
-      ANYTIME: 'createJob.anytime',
-    } as const;
-    return this.i18n.translate(keys[this.job()?.preferredTime ?? 'ANYTIME']);
-  });
+  readonly statusLabel = computed(() =>
+    this.i18n.translate(jobStatusLabels[this.job()?.status ?? 'OPEN']),
+  );
+  readonly durationLabel = computed(() =>
+    this.i18n.translate(jobDurationLabels[this.job()?.estimatedDuration ?? 'HALF_DAY']),
+  );
+  readonly timeLabel = computed(() =>
+    this.i18n.translate(jobTimeLabels[this.job()?.preferredTime ?? 'ANYTIME']),
+  );
 
   protectSubmission(event: Event): void {
     if (this.busy()) event.preventDefault();

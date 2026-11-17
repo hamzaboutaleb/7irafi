@@ -29,7 +29,8 @@
       >
         <svg class="my-job-actions__icon" [lucideIcon]="icons.review" aria-hidden="true" />
         {{
-          (ratings.hasReviewed(job().id) ? 'reviews.viewReview' : 'reviews.reviewJob') | translate
+          (ratings.hasReviewedJob(job().id) ? 'reviews.viewReview' : 'reviews.reviewJob')
+            | translate
         }}
       </button>
     }

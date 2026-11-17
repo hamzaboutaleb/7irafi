@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import {
   AfterViewInit,
   Component,
+  computed,
   DestroyRef,
   ElementRef,
   inject,
@@ -22,6 +23,42 @@ import { I18nService } from '../../services/i18n.js';
 import { JobService } from '../../services/job.js';
 import { JobAction, JobActionResult, JobResponse, UpdateJobRequest } from '../../types/job.js';
 import { canPerformJobAction } from '../../utils/job.js';
+
+interface ActionConfig {
+  label: TranslationKey;
+  message: TranslationKey;
+  success: TranslationKey;
+  submitLabel?: TranslationKey;
+  secondaryLabel?: TranslationKey;
+  danger?: boolean;
+}
+
+const actionConfig: Record<JobAction, ActionConfig> = {
+  edit: {
+    label: 'myJobs.edit',
+    message: 'myJobs.editIntro',
+    success: 'myJobs.updated',
+    submitLabel: 'myJobs.save',
+    secondaryLabel: 'myJobs.discard',
+  },
+  cancel: {
+    label: 'myJobs.cancel',
+    message: 'myJobs.cancelConfirm',
+    success: 'myJobs.cancelled',
+    danger: true,
+  },
+  complete: {
+    label: 'myJobs.complete',
+    message: 'myJobs.completeConfirm',
+    success: 'myJobs.completed',
+  },
+  delete: {
+    label: 'myJobs.delete',
+    message: 'myJobs.deleteConfirm',
+    success: 'myJobs.deleted',
+    danger: true,
+  },
+};
 
 @Component({
   selector: 'app-job-action-dialog',
@@ -49,19 +86,14 @@ export class JobActionDialog implements OnInit, AfterViewInit, OnDestroy {
   readonly result = signal<JobActionResult | null>(null);
   readonly needsRefresh = signal(false);
 
-  readonly actionLabels: Record<JobAction, TranslationKey> = {
-    edit: 'myJobs.edit',
-    cancel: 'myJobs.cancel',
-    complete: 'myJobs.complete',
-    delete: 'myJobs.delete',
-  };
-
-  readonly successLabels: Record<JobAction, TranslationKey> = {
-    edit: 'myJobs.updated',
-    cancel: 'myJobs.cancelled',
-    complete: 'myJobs.completed',
-    delete: 'myJobs.deleted',
-  };
+  readonly config = computed(() => {
+    const config = actionConfig[this.action()];
+    return {
+      ...config,
+      submitLabel: config.submitLabel ?? config.label,
+      secondaryLabel: config.secondaryLabel ?? 'myJobs.keep',
+    };
+  });
 
   draft: UpdateJobRequest = {
     title: '',

@@ -8,7 +8,7 @@
   <form class="job-action-dialog__form" (ngSubmit)="submit()">
     <header class="job-action-dialog__header">
       <h2 id="job-action-heading" class="job-action-dialog__heading">
-        {{ actionLabels[action()] | translate }}
+        {{ config().label | translate }}
       </h2>
       <button
         type="button"
@@ -24,10 +24,10 @@
     @if (result()) {
       <p
         class="job-action-dialog__feedback"
-        [class.job-action-dialog__feedback--danger]="action() === 'cancel' || action() === 'delete'"
+        [class.job-action-dialog__feedback--danger]="config().danger"
         role="status"
       >
-        {{ successLabels[action()] | translate }}
+        {{ config().success | translate }}
       </p>
     } @else if (needsRefresh()) {
       <p class="job-action-dialog__feedback job-action-dialog__feedback--danger" role="alert">
@@ -45,7 +45,7 @@
     } @else {
       @if (action() === 'edit') {
         <p class="job-action-dialog__intro">
-          {{ 'myJobs.editIntro' | translate }}
+          {{ config().message | translate }}
         </p>
         <fieldset class="job-action-dialog__fields" [disabled]="busy()">
           <label class="job-action-dialog__label">
@@ -86,17 +86,7 @@
           {{ job().title }}
         </p>
         <p class="job-action-dialog__confirmation">
-          @switch (action()) {
-            @case ('delete') {
-              {{ 'myJobs.deleteConfirm' | translate }}
-            }
-            @case ('cancel') {
-              {{ 'myJobs.cancelConfirm' | translate }}
-            }
-            @case ('complete') {
-              {{ 'myJobs.completeConfirm' | translate }}
-            }
-          }
+          {{ config().message | translate }}
         </p>
       }
 
@@ -113,22 +103,15 @@
           [disabled]="busy()"
           (click)="close()"
         >
-          {{ (action() === 'edit' ? 'myJobs.discard' : 'myJobs.keep') | translate }}
+          {{ config().secondaryLabel | translate }}
         </button>
         <button
           type="submit"
           class="job-action-dialog__button job-action-dialog__button--primary"
-          [class.job-action-dialog__button--danger]="action() === 'delete' || action() === 'cancel'"
+          [class.job-action-dialog__button--danger]="config().danger"
           [disabled]="busy()"
         >
-          {{
-            (busy()
-              ? 'myJobs.saving'
-              : action() === 'edit'
-                ? 'myJobs.save'
-                : actionLabels[action()]
-            ) | translate
-          }}
+          {{ (busy() ? 'myJobs.saving' : config().submitLabel) | translate }}
         </button>
       </footer>
     }

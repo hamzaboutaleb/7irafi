@@ -5,6 +5,7 @@ import { TranslatePipe } from '../../pipes/translate-pipe.js';
 import { I18nService } from '../../services/i18n.js';
 import { JobActionResult, JobResponse } from '../../types/job.js';
 import { MyJobActions } from '../my-job-actions/my-job-actions.js';
+import { jobStatusLabels } from '../../utils/job.js';
 
 @Component({
   selector: 'app-my-job-row',
@@ -22,9 +23,7 @@ export class MyJobRow {
   readonly detailsRequested = output<void>();
   readonly reviewRequested = output<void>();
 
-  readonly statusLabel = computed(() =>
-    this.i18n.translate(`dashboard.status.${this.job().status}`),
-  );
+  readonly statusLabel = computed(() => this.i18n.translate(jobStatusLabels[this.job().status]));
   readonly budgetLabel = computed(() =>
     new Intl.NumberFormat(this.i18n.language()).format(this.job().budget),
   );

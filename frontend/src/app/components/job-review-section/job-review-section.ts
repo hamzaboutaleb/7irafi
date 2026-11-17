@@ -69,7 +69,7 @@ export class JobReviewSection {
     if (!this.rateeId() || this.busy()) return;
     this.reviewState.set('loading');
     this.ratings
-      .getByJobId(this.job().id)
+      .getJobReviews(this.job().id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (reviews) => {

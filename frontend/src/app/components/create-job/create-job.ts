@@ -23,6 +23,7 @@ import { LucideDynamicIcon, LucideArrowLeft, LucideLoaderCircle } from '@lucide/
 import { TranslatePipe } from '../../pipes/translate-pipe.js';
 import { JobPhotoPicker } from '../job-photo-picker/job-photo-picker.js';
 import { CreateJobPhotos } from './create-job-photos.js';
+import { jobDurationLabels, jobDurations, jobTimeLabels, jobTimes } from '../../utils/job.js';
 
 @Component({
   selector: 'app-create-job',
@@ -82,36 +83,22 @@ export class CreateJob implements OnInit {
       label: this.i18n.translate('createJob.selectDuration'),
       disabled: true,
     },
-    {
-      value: 'HALF_DAY',
-      label: this.i18n.translate('createJob.halfDay'),
-    },
-    {
-      value: 'FULL_DAY',
-      label: this.i18n.translate('createJob.fullDay'),
-    },
-    {
-      value: 'MULTI_DAY',
-      label: this.i18n.translate('createJob.multipleDays'),
-    },
+    ...jobDurations.map((value) => ({
+      value,
+      label: this.i18n.translate(jobDurationLabels[value]),
+    })),
   ]);
   readonly timeOptions = computed<readonly SelectOption<PreferredTime>[]>(() => [
     {
       value: 'ANYTIME',
-      label: this.i18n.translate('createJob.anytime'),
+      label: this.i18n.translate(jobTimeLabels.ANYTIME),
     },
-    {
-      value: 'MORNING',
-      label: this.i18n.translate('createJob.morning'),
-    },
-    {
-      value: 'AFTERNOON',
-      label: this.i18n.translate('createJob.afternoon'),
-    },
-    {
-      value: 'EVENING',
-      label: this.i18n.translate('createJob.evening'),
-    },
+    ...jobTimes
+      .filter((value) => value !== 'ANYTIME')
+      .map((value) => ({
+        value,
+        label: this.i18n.translate(jobTimeLabels[value]),
+      })),
   ]);
 
   setControl<T>(control: FormControl<T>, value: T): void {

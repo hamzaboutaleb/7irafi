@@ -1,0 +1,118 @@
+@reference '../../../styles.css';
+
+:host {
+  display: block;
+}
+
+.applicants-summary {
+  color: var(--color-gray-500);
+  font-size: 13px;
+  line-height: 20px;
+  @apply flex flex-wrap items-center;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--color-gray-200);
+  border-radius: 12px;
+  background: white;
+}
+
+.applicants-summary :focus-visible {
+  outline: 2px solid var(--color-primary-700);
+  outline-offset: 2px;
+}
+
+.applicants-summary__icon {
+  @apply shrink-0;
+  width: 16px;
+  height: 16px;
+  stroke-width: 1.5;
+}
+
+.applicants-summary__mark {
+  @apply grid shrink-0 place-items-center;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  background: var(--color-gray-100);
+}
+
+.applicants-summary__icon--job {
+  width: 20px;
+  height: 20px;
+}
+
+.applicants-summary__copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.applicants-summary__job-title {
+  color: var(--color-gray-700);
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.applicants-summary__metadata {
+  @apply flex flex-wrap items-center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.applicants-summary__metadata-item {
+  @apply inline-flex items-center;
+  gap: 4px;
+}
+
+.applicants-summary__status {
+  @apply inline-flex justify-center;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: var(--color-gray-100);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.applicants-summary__status--highlighted {
+  background: var(--color-primary-50);
+  color: var(--color-primary-800);
+}
+
+.applicants-summary__context {
+  width: 100%;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-gray-100);
+}
+
+.applicants-summary__context-toggle {
+  @apply flex w-fit items-center;
+  gap: 8px;
+  color: var(--color-primary-800);
+  cursor: pointer;
+  list-style: none;
+}
+
+.applicants-summary__context-toggle::-webkit-details-marker {
+  display: none;
+}
+
+.applicants-summary__context[open] .applicants-summary__context-icon {
+  rotate: 180deg;
+}
+
+.applicants-summary__description {
+  margin-top: 12px;
+  color: var(--color-gray-600);
+  font-size: 14px;
+  line-height: 26px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@media (width >= 768px) {
+  .applicants-summary {
+    gap: 16px;
+    padding: 20px 24px;
+  }
+}

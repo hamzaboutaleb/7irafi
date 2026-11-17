@@ -5,6 +5,7 @@ import { JobListItem } from '../../types/job.js';
 import { ApplicationStatus } from '../../types/application.js';
 import { TranslatePipe } from '../../pipes/translate-pipe.js';
 import { I18nService } from '../../services/i18n.js';
+import { jobDisplayStatusLabels } from '../../utils/job.js';
 import {
   LucideDynamicIcon,
   LucideMapPin,
@@ -34,19 +35,9 @@ export class JobCard {
       ? 'COMPLETED'
       : (this.applicationStatus() ?? this.job().status),
   );
-  readonly statusLabel = computed(() => {
-    const labels = {
-      OPEN: 'dashboard.status.OPEN',
-      ASSIGNED: 'dashboard.status.ASSIGNED',
-      COMPLETED: 'dashboard.status.COMPLETED',
-      CANCELLED: 'dashboard.status.CANCELLED',
-      PENDING: 'dashboard.status.PENDING',
-      ACCEPTED: 'dashboard.status.ACCEPTED',
-      NOT_SELECTED: 'dashboard.status.NOT_SELECTED',
-      CLOSED: 'dashboard.status.CLOSED',
-    } as const;
-    return this.i18n.translate(labels[this.displayStatus()]);
-  });
+  readonly statusLabel = computed(() =>
+    this.i18n.translate(jobDisplayStatusLabels[this.displayStatus()]),
+  );
   readonly canReview = input(false);
   readonly reviewed = input(false);
   readonly reviewRequested = output<void>();

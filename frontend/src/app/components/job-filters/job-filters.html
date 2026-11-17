@@ -1,36 +1,31 @@
-<section class="job-filters" [attr.aria-label]="'jobs.filter' | translate">
-  <button
-    type="button"
-    class="job-filters__mobile-toggle"
-    (click)="openFilters()"
-    aria-haspopup="dialog"
-  >
-    <svg lucideSlidersHorizontal class="job-filters__icon" aria-hidden="true" />
+<section class="filters" [attr.aria-label]="'jobs.filter' | translate">
+  <button type="button" class="filters__toggle" (click)="openFilters()" aria-haspopup="dialog">
+    <svg lucideSlidersHorizontal class="filters__icon" aria-hidden="true" />
     {{ 'jobs.filter' | translate }}
 
     @if (chips().length) {
-      <span class="job-filters__count">
+      <span class="filters__count">
         {{ chips().length }}
       </span>
     }
   </button>
-  <div class="job-filters__desktop">
+  <div class="filters__desktop">
     <ng-container *ngTemplateOutlet="filterFields; context: { mobile: false }" />
   </div>
   @if (chips().length) {
-    <div class="job-filters__chips" [attr.aria-label]="'jobs.activeFilters' | translate">
+    <div class="filters__chips" [attr.aria-label]="'jobs.activeFilters' | translate">
       @for (chip of chips(); track chip.key) {
         <button
           type="button"
-          class="job-filters__chip"
+          class="filters__chip"
           [attr.aria-label]="'jobs.removeFilter' | translate: { label: chip.label }"
           (click)="removeFilter(chip.key)"
         >
           {{ chip.label }}
-          <svg lucideX class="job-filters__icon job-filters__icon--small" aria-hidden="true" />
+          <svg lucideX class="filters__icon filters__icon--small" aria-hidden="true" />
         </button>
       }
-      <button type="button" class="job-filters__link" (click)="clearFilters()">
+      <button type="button" class="filters__link" (click)="clearFilters()">
         {{ 'common.clearAll' | translate }}
       </button>
     </div>
@@ -38,13 +33,13 @@
 </section>
 
 <ng-template #filterFields let-mobile="mobile">
-  <div class="job-filters__fields">
-    <div class="job-filters__field">
-      <label class="job-filters__label" [attr.for]="mobile ? 'mobile-jobs-trade' : 'jobs-trade'">
+  <div class="filters__fields">
+    <div class="filters__field">
+      <label class="filters__label" [attr.for]="mobile ? 'mobile-jobs-trade' : 'jobs-trade'">
         {{ 'jobs.trade' | translate }}
       </label>
       <app-select
-        class="job-filters__select"
+        class="filters__select"
         [controlId]="mobile ? 'mobile-jobs-trade' : 'jobs-trade'"
         [label]="'jobs.trade' | translate"
         [options]="tradeOptions()"
@@ -52,12 +47,12 @@
         (valueChange)="changeFilter('skill', $event, mobile)"
       />
     </div>
-    <div class="job-filters__field">
-      <label class="job-filters__label" [attr.for]="mobile ? 'mobile-jobs-city' : 'jobs-city'">
+    <div class="filters__field">
+      <label class="filters__label" [attr.for]="mobile ? 'mobile-jobs-city' : 'jobs-city'">
         {{ 'job.city' | translate }}
       </label>
       <app-select
-        class="job-filters__select"
+        class="filters__select"
         [controlId]="mobile ? 'mobile-jobs-city' : 'jobs-city'"
         [label]="'job.city' | translate"
         [options]="cityOptions()"
@@ -65,15 +60,15 @@
         (valueChange)="changeFilter('city', $event, mobile)"
       />
     </div>
-    <fieldset class="job-filters__budget">
-      <legend class="job-filters__label job-filters__label--legend">
+    <fieldset class="filters__budget">
+      <legend class="filters__label filters__label--legend">
         {{ 'jobs.budgetMad' | translate }}
       </legend>
-      <div class="job-filters__budget-range">
+      <div class="filters__budget-range">
         <input
           type="number"
           min="0"
-          class="job-filters__input"
+          class="filters__input"
           [placeholder]="'jobs.min' | translate"
           [attr.aria-label]="'jobs.minBudget' | translate"
           [attr.aria-invalid]="budgetError() ? true : null"
@@ -88,7 +83,7 @@
         <input
           type="number"
           min="0"
-          class="job-filters__input"
+          class="filters__input"
           [placeholder]="'jobs.max' | translate"
           [attr.aria-label]="'jobs.maxBudget' | translate"
           [attr.aria-invalid]="budgetError() ? true : null"
@@ -104,13 +99,13 @@
     @if (!mobile) {
       <button
         type="button"
-        class="job-filters__button job-filters__button--more"
-        [class.job-filters__button--expanded]="moreFilters()"
+        class="filters__button filters__button--more"
+        [class.filters__button--expanded]="moreFilters()"
         [attr.aria-expanded]="moreFilters()"
         aria-controls="extra-filters"
         (click)="moreFilters.set(!moreFilters())"
       >
-        <svg lucideSlidersHorizontal class="job-filters__icon" aria-hidden="true" />
+        <svg lucideSlidersHorizontal class="filters__icon" aria-hidden="true" />
         {{ 'jobs.moreFilters' | translate }}
       </button>
     }
@@ -118,23 +113,23 @@
   @if (budgetError(); as message) {
     <p
       [id]="mobile ? 'mobile-budget-error' : 'budget-error'"
-      class="job-filters__message job-filters__message--error"
+      class="filters__message filters__message--error"
       role="alert"
     >
       {{ message | translate }}
     </p>
   }
   @if (mobile || moreFilters()) {
-    <div [id]="mobile ? 'mobile-extra-filters' : 'extra-filters'" class="job-filters__extra">
-      <div class="job-filters__field">
+    <div [id]="mobile ? 'mobile-extra-filters' : 'extra-filters'" class="filters__extra">
+      <div class="filters__field">
         <label
-          class="job-filters__label"
+          class="filters__label"
           [attr.for]="mobile ? 'mobile-jobs-duration' : 'jobs-duration'"
         >
           {{ 'jobs.duration' | translate }}
         </label>
         <app-select
-          class="job-filters__select"
+          class="filters__select"
           [controlId]="mobile ? 'mobile-jobs-duration' : 'jobs-duration'"
           [label]="'jobs.duration' | translate"
           [options]="durationOptions()"
@@ -142,12 +137,12 @@
           (valueChange)="changeFilter('duration', $event, mobile)"
         />
       </div>
-      <div class="job-filters__field">
-        <label class="job-filters__label" [attr.for]="mobile ? 'mobile-jobs-time' : 'jobs-time'">
+      <div class="filters__field">
+        <label class="filters__label" [attr.for]="mobile ? 'mobile-jobs-time' : 'jobs-time'">
           {{ 'jobs.preferredTime' | translate }}
         </label>
         <app-select
-          class="job-filters__select"
+          class="filters__select"
           [controlId]="mobile ? 'mobile-jobs-time' : 'jobs-time'"
           [label]="'jobs.preferredTime' | translate"
           [options]="timeOptions()"
@@ -158,41 +153,37 @@
     </div>
   }
   @if (optionsError()) {
-    <p class="job-filters__message" role="status">
+    <p class="filters__message" role="status">
       {{ 'jobs.filtersPartial' | translate }}
-      <button type="button" class="job-filters__link" (click)="loadOptions()">
+      <button type="button" class="filters__link" (click)="loadOptions()">
         {{ 'common.retry' | translate }}
       </button>
     </p>
   }
 </ng-template>
 
-<dialog #dialog class="job-filters__dialog" aria-labelledby="filter-heading" (close)="resetDraft()">
-  <header class="job-filters__dialog-header">
-    <h2 id="filter-heading" class="job-filters__dialog-title">
+<dialog #dialog class="filters__dialog" aria-labelledby="filter-heading" (close)="resetDraft()">
+  <header class="filters__header">
+    <h2 id="filter-heading" class="filters__title">
       {{ 'jobs.filter' | translate }}
     </h2>
     <button
       type="button"
-      class="job-filters__close"
+      class="filters__close"
       [attr.aria-label]="'jobs.closeFilters' | translate"
       (click)="dialog.close()"
     >
-      <svg lucideX class="job-filters__icon" aria-hidden="true"></svg>
+      <svg lucideX class="filters__icon" aria-hidden="true"></svg>
     </button>
   </header>
-  <div class="job-filters__dialog-body">
+  <div class="filters__body">
     <ng-container *ngTemplateOutlet="filterFields; context: { mobile: true }" />
   </div>
-  <footer class="job-filters__dialog-footer">
-    <button type="button" class="job-filters__button" (click)="clearFilters(true)">
+  <footer class="filters__footer">
+    <button type="button" class="filters__button" (click)="clearFilters(true)">
       {{ 'common.reset' | translate }}
     </button>
-    <button
-      type="button"
-      class="job-filters__button job-filters__button--primary"
-      (click)="showResults()"
-    >
+    <button type="button" class="filters__button filters__button--primary" (click)="showResults()">
       {{ 'jobs.showResults' | translate }}
     </button>
   </footer>
