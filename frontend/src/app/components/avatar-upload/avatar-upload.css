@@ -1,0 +1,137 @@
+/* The profile picture card: photo, camera button, and the edit buttons. */
+@reference '../../../styles.css';
+
+/* The component tag itself */
+:host {
+  @apply mb-6 block;
+}
+
+/* Card */
+.avatar {
+  @apply rounded-xl border border-gray-200 bg-white p-6;
+}
+
+/* Photo + name row */
+.avatar__row {
+  @apply flex min-w-0 items-center gap-4;
+}
+
+/* When there is no name next to the photo, leave space under the title. */
+.avatar__row--standalone {
+  @apply mt-4;
+}
+
+/* Photo */
+.avatar__frame {
+  @apply relative size-16 shrink-0;
+}
+
+.avatar__image {
+  @apply size-full rounded-full border border-gray-200 object-cover;
+}
+
+.avatar__initials {
+  @apply flex size-full items-center justify-center rounded-full bg-primary-50 text-xl font-medium text-primary-800;
+}
+
+/* Camera button on the corner of the photo */
+.avatar__camera {
+  @apply absolute -end-2.5 -bottom-2.5 grid size-11 cursor-pointer place-items-center rounded-full;
+}
+
+.avatar__badge {
+  @apply grid size-7 place-items-center rounded-full border border-gray-300 bg-white text-gray-600 shadow-xs transition-colors duration-[160ms] motion-reduce:transition-none;
+}
+
+.avatar__camera:hover .avatar__badge {
+  @apply bg-primary-50 text-primary-800;
+}
+
+.avatar__badge-icon {
+  @apply size-4 stroke-[1.5];
+}
+
+/* Name and email */
+.avatar__identity {
+  @apply min-w-0 flex-1;
+}
+
+.avatar__name {
+  @apply text-xl leading-7 font-semibold text-gray-900;
+  overflow-wrap: anywhere;
+}
+
+.avatar__email {
+  @apply mt-1 text-sm leading-5 text-gray-600;
+  overflow-wrap: anywhere;
+}
+
+/* Edit area */
+.avatar__editor {
+  @apply mt-6 border-t border-gray-100 pt-4;
+}
+
+.avatar__hint {
+  @apply text-xs leading-5 text-gray-500;
+}
+
+.avatar__actions {
+  @apply mt-3 flex flex-wrap gap-2;
+}
+
+/* Buttons */
+.avatar__button {
+  @apply min-h-11 cursor-pointer rounded-lg border border-gray-300 px-4 py-2 text-sm leading-5 font-medium text-gray-700 transition-colors duration-[160ms] motion-reduce:transition-none;
+}
+
+.avatar__button:hover {
+  @apply bg-gray-50;
+}
+
+.avatar__button--primary {
+  @apply border-transparent bg-primary-700 text-white;
+}
+
+.avatar__button--primary:hover {
+  @apply bg-primary-800;
+}
+
+.avatar__button--danger {
+  @apply text-red-700;
+}
+
+.avatar__button--plain {
+  @apply border-transparent;
+}
+
+.avatar__button:disabled,
+.avatar__camera:disabled {
+  @apply cursor-not-allowed opacity-50;
+}
+
+/* Keyboard focus ring */
+.avatar__button:focus-visible {
+  @apply outline-2 outline-offset-2 outline-primary-700;
+}
+
+.avatar__camera:focus-visible {
+  @apply outline-2 outline-offset-0 outline-primary-700;
+}
+
+/* Upload progress bar */
+.avatar__progress {
+  @apply mt-4 h-1 overflow-hidden rounded bg-gray-100;
+}
+
+.avatar__progress-fill {
+  @apply h-full bg-primary-700;
+}
+
+/* "Picture updated" / error text */
+.avatar__message {
+  @apply mt-4 text-sm leading-5 text-primary-800;
+}
+
+.avatar__message--error {
+  @apply text-red-700;
+}
