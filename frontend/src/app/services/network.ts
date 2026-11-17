@@ -2,13 +2,7 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { UserService } from './user.js';
 import { ProfessionalCard } from '../types/professional-profile.js';
 
-/**
- * The signed-in user's network, held in one place.
- *
- * Both the directory (bookmark buttons) and the contacts rail read this. If each
- * kept its own copy, saving someone on the directory would leave the rail stale
- * until a reload.
- */
+// my contacts, shared app-wide
 @Injectable({
   providedIn: 'root',
 })
@@ -18,14 +12,15 @@ export class NetworkService {
   private readonly connections = signal<ProfessionalCard[]>([]);
   private readonly loaded = signal(false);
 
-  /** The saved professionals, for the rail. */
+  // the list, for the rail
   readonly list = this.connections.asReadonly();
 
-  /** Just the ids, for "is this person saved?" checks on directory cards. */
+  // ids, for bookmark buttons
   readonly savedIds = computed(() => new Set(this.connections().map((card) => card.userId)));
 
   readonly hasLoaded = this.loaded.asReadonly();
 
+  // fetch contacts from server
   load(): void {
     this.userService.getConnections().subscribe({
       next: (response) => {
@@ -33,33 +28,32 @@ export class NetworkService {
         this.loaded.set(true);
       },
       error: () => {
-        // Swallowed on purpose: every page that shows the rail must still work.
-        // The cost is an empty rail until the next load.
+        // empty rail, page still works
         this.connections.set([]);
         this.loaded.set(true);
       },
     });
   }
 
+  // save a contact
   add(userId: string): void {
     this.userService.addConnection(userId).subscribe({
-      // Reload rather than guessing: the card the rail needs (name, categories,
-      // online) is not on the directory card we clicked, so the server is the
-      // only place that has it.
+      // reload: server has full card
       next: () => this.load(),
     });
   }
 
+  // unsave a contact
   remove(userId: string): void {
     this.userService.deleteConnection(userId).subscribe({
       next: () => {
-        // Removal needs no server round trip to render — drop it locally and
-        // let the next load reconcile.
+        // drop it locally, no reload
         this.connections.set(this.connections().filter((card) => card.userId !== userId));
       },
     });
   }
 
+  // save or unsave
   toggle(userId: string): void {
     if (this.savedIds().has(userId)) {
       this.remove(userId);
@@ -69,6 +63,7 @@ export class NetworkService {
     this.add(userId);
   }
 
+  // empty the list (logout)
   clear(): void {
     this.connections.set([]);
     this.loaded.set(false);
