@@ -21,7 +21,17 @@ import {
   LucideWrench,
   LucideX,
 } from '@lucide/angular';
-import { catchError, forkJoin, map, of, Subscription, switchMap } from 'rxjs';
+import {
+  catchError,
+  forkJoin,
+  map,
+  Observable,
+  of,
+  Subject,
+  Subscription,
+  switchMap,
+  tap,
+} from 'rxjs';
 import { Footer } from '../../components/footer/footer.js';
 import { Navbar } from '../../components/navbar/navbar.js';
 import { RatingStars } from '../../components/rating-stars/rating-stars.js';
@@ -60,8 +70,14 @@ export class Professionals implements OnInit {
   private readonly document = inject(DOCUMENT);
   private readonly ratings = inject(RatingService);
 
-  // requests still running, so we can cancel them
-  private request?: Subscription;
+  // OLD:
+  // // requests still running, so we can cancel them
+  // private request?: Subscription;
+
+  // NEW: every "show the list again" (filters, Next, Previous, Retry) goes through here
+  private readonly reload$ = new Subject<void>();
+
+  // popup requests still running, so closing the popup can cancel them
   private profileRequest?: Subscription;
   private ratingsRequest?: Subscription;
 
@@ -142,6 +158,36 @@ export class Professionals implements OnInit {
   // runs when the page opens
   ngOnInit(): void {
     this.loadFilters();
+
+    // NEW: the list. Each reload$.next() fetches a page; switchMap drops an older one still loading.
+    // Must be set up before queryParamMap below, which emits right away.
+    this.reload$
+      .pipe(
+        tap(() => {
+          this.isLoading.set(true);
+          this.failed.set(false);
+        }),
+        switchMap(() => this.fetchPage()),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((outcome) => {
+        if (outcome === null) {
+          this.failed.set(true);
+          this.isLoading.set(false);
+          return;
+        }
+        const { result, found } = outcome;
+        this.people.update((known) => {
+          const next = { ...known };
+          for (const person of found) {
+            if (person) next[person.id] = person;
+          }
+          return next;
+        });
+        this.page.set(result);
+        this.isLoading.set(false);
+      });
+
     // the filters live in the URL (?city=...&category=...): reload the list when they change
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       this.selectedCategory.set(params.get('category') ?? '');
@@ -235,13 +281,66 @@ export class Professionals implements OnInit {
       });
   }
 
-  // load one page of professionals, then the full names we don't know yet
-  load(): void {
-    this.request?.unsubscribe(); // forget the old page if it's still loading
-    this.isLoading.set(true);
-    this.failed.set(false);
+  // OLD (manual unsubscribe):
+  // // load one page of professionals, then the full names we don't know yet
+  // load(): void {
+  //   this.request?.unsubscribe(); // forget the old page if it's still loading
+  //   this.isLoading.set(true);
+  //   this.failed.set(false);
+  //
+  //   this.request = this.userService
+  //     .getProfessionals(
+  //       this.pageNumber(),
+  //       PAGE_SIZE,
+  //       this.selectedCity() || null,
+  //       this.selectedCategory() || null,
+  //     )
+  //     .pipe(
+  //       switchMap((response) => {
+  //         // one request per unknown person; a failed one just gives null
+  //         const lookups = response.data.content
+  //           .filter((person) => !this.people()[person.userId])
+  //           .map((person) =>
+  //             this.userService.getPublicUserProfile(person.userId).pipe(
+  //               map((result) => result.data),
+  //               catchError(() => of(null)),
+  //             ),
+  //           );
+  //         const people = lookups.length > 0 ? forkJoin(lookups) : of([]);
+  //         return people.pipe(map((found) => ({ result: response.data, found })));
+  //       }),
+  //       takeUntilDestroyed(this.destroyRef),
+  //     )
+  //     .subscribe({
+  //       next: ({ result, found }) => {
+  //         this.people.update((known) => {
+  //           const next = { ...known };
+  //           for (const person of found) {
+  //             if (person) next[person.id] = person;
+  //           }
+  //           return next;
+  //         });
+  //         this.page.set(result);
+  //         this.isLoading.set(false);
+  //       },
+  //       error: () => {
+  //         this.failed.set(true);
+  //         this.isLoading.set(false);
+  //       },
+  //     });
+  // }
 
-    this.request = this.userService
+  // NEW: show the list again (filters, Next, Previous, Retry); the stream in ngOnInit does the work
+  load(): void {
+    this.reload$.next();
+  }
+
+  // NEW: one page of professionals + the full names we don't know yet; null if it failed
+  private fetchPage(): Observable<{
+    result: Page<ProfessionalCard>;
+    found: (PublicUserProfile | null)[];
+  } | null> {
+    return this.userService
       .getProfessionals(
         this.pageNumber(),
         PAGE_SIZE,
@@ -262,25 +361,9 @@ export class Professionals implements OnInit {
           const people = lookups.length > 0 ? forkJoin(lookups) : of([]);
           return people.pipe(map((found) => ({ result: response.data, found })));
         }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: ({ result, found }) => {
-          this.people.update((known) => {
-            const next = { ...known };
-            for (const person of found) {
-              if (person) next[person.id] = person;
-            }
-            return next;
-          });
-          this.page.set(result);
-          this.isLoading.set(false);
-        },
-        error: () => {
-          this.failed.set(true);
-          this.isLoading.set(false);
-        },
-      });
+        // caught here, inside switchMap: an error must not reach reload$, or the list stops reloading
+        catchError(() => of(null)),
+      );
   }
 
   // Next button

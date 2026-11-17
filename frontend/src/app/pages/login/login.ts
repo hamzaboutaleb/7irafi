@@ -4,6 +4,7 @@ import { AuthService } from '../../services/auth.js';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { switchMap } from 'rxjs';
 import { TranslatePipe } from '../../pipes/translate-pipe.js';
 import { I18nService } from '../../services/i18n.js';
 import { TranslationKey } from '../../i18n/language.js';
@@ -70,15 +71,39 @@ export class Login {
     this.submitting.set(true); // the button text changes to "Signing in…"
 
     const { email, password } = this.form.getRawValue();
+ 
+    // OLD (async inside next):
+    // this.authService
+    //   .login(email, password)
+    //   // If the user leaves the page before the server answers, ignore the answer.
+    //   .pipe(takeUntilDestroyed(this.destroyRef))
+    //   .subscribe({
+    //     next: async (response) => {
+    //       const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+    //       if (await this.authService.finishSignIn(response.accessToken, returnUrl)) return;
+    //       this.errorMessage.set('auth.login.failed');
+    //       this.submitting.set(false);
+    //     },
+    //     error: (error: HttpErrorResponse) => {
+    //       this.submitting.set(false);
+    //       this.errorMessage.set(this.errorKey(error));
+    //     },
+    //   });
+
+    // NEW (switchMap):
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
 
     this.authService
       .login(email, password)
-      // If the user leaves the page before the server answers, ignore the answer.
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        // login answered: save the token and open the next page.
+        switchMap((response) => this.authService.finishSignIn(response.accessToken, returnUrl)),
+        // If the user leaves the page before this finishes, ignore the rest.
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe({
-        next: async (response) => {
-          const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
-          if (await this.authService.finishSignIn(response.accessToken, returnUrl)) return;
+        next: (opened) => {
+          if (opened) return; // we're on the next page
           this.errorMessage.set('auth.login.failed');
           this.submitting.set(false);
         },

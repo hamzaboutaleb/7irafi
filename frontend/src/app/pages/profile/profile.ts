@@ -2,6 +2,7 @@ import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, inject, Injector, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { catchError, EMPTY, merge, of, Subject, switchMap } from 'rxjs';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
@@ -98,6 +99,8 @@ export class Profile implements OnInit {
   readonly ratingSummary = signal<UserRatingSummary | null>(null);
   readonly ratingsLoading = signal(false);
   readonly ratingsError = signal(false);
+  // NEW: every "get my average again" (first load, Retry) goes through here
+  private readonly ratingReload$ = new Subject<void>();
   readonly reviewListState = signal<'loading' | 'loaded' | 'error'>('loading');
   readonly reviewJobId = signal<string | null>(null);
   readonly ratingType = signal<'received' | 'given'>('received');
@@ -135,11 +138,34 @@ export class Profile implements OnInit {
     });
   }
 
-  // someone posted a review: get the new average
+  // OLD (guard in loadRatingSummary = hand-written exhaustMap):
+  // // someone posted a review: get the new average
+  // private reloadRatingOnNewReview(): void {
+  //   this.ratingService.reviewsChanged
+  //     .pipe(takeUntilDestroyed(this.destroyRef))
+  //     .subscribe(() => this.loadRatingSummary());
+  // }
+
+  // NEW (switchMap): load my average on first load, Retry, or when someone posts a review.
+  // A new trigger cancels the request still running, so the newest answer always wins.
   private reloadRatingOnNewReview(): void {
-    this.ratingService.reviewsChanged
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.loadRatingSummary());
+    merge(this.ratingReload$, this.ratingService.reviewsChanged)
+      .pipe(
+        switchMap(() => {
+          const userId = this.profile()?.id;
+          if (!userId) return EMPTY; // account not loaded yet
+          this.ratingsLoading.set(true);
+          this.ratingsError.set(false);
+          // caught inside switchMap: a failed load must not stop future reloads
+          return this.ratingService.getSummary(userId).pipe(catchError(() => of(null)));
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((summary) => {
+        if (summary === null) this.ratingsError.set(true);
+        else this.ratingSummary.set(summary);
+        this.ratingsLoading.set(false);
+      });
   }
 
   // load my account
@@ -188,25 +214,31 @@ export class Profile implements OnInit {
     this.form.patchValue({ firstName: profile.firstName, lastName: profile.lastName });
   }
 
-  // load my average rating
+  // OLD:
+  // // load my average rating
+  // loadRatingSummary(): void {
+  //   const userId = this.profile()?.id;
+  //   if (!userId || this.ratingsLoading()) return;
+  //   this.ratingsLoading.set(true);
+  //   this.ratingsError.set(false);
+  //   this.ratingService
+  //     .getSummary(userId)
+  //     .pipe(takeUntilDestroyed(this.destroyRef))
+  //     .subscribe({
+  //       next: (summary) => {
+  //         this.ratingSummary.set(summary);
+  //         this.ratingsLoading.set(false);
+  //       },
+  //       error: () => {
+  //         this.ratingsError.set(true);
+  //         this.ratingsLoading.set(false);
+  //       },
+  //     });
+  // }
+
+  // NEW: load my average rating (also the Retry buttons); the stream above does the work
   loadRatingSummary(): void {
-    const userId = this.profile()?.id;
-    if (!userId || this.ratingsLoading()) return;
-    this.ratingsLoading.set(true);
-    this.ratingsError.set(false);
-    this.ratingService
-      .getSummary(userId)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (summary) => {
-          this.ratingSummary.set(summary);
-          this.ratingsLoading.set(false);
-        },
-        error: () => {
-          this.ratingsError.set(true);
-          this.ratingsLoading.set(false);
-        },
-      });
+    this.ratingReload$.next();
   }
 
   // Edit button

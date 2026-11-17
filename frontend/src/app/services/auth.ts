@@ -1,7 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
+import { catchError, defer, Observable, of } from 'rxjs';
 import { Presence } from './presence.js';
+import { NetworkService } from './network.js';
 import { authDestination } from '../guards/auth-destination.js';
 
 export interface AuthUser {
@@ -30,6 +32,7 @@ export interface RegisterRequest {
 export class AuthService {
   private http = inject(HttpClient);
   private presence = inject(Presence);
+  private network = inject(NetworkService);
   private router = inject(Router);
 
   constructor() {
@@ -51,16 +54,29 @@ export class AuthService {
     this.presence.start();
   }
 
+  // OLD (Promise):
+  // // After login or register: save the token, then open the page the user wanted.
+  // // Returns false if that page could not be opened, so the page can show an error.
+  // async finishSignIn(token: string, returnUrl: string | null): Promise<boolean> {
+  //   this.saveToken(token);
+  //   try {
+  //     // authDestination only keeps returnUrl if it is inside our site, otherwise it uses "/".
+  //     return await this.router.navigateByUrl(authDestination(returnUrl));
+  //   } catch {
+  //     return false;
+  //   }
+  // }
+
+  // NEW (Observable):
   // After login or register: save the token, then open the page the user wanted.
-  // Returns false if that page could not be opened, so the page can show an error.
-  async finishSignIn(token: string, returnUrl: string | null): Promise<boolean> {
-    this.saveToken(token);
-    try {
+  // Emits false if that page could not be opened, so the page can show an error.
+  finishSignIn(token: string, returnUrl: string | null): Observable<boolean> {
+    // defer: nothing runs until someone subscribes (like an HTTP call)
+    return defer(() => {
+      this.saveToken(token);
       // authDestination only keeps returnUrl if it is inside our site, otherwise it uses "/".
-      return await this.router.navigateByUrl(authDestination(returnUrl));
-    } catch {
-      return false;
-    }
+      return this.router.navigateByUrl(authDestination(returnUrl));
+    }).pipe(catchError(() => of(false)));
   }
 
   getToken(): string | null {
@@ -86,5 +102,7 @@ export class AuthService {
   logout() {
     sessionStorage.removeItem('token');
     this.presence.stop();
+    // forget the old user's contacts
+    this.network.clear();
   }
 }
