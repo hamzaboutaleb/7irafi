@@ -6,7 +6,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -14,6 +13,8 @@ import org.springframework.security.authentication.BadCredentialsException;
 import com.herafi.auth_service.dto.LoginRequest;
 import com.herafi.auth_service.exception.InvalidCredentialsException;
 import com.herafi.auth_service.repository.UserCredentialRepository;
+
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 class AuthenticationServiceMetricsTests {
 

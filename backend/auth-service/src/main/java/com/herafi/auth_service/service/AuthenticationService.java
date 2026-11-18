@@ -16,7 +16,6 @@ import com.herafi.auth_service.security.UserPrincipal;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Service
