@@ -103,7 +103,7 @@ export class Profile implements OnInit {
   private readonly ratingReload$ = new Subject<void>();
   readonly reviewListState = signal<'loading' | 'loaded' | 'error'>('loading');
   readonly reviewJobId = signal<string | null>(null);
-  readonly ratingType = signal<'received' | 'given'>('received');
+  readonly ratingType = signal<'received' | 'written'>('received');
 
   // page state
   readonly profile = signal<UserProfile | null>(null);
@@ -157,7 +157,7 @@ export class Profile implements OnInit {
           this.ratingsLoading.set(true);
           this.ratingsError.set(false);
           // caught inside switchMap: a failed load must not stop future reloads
-          return this.ratingService.getSummary(userId).pipe(catchError(() => of(null)));
+          return this.ratingService.getUserRatingSummary(userId).pipe(catchError(() => of(null)));
         }),
         takeUntilDestroyed(this.destroyRef),
       )
@@ -222,7 +222,7 @@ export class Profile implements OnInit {
   //   this.ratingsLoading.set(true);
   //   this.ratingsError.set(false);
   //   this.ratingService
-  //     .getSummary(userId)
+  //     .getUserRatingSummary(userId)
   //     .pipe(takeUntilDestroyed(this.destroyRef))
   //     .subscribe({
   //       next: (summary) => {

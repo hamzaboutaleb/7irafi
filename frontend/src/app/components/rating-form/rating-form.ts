@@ -1,131 +1,182 @@
-import { ChangeDetectorRef, Component, DestroyRef, EventEmitter, inject, Input, Output } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, DestroyRef, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LucideStar } from '@lucide/angular';
-import { RatingService, RatingResponse } from '../../services/rating.js';
-import { TranslatePipe } from '../../pipes/translate-pipe.js';
-import { I18nService } from '../../services/i18n.js';
-import { TranslationKey } from '../../i18n/language.js';
-import { AuthService } from '../../services/auth.js';
 
+import { TranslationKey } from '../../i18n/language.js';
+import { TranslatePipe } from '../../pipes/translate-pipe.js';
+import { AuthService } from '../../services/auth.js';
+import { I18nService } from '../../services/i18n.js';
+import { CreateRatingRequest, RatingResponse, RatingService } from '../../services/rating.js';
+
+/**
+ * Collects a score and optional comment, then publishes a review.
+ * The parent supplies the job and recipient and reacts to submission/cancel events.
+ * Failed requests keep the user's values so they can retry.
+ */
 @Component({
   selector: 'app-rating-form',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, LucideStar, TranslatePipe],
+  imports: [ReactiveFormsModule, LucideStar, TranslatePipe],
   templateUrl: './rating-form.html',
-  host: { class: 'block' },
+  styleUrl: './rating-form.css',
 })
 export class RatingFormComponent {
-  @Input() jobId!: string;
-  @Input() rateeId!: string;
-  @Input() jobTitle = '';
-  @Input() recipientName = '';
-  @Output() busyChange = new EventEmitter<boolean>();
-  @Output() reloadRequested = new EventEmitter<void>();
-  readonly i18n = inject(I18nService);
-  readonly scoreLabels: TranslationKey[] = ['reviews.select', 'reviews.poor', 'reviews.fair', 'reviews.okay', 'reviews.good', 'reviews.excellent'];
-  duplicate = false;
-  @Output() submitted = new EventEmitter<RatingResponse>();
-  @Output() cancelled = new EventEmitter<void>();
+  readonly jobId = input.required<string>();
+  readonly reviewedUserId = input.required<string>();
+  readonly jobTitle = input('');
+  readonly recipientName = input('');
 
-  form: FormGroup;
-  submitting = false;
-  error: string | null = null;
-  private readonly changeDetector = inject(ChangeDetectorRef);
+  readonly submittingChange = output<boolean>();
+  readonly submitted = output<RatingResponse>();
+  readonly reloadRequested = output<void>();
+  readonly cancelled = output<void>();
+
+  private readonly formBuilder = inject(FormBuilder);
+  private readonly ratingService = inject(RatingService);
+  private readonly authService = inject(AuthService);
+  private readonly i18n = inject(I18nService);
   private readonly destroyRef = inject(DestroyRef);
-  hoverScore = 0;
+
+  // Controls always contain a number and a string, including after a reset.
+  readonly form = this.formBuilder.nonNullable.group({
+    score: [0, [Validators.required, Validators.min(1), Validators.max(5)]],
+    comment: ['', [Validators.maxLength(1000)]],
+  });
+
   readonly stars = [1, 2, 3, 4, 5];
 
-  constructor(
-    private fb: FormBuilder,
-    private ratingService: RatingService,
-    private auth: AuthService,
-  ) {
-    this.form = this.fb.group({
-      score: [0, [Validators.required, Validators.min(1), Validators.max(5)]],
-      comment: ['', [Validators.maxLength(1000)]],
-    });
+  // Index 0 means no selection. Indexes 1–5 describe the corresponding star score.
+  readonly scoreLabelKeys: TranslationKey[] = [
+    'reviews.select',
+    'reviews.poor',
+    'reviews.fair',
+    'reviews.okay',
+    'reviews.good',
+    'reviews.excellent',
+  ];
+
+  readonly hoveredScore = signal(0);
+  readonly isSubmitting = signal(false);
+  readonly hasExistingReview = signal(false);
+  readonly submissionError = signal<string | null>(null);
+
+  selectedScore(): number {
+    return this.form.controls.score.value;
+  }
+
+  /** Hover changes the preview, without changing the score that will be published. */
+  displayedScore(): number {
+    return this.hoveredScore() || this.selectedScore();
   }
 
   selectScore(score: number): void {
-    this.form.patchValue({ score });
-    this.hoverScore = 0;
+    if (this.isSubmitting()) return;
+
+    this.form.controls.score.setValue(score);
+    this.clearScorePreview();
   }
 
-  onStarHover(score: number): void {
-    this.hoverScore = score;
+  previewScore(score: number): void {
+    if (this.isSubmitting()) return;
+
+    this.hoveredScore.set(score);
   }
 
-  onStarLeave(): void {
-    this.hoverScore = 0;
+  clearScorePreview(): void {
+    this.hoveredScore.set(0);
   }
 
-  onArrowKey(event: KeyboardEvent): void {
-    if (this.submitting) return;
-    const current = this.form.value.score || 1;
-    const forward = this.i18n.direction() === 'rtl' ? 'ArrowLeft' : 'ArrowRight';
-    const backward = this.i18n.direction() === 'rtl' ? 'ArrowRight' : 'ArrowLeft';
-    let score: number;
-    switch (event.key) {
-      case forward: case 'ArrowUp': score = Math.min(5, current + 1); break;
-      case backward: case 'ArrowDown': score = Math.max(1, current - 1); break;
-      case 'Home': score = 1; break;
-      case 'End': score = 5; break;
-      default: return;
-    }
+  /** Only score-navigation keys are handled; Tab and Enter keep their normal behavior. */
+  handleScoreKeydown(event: KeyboardEvent, scorePicker: HTMLElement): void {
+    if (this.isSubmitting()) return;
+
+    const nextScore = this.getKeyboardScore(event.key);
+    if (nextScore === null) return;
+
     event.preventDefault();
-    this.selectScore(score);
-    (event.currentTarget as HTMLElement).querySelectorAll<HTMLButtonElement>('button')[score - 1]?.focus();
+    this.selectScore(nextScore);
+
+    const scoreButtons = scorePicker.querySelectorAll<HTMLButtonElement>('button');
+    const selectedButton = scoreButtons[nextScore - 1];
+    selectedButton?.focus();
   }
 
-  onSubmit(): void {
-    if (this.submitting) return;
+  submitReview(): void {
+    if (this.isSubmitting() || this.hasExistingReview()) return;
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
-    this.submitting = true;
-    this.busyChange.emit(true);
-    this.duplicate = false;
-    this.error = null;
-    const raterId = this.auth.currentUserId();
-    if (!raterId) {
-      this.submitting = false;
-      this.busyChange.emit(false);
-      this.error = this.i18n.translate('reviews.signIn');
+    if (!this.authService.currentUserId()) {
+      this.submissionError.set(this.i18n.translate('reviews.signIn'));
       return;
     }
 
+    const formValues = this.form.getRawValue();
+    const trimmedComment = formValues.comment.trim();
+    const reviewRequest: CreateRatingRequest = {
+      jobId: this.jobId(),
+      rateeId: this.reviewedUserId(),
+      score: formValues.score,
+      comment: trimmedComment || undefined,
+    };
+
+    this.submissionError.set(null);
+    this.setSubmitting(true);
+
     this.ratingService
-      .createRating({
-        jobId: this.jobId,
-        rateeId: this.rateeId,
-        score: this.form.value.score,
-        comment: this.form.value.comment?.trim() || undefined,
-      })
+      .publishReview(reviewRequest)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (response) => {
-          this.submitting = false;
-          this.busyChange.emit(false);
-          this.form.reset({ score: 0, comment: '' });
-          this.submitted.emit(response);
-          this.changeDetector.markForCheck();
+        next: (publishedReview) => {
+          this.setSubmitting(false);
+          this.form.reset();
+          this.submitted.emit(publishedReview);
         },
-        error: (error) => {
-          this.submitting = false;
-          this.busyChange.emit(false);
-          this.duplicate = error.error?.error?.code === 'DUPLICATE_RATING';
-          this.error = this.i18n.translate(this.duplicate ? 'reviews.duplicate' : 'reviews.submitError');
-          this.changeDetector.markForCheck();
+        error: (error: HttpErrorResponse) => {
+          this.setSubmitting(false);
+          this.hasExistingReview.set(error.error?.error?.code === 'DUPLICATE_RATING');
+
+          const errorKey = this.hasExistingReview() ? 'reviews.duplicate' : 'reviews.submitError';
+          this.submissionError.set(this.i18n.translate(errorKey));
         },
       });
   }
 
-  onCancel(): void {
-    if (this.submitting) return;
+  cancelReview(): void {
+    if (this.isSubmitting()) return;
+
     this.cancelled.emit();
+  }
+
+  private setSubmitting(isSubmitting: boolean): void {
+    this.isSubmitting.set(isSubmitting);
+    this.submittingChange.emit(isSubmitting);
+  }
+
+  /** Horizontal arrows follow reading direction; vertical arrows, Home, and End do not. */
+  private getKeyboardScore(key: string): number | null {
+    const currentScore = this.selectedScore() || 1;
+    const isRightToLeft = this.i18n.direction() === 'rtl';
+    const increaseKey = isRightToLeft ? 'ArrowLeft' : 'ArrowRight';
+    const decreaseKey = isRightToLeft ? 'ArrowRight' : 'ArrowLeft';
+
+    switch (key) {
+      case increaseKey:
+      case 'ArrowUp':
+        return Math.min(5, currentScore + 1);
+      case decreaseKey:
+      case 'ArrowDown':
+        return Math.max(1, currentScore - 1);
+      case 'Home':
+        return 1;
+      case 'End':
+        return 5;
+      default:
+        return null;
+    }
   }
 }

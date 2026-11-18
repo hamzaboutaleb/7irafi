@@ -11,19 +11,24 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionSynchronizationUtils;
 
-import com.herafi.notification_service.dto.CreateNotificationRequest;
 import com.herafi.notification_service.entity.Notification;
+import com.herafi.notification_service.event.NotificationRequestedEvent;
 import com.herafi.notification_service.exception.NotificationException;
 import com.herafi.notification_service.repository.NotificationRepository;
 
@@ -41,6 +46,7 @@ class NotificationServiceTests {
         notificationRepository = mock(NotificationRepository.class);
         messagingTemplate = mock(SimpMessagingTemplate.class);
         service = new NotificationService(notificationRepository, messagingTemplate);
+        TransactionSynchronizationManager.initSynchronization();
 
         recipient = UUID.randomUUID();
         someoneElse = UUID.randomUUID();
@@ -55,11 +61,18 @@ class NotificationServiceTests {
                 });
     }
 
+    @AfterEach
+    void clearTransactionSynchronization() {
+        TransactionSynchronizationManager.clearSynchronization();
+    }
+
     @Test
-    void creatingStoresAndPushesToTheRecipient() {
-        service.create(request());
+    void creatingFromEventStoresAndPushesToTheRecipientAfterCommit() {
+        service.createFromEvent(event());
 
         verify(notificationRepository).save(any(Notification.class));
+        verifyNoInteractions(messagingTemplate);
+        TransactionSynchronizationUtils.triggerAfterCommit();
         verify(messagingTemplate).convertAndSendToUser(
                 eq(recipient.toString()), eq("/queue/notifications"), any());
     }
@@ -69,10 +82,12 @@ class NotificationServiceTests {
         doThrow(new RuntimeException("no broker"))
                 .when(messagingTemplate).convertAndSendToUser(anyString(), anyString(), any());
 
-        Notification saved = service.create(request());
+        service.createFromEvent(event());
+        TransactionSynchronizationUtils.triggerAfterCommit();
 
-        assertNotNull(saved.getId());
-        verify(notificationRepository).save(any(Notification.class));
+        var saved = ArgumentCaptor.forClass(Notification.class);
+        verify(notificationRepository).save(saved.capture());
+        assertNotNull(saved.getValue().getId());
     }
 
     @Test
@@ -132,8 +147,9 @@ class NotificationServiceTests {
         assertEquals(7L, service.unreadCount(recipient));
     }
 
-    private CreateNotificationRequest request() {
-        return new CreateNotificationRequest(recipient, "NEW_MESSAGE", "New message", "hello", "/conversations/1");
+    private NotificationRequestedEvent event() {
+        return new NotificationRequestedEvent(UUID.randomUUID(), recipient, "NEW_MESSAGE",
+                "New message", "hello", "/conversations/1");
     }
 
     private Notification stored() {

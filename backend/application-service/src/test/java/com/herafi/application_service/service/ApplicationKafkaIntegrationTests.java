@@ -38,7 +38,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.util.AopTestUtils;
 
 import com.herafi.application_service.client.JobClient;
-import com.herafi.application_service.client.NotificationClient;
 import com.herafi.application_service.client.UserClient;
 import com.herafi.application_service.event.ApplicationAnalyticsEvent;
 import com.herafi.application_service.event.JobLifecycleEvent;
@@ -64,7 +63,7 @@ class ApplicationKafkaIntegrationTests {
     @MockitoSpyBean private OutboxEventWriter writer;
     @MockitoBean private JobClient jobs;
     @MockitoBean private UserClient users;
-    @MockitoBean private NotificationClient notifications;
+    @MockitoBean private NotificationPublisher notifications;
 
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {

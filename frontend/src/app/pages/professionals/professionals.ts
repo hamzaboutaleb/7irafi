@@ -477,7 +477,7 @@ export class Professionals implements OnInit {
     this.ratingsRequest?.unsubscribe();
     this.ratingsLoading.set(true);
     this.ratingsRequest = this.ratings
-      .getSummary(person.userId)
+      .getUserRatingSummary(person.userId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (summary) => {

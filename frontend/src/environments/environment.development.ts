@@ -5,4 +5,5 @@ export const environment = {
   // browser connects to chat-service directly.
   chatSocketUrl: 'ws://localhost:8085/ws',
   notificationSocketUrl: 'ws://localhost:8086/ws',
+  analyticsSocketUrl: 'ws://localhost:8087/ws/analytics',
 };

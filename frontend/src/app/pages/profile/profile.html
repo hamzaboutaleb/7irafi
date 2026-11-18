@@ -268,8 +268,8 @@
                 <button
                   type="button"
                   class="profile__review-tab"
-                  [class.profile__review-tab--active]="ratingType() === 'given'"
-                  (click)="ratingType.set('given')"
+                  [class.profile__review-tab--active]="ratingType() === 'written'"
+                  (click)="ratingType.set('written')"
                 >
                   {{ 'reviews.byMe' | translate }}
                 </button>
@@ -277,10 +277,10 @@
 
               <app-rating-list
                 [userId]="currentProfile.id"
-                [type]="ratingType()"
-                (stateChange)="reviewListState.set($event)"
+                [reviewType]="ratingType()"
+                (loadStateChange)="reviewListState.set($event)"
                 (retryRequested)="loadRatingSummary()"
-                (viewJob)="reviewJobId.set($event)"
+                (viewJobRequested)="reviewJobId.set($event)"
               />
             </section>
 

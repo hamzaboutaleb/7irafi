@@ -7,10 +7,11 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
-import com.herafi.chat_service.client.NotificationClient;
 import com.herafi.chat_service.dto.ChatMessageRequest;
 import com.herafi.chat_service.dto.ChatMessageResponse;
+import com.herafi.chat_service.event.NotificationRequestedEvent;
 import com.herafi.chat_service.service.ConversationService;
+import com.herafi.chat_service.service.NotificationPublisher;
 
 import jakarta.validation.Valid;
 
@@ -21,17 +22,19 @@ import jakarta.validation.Valid;
 @Controller
 public class ChatController {
 
+    private static final int NOTIFICATION_PREVIEW_MAX_LENGTH = 500;
+
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final ConversationService conversationService;
-    private final NotificationClient notificationClient;
+    private final NotificationPublisher notificationPublisher;
 
     public ChatController(
             SimpMessagingTemplate simpMessagingTemplate,
             ConversationService conversationService,
-            NotificationClient notificationClient) {
+            NotificationPublisher notificationPublisher) {
         this.simpMessagingTemplate = simpMessagingTemplate;
         this.conversationService = conversationService;
-        this.notificationClient = notificationClient;
+        this.notificationPublisher = notificationPublisher;
     }
 
     @MessageMapping("/chat")
@@ -54,11 +57,21 @@ public class ChatController {
 
         // So the recipient still learns about it while they are on another page
         // or offline entirely.
-        notificationClient.notify(
-                delivery.recipientId(),
+        notificationPublisher.publish(new NotificationRequestedEvent(
+                UUID.randomUUID(), delivery.recipientId(),
                 "NEW_MESSAGE",
                 "New message",
-                messageRequest.text(),
-                "/conversations/" + messageRequest.conversationId());
+                notificationPreview(message.text()),
+                "/conversations/" + message.conversationId()));
+    }
+
+    private String notificationPreview(String text) {
+        String preview = text.strip();
+        int end = Math.min(preview.length(), NOTIFICATION_PREVIEW_MAX_LENGTH);
+        if (end < preview.length() && Character.isHighSurrogate(preview.charAt(end - 1))
+                && Character.isLowSurrogate(preview.charAt(end))) {
+            end--;
+        }
+        return preview.substring(0, end);
     }
 }

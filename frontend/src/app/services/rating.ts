@@ -1,7 +1,9 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
-import { AuthService } from './auth.js';
 import { map, Observable, Subject, tap } from 'rxjs';
+
+import { ApiSuccess, Page } from '../types/api.js';
+import { AuthService } from './auth.js';
 
 export interface CreateRatingRequest {
   jobId: string;
@@ -30,72 +32,110 @@ export interface UserRatingSummary {
   scoreDistribution: Record<number, number>;
 }
 
-export interface PageResponse<T> {
-  content: T[];
-  page: number;
-  size: number;
-  totalElements: number;
-  totalPages: number;
-}
-
-interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-}
-
 @Injectable({
   providedIn: 'root',
 })
 export class RatingService {
-  private http = inject(HttpClient);
-  private readonly auth = inject(AuthService);
-  private baseUrl = 'ratings';
+  private readonly http = inject(HttpClient);
+  private readonly authService = inject(AuthService);
+  private readonly ratingsEndpoint = 'ratings';
+
+  // Include the reviewer ID so different users never share a reviewed-job flag.
+  private readonly reviewedJobKeys = signal<ReadonlySet<string>>(new Set());
   private readonly reviewsChangedSubject = new Subject<void>();
+
   readonly reviewsChanged = this.reviewsChangedSubject.asObservable();
-  private readonly reviewedJobs = signal(new Set<string>());
 
-  hasReviewed(jobId: string): boolean {
-    return this.reviewedJobs().has(`${this.auth.currentUserId()}:${jobId}`);
+  hasReviewedJob(jobId: string): boolean {
+    const currentUserId = this.authService.currentUserId();
+    if (!currentUserId) return false;
+
+    const reviewKey = this.createReviewedJobKey(currentUserId, jobId);
+
+    return this.reviewedJobKeys().has(reviewKey);
   }
 
-  private rememberReviews(reviews: RatingResponse[], userId: string): void {
-    this.reviewedJobs.update(previous => new Set([
-      ...previous, ...reviews.filter(review => review.raterId === userId).map(review => `${userId}:${review.jobId}`),
-    ]));
-  }
-
-  createRating(request: CreateRatingRequest): Observable<RatingResponse> {
-    return this.http.post<ApiResponse<RatingResponse>>(this.baseUrl, request).pipe(
-      map((res) => res.data),
-      tap(review => {
-        this.rememberReviews([review], review.raterId);
+  publishReview(reviewRequest: CreateRatingRequest): Observable<RatingResponse> {
+    return this.http.post<ApiSuccess<RatingResponse>>(this.ratingsEndpoint, reviewRequest).pipe(
+      map((response) => response.data),
+      tap((publishedReview) => {
+        this.rememberReviewedJobs([publishedReview], publishedReview.raterId);
         this.reviewsChangedSubject.next();
       }),
     );
   }
 
-  getByJobId(jobId: string): Observable<RatingResponse[]> {
-    return this.http.get<ApiResponse<RatingResponse[]>>(`${this.baseUrl}/job/${jobId}`).pipe(
-      map((res) => res.data),
-      tap(reviews => this.rememberReviews(reviews, this.auth.currentUserId() ?? '')),
+  getJobReviews(jobId: string): Observable<RatingResponse[]> {
+    const url = `${this.ratingsEndpoint}/job/${jobId}`;
+
+    return this.http.get<ApiSuccess<RatingResponse[]>>(url).pipe(
+      map((response) => response.data),
+      tap((reviews) => {
+        const currentUserId = this.authService.currentUserId();
+        this.rememberReviewedJobs(reviews, currentUserId);
+      }),
     );
   }
 
-  getReceivedByUserId(userId: string, page = 0, size = 20): Observable<PageResponse<RatingResponse>> {
-    const params = new HttpParams().set('page', page).set('size', size);
+  getReceivedReviews(
+    userId: string,
+    pageNumber = 0,
+    pageSize = 20,
+  ): Observable<Page<RatingResponse>> {
+    const url = `${this.ratingsEndpoint}/user/${userId}/received`;
+    const params = this.createPaginationParams(pageNumber, pageSize);
+
     return this.http
-      .get<ApiResponse<PageResponse<RatingResponse>>>(`${this.baseUrl}/user/${userId}/received`, { params })
-      .pipe(map((res) => res.data));
+      .get<ApiSuccess<Page<RatingResponse>>>(url, { params })
+      .pipe(map((response) => response.data));
   }
 
-  getGivenByUserId(userId: string, page = 0, size = 20): Observable<PageResponse<RatingResponse>> {
-    const params = new HttpParams().set('page', page).set('size', size);
-    return this.http
-      .get<ApiResponse<PageResponse<RatingResponse>>>(`${this.baseUrl}/user/${userId}/given`, { params })
-      .pipe(map((res) => res.data), tap(page => this.rememberReviews(page.content, userId)));
+  getWrittenReviews(
+    userId: string,
+    pageNumber = 0,
+    pageSize = 20,
+  ): Observable<Page<RatingResponse>> {
+    const url = `${this.ratingsEndpoint}/user/${userId}/given`;
+    const params = this.createPaginationParams(pageNumber, pageSize);
+
+    return this.http.get<ApiSuccess<Page<RatingResponse>>>(url, { params }).pipe(
+      map((response) => response.data),
+      tap((reviewPage) => this.rememberReviewedJobs(reviewPage.content, userId)),
+    );
   }
 
-  getSummary(userId: string): Observable<UserRatingSummary> {
-    return this.http.get<ApiResponse<UserRatingSummary>>(`${this.baseUrl}/user/${userId}/summary`).pipe(map((res) => res.data));
+  getUserRatingSummary(userId: string): Observable<UserRatingSummary> {
+    const url = `${this.ratingsEndpoint}/user/${userId}/summary`;
+
+    return this.http.get<ApiSuccess<UserRatingSummary>>(url).pipe(map((response) => response.data));
+  }
+
+  private createPaginationParams(pageNumber: number, pageSize: number): HttpParams {
+    return new HttpParams().set('page', pageNumber).set('size', pageSize);
+  }
+
+  private createReviewedJobKey(userId: string, jobId: string): string {
+    return `${userId}:${jobId}`;
+  }
+
+  private rememberReviewedJobs(reviews: RatingResponse[], reviewerId: string | null): void {
+    if (!reviewerId || reviews.length === 0) return;
+
+    const writtenReviews = reviews.filter((review) => review.raterId === reviewerId);
+    if (writtenReviews.length === 0) return;
+
+    const newReviewKeys = writtenReviews.map((review) =>
+      this.createReviewedJobKey(reviewerId, review.jobId),
+    );
+
+    this.reviewedJobKeys.update((existingKeys) => {
+      const updatedKeys = new Set(existingKeys);
+
+      for (const reviewKey of newReviewKeys) {
+        updatedKeys.add(reviewKey);
+      }
+
+      return updatedKeys;
+    });
   }
 }

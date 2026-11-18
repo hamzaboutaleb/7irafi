@@ -45,12 +45,12 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.herafi.application_service.client.JobClient;
-import com.herafi.application_service.client.NotificationClient;
 import com.herafi.application_service.client.UserClient;
 import com.herafi.application_service.entity.JobApplication;
 import com.herafi.application_service.entity.OutboxEvent;
 import com.herafi.application_service.event.ApplicationAnalyticsEvent;
 import com.herafi.application_service.event.JobLifecycleEvent;
+import com.herafi.application_service.event.NotificationRequestedEvent;
 import com.herafi.application_service.exceptions.ApplicationException;
 import com.herafi.application_service.repository.JobApplicationRepository;
 import com.herafi.application_service.repository.JobLifecycleStateRepository;
@@ -83,7 +83,7 @@ class ApplicationOutboxIntegrationTests {
     @Autowired private JdbcTemplate jdbc;
     @MockitoBean private JobClient jobs;
     @MockitoBean private UserClient users;
-    @MockitoBean private NotificationClient notifications;
+    @MockitoBean private NotificationPublisher notifications;
     @MockitoBean private KafkaTemplate<String, String> kafka;
 
     private final UUID jobId = UUID.randomUUID();
@@ -127,7 +127,7 @@ class ApplicationOutboxIntegrationTests {
         assertThat(mapper.readTree(jdbc.queryForObject(
                 "SELECT payload FROM outbox_events WHERE id = ?", String.class, row.getId())).isObject()).isTrue();
         assertThat(meters.counter("herafi.applications.submitted").count()).isEqualTo(1);
-        verify(notifications).notify(any(), any(), any(), any(), any());
+        verify(notifications).publish(any(NotificationRequestedEvent.class));
     }
 
     @Test

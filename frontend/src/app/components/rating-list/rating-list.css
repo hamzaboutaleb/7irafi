@@ -1,0 +1,195 @@
+@reference '../../../styles.css';
+
+:host {
+  @apply block;
+}
+
+/* Failed loading and retry action. */
+.rating-list__error {
+  @apply flex flex-wrap items-center justify-between bg-gray-50 text-gray-600;
+  gap: 0.5rem 1rem;
+  padding: 0.75rem 1rem;
+  margin-block: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.rating-list__retry {
+  @apply min-h-11 cursor-pointer font-semibold text-primary-800 underline;
+}
+
+/* Initial loading placeholders. */
+.rating-list__skeletons {
+  @apply grid gap-4 py-5;
+}
+
+.rating-list__loading-label {
+  @apply sr-only;
+  clip-path: inset(50%);
+}
+
+.rating-list__skeleton {
+  @apply grid;
+  gap: 0.6rem;
+}
+
+.rating-list__skeleton-line {
+  height: 0.65rem;
+  background: #f0f2f4;
+  border-radius: 0.3rem;
+}
+
+.rating-list__skeleton-line:first-child {
+  @apply h-4;
+  width: 35%;
+}
+
+.rating-list__skeleton-line:last-child {
+  width: 70%;
+}
+
+/* Empty received/written review states. */
+.rating-list__empty {
+  @apply text-center;
+  padding: 2rem 1rem;
+}
+
+.rating-list__empty-symbol {
+  @apply grid size-12 place-items-center rounded-full;
+  margin: 0 auto 1rem;
+  background: #faf7ef;
+  color: #b7790b;
+  font-size: 1.7rem;
+}
+
+.rating-list__empty-title {
+  @apply font-semibold text-gray-700;
+  font-size: 0.95rem;
+}
+
+.rating-list__empty-description {
+  @apply max-w-100 text-gray-500;
+  margin: 0.45rem auto 0;
+  font-size: 0.85rem;
+  line-height: 1.7;
+}
+
+.rating-list__empty-links {
+  @apply mt-3 flex flex-wrap justify-center;
+  gap: 0.5rem 1rem;
+}
+
+.rating-list__empty-link {
+  @apply inline-flex min-h-11 items-center font-semibold text-primary-800 underline;
+  font-size: 0.8rem;
+}
+
+/* Existing reviews remain visible while another page loads. */
+.rating-list__reviews--refreshing {
+  @apply opacity-50;
+}
+
+.rating-list__card {
+  padding-block: 1.35rem;
+  border-block-end: 1px solid #edf0f2;
+}
+
+.rating-list__card:last-child {
+  border-block-end: 0;
+  padding-block-end: 0.25rem;
+}
+
+.rating-list__card-header {
+  @apply flex flex-wrap items-start justify-between gap-4;
+}
+
+.rating-list__person {
+  @apply flex min-w-0 items-center gap-3;
+}
+
+.rating-list__avatar {
+  @apply grid size-10 shrink-0 place-items-center rounded-full bg-primary-50 font-semibold text-primary-800;
+  font-size: 0.9rem;
+}
+
+.rating-list__person-name {
+  @apply font-semibold;
+  color: #1f2937;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+.rating-list__date {
+  @apply block text-gray-500;
+  margin-block-start: 0.15rem;
+  font-size: 0.75rem;
+}
+
+.rating-list__comment {
+  @apply mt-4 whitespace-pre-wrap text-gray-600;
+  font-size: 0.9rem;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+
+.rating-list__card-footer {
+  @apply mt-3 flex flex-wrap items-center justify-between;
+  gap: 0.5rem 1rem;
+  font-size: 0.75rem;
+}
+
+.rating-list__job {
+  @apply text-gray-500;
+  overflow-wrap: anywhere;
+}
+
+.rating-list__view-job {
+  @apply inline-flex min-h-11 cursor-pointer items-center font-semibold text-primary-800;
+  gap: 0.35rem;
+}
+
+.rating-list__view-job:hover {
+  @apply underline;
+}
+
+/* Pagination uses logical RTL-aware icon direction. */
+.rating-list__pagination {
+  @apply mt-6 flex items-center justify-center gap-4;
+  border-block-start: 1px solid #edf0f2;
+  padding-block-start: 1rem;
+}
+
+.rating-list__page-button {
+  @apply grid size-11 cursor-pointer place-items-center bg-white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.6rem;
+}
+
+.rating-list__page-icon {
+  @apply rtl:rotate-180;
+  width: 1.1rem;
+  height: 1.1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+}
+
+.rating-list__page-info {
+  @apply text-gray-500;
+  font-size: 0.8rem;
+}
+
+.rating-list__page-button:disabled {
+  @apply cursor-not-allowed;
+  opacity: 0.4;
+}
+
+.rating-list__retry:focus-visible,
+.rating-list__empty-link:focus-visible,
+.rating-list__view-job:focus-visible,
+.rating-list__page-button:focus-visible {
+  outline: 2px solid var(--color-primary-600);
+  outline-offset: 3px;
+  border-radius: 0.25rem;
+}

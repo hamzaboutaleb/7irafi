@@ -1,6 +1,7 @@
 package com.herafi.application_service.entity;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 import com.herafi.application_service.event.ApplicationAnalyticsEvent;
@@ -60,6 +61,6 @@ public class JobApplication {
         if (id == null) {
             id = UUID.randomUUID();
         }
-        createdAt = Instant.now();
+        createdAt = Instant.now().truncatedTo(ChronoUnit.MICROS);
     }
 }

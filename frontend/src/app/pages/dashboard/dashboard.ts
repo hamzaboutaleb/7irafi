@@ -1,192 +1,294 @@
-import { DatePipe, DecimalPipe } from '@angular/common';
-import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { DatePipe, DecimalPipe, DOCUMENT } from '@angular/common';
+import { Component, computed, DestroyRef, effect, inject, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { HttpErrorResponse } from '@angular/common/http';
-import { Subscription } from 'rxjs';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { LucideArrowRight, LucideCircleCheck, LucideStar, LucideUsersRound } from '@lucide/angular';
+import {
+  ChartData, ChartOptions, LineController, LineElement, PointElement,
+  CategoryScale, LinearScale, Tooltip, Legend,
+} from 'chart.js';
+import { BaseChartDirective, provideCharts } from 'ng2-charts';
+import { Temporal } from '@js-temporal/polyfill';
+import { Client } from '@stomp/stompjs';
+import { auditTime, forkJoin, Subject, Subscription } from 'rxjs';
 import { Navbar } from '../../components/navbar/navbar.js';
 import { Footer } from '../../components/footer/footer.js';
-import { JobDetailsModal } from '../../components/job-details-modal/job-details-modal.js';
-import { DashboardSidebar } from '../../components/dashboard-sidebar/dashboard-sidebar.js';
 import { TranslatePipe } from '../../pipes/translate-pipe.js';
-import { TranslationKey } from '../../i18n/language.js';
-import { UserService } from '../../services/user.js';
+import { I18nService } from '../../services/i18n.js';
 import { AuthService } from '../../services/auth.js';
-import { DashboardData, DashboardJob, DashboardSnapshot, DashboardView } from '../../services/dashboard.js';
-import { RatingService, UserRatingSummary } from '../../services/rating.js';
-import { UserProfile } from '../../types/user.js';
-import { ProfessionalProfile } from '../../types/professional-profile.js';
+import { AnalyticsApi } from '../../services/analytics.js';
+import { AnalyticsCount, AnalyticsQuery, AnalyticsResponse, Granularity } from '../../types/analytics.js';
+import { TranslationKey } from '../../i18n/language.js';
+import { environment } from '../../../environments/environment.js';
 
-type LoadState = 'idle' | 'loading' | 'loaded' | 'error';
+const TIME_ZONE = 'Africa/Casablanca';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [DatePipe, DecimalPipe, RouterLink, LucideArrowRight, LucideCircleCheck, LucideStar, LucideUsersRound, Navbar, Footer, JobDetailsModal, DashboardSidebar, TranslatePipe],
-  providers: [DashboardData],
+  imports: [DatePipe, DecimalPipe, FormsModule, RouterLink, BaseChartDirective, Navbar, Footer, TranslatePipe],
+  providers: [provideCharts({
+    registerables: [LineController, LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Legend],
+  })],
   templateUrl: './dashboard.html',
-  host: { class: 'block' },
 })
-export class Dashboard implements OnInit {
-  private readonly users = inject(UserService);
+export class Dashboard {
+  private readonly api = inject(AnalyticsApi);
   private readonly auth = inject(AuthService);
-  private readonly data = inject(DashboardData);
-  private readonly requests: Partial<Record<DashboardView, Subscription>> = {};
+  private readonly i18n = inject(I18nService);
+  private readonly document = inject(DOCUMENT);
   private readonly destroyRef = inject(DestroyRef);
-  readonly ratings = inject(RatingService);
+  private readonly liveUpdates = new Subject<void>();
+  private currentRequest?: Subscription;
+  private socket: Client | null = null;
 
-  readonly profile = signal<UserProfile | null>(null);
-  readonly profileState = signal<LoadState>('idle');
-  readonly professional = signal<ProfessionalProfile | null>(null);
-  readonly professionalState = signal<LoadState>('idle');
-  readonly summary = signal<UserRatingSummary | null>(null);
-  readonly summaryState = signal<LoadState>('idle');
-  readonly view = signal<DashboardView>(this.initialView());
-  readonly hiring = signal<DashboardSnapshot | null>(null);
-  readonly working = signal<DashboardSnapshot | null>(null);
-  readonly hiringState = signal<LoadState>('idle');
-  readonly workingState = signal<LoadState>('idle');
-  readonly snapshot = computed(() => this.view() === 'hiring' ? this.hiring() : this.working());
-  readonly workState = computed(() => this.view() === 'hiring' ? this.hiringState() : this.workingState());
-  readonly selectedJob = signal<string | null>(null);
-  readonly reviewOpen = signal(false);
-  readonly activeProfessional = computed(() => this.professional()?.onboardingStatus === 'ACTIVE');
-  readonly primaryRoute = computed(() => this.view() === 'hiring' ? '/jobs/new' : this.activeProfessional() ? '/jobs' : '/professional-profile');
-  readonly primaryLabel = computed<TranslationKey>(() => this.view() === 'hiring'
-    ? 'myJobs.post' : this.activeProfessional() ? 'dashboard.findWork' : 'dashboard.professionalProfile');
+  // Keep form edits separate from the filters used by the displayed results.
+  endDate = Temporal.Now.plainDateISO(TIME_ZONE).toString();
+  startDate = Temporal.PlainDate.from(this.endDate).subtract({ days: 29 }).toString();
+  granularity: Granularity = 'day';
+  readonly appliedFilters = signal({ start: this.startDate, end: this.endDate, granularity: this.granularity });
 
-  ngOnInit(): void {
-    this.loadProfile();
-    this.loadProfessional();
-    this.ratings.reviewsChanged.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      // Refresh after a review is published in the dialog; remove its reminder too.
-      this.loadView(true);
-      this.loadSummary();
-    });
-  }
+  readonly analytics = signal<{ jobs: AnalyticsResponse; applications: AnalyticsResponse } | null>(null);
+  readonly isLoading = signal(false);
+  readonly loadFailed = signal(false);
+  readonly filterError = signal<TranslationKey | null>(null);
+  readonly lastUpdatedAt = signal<Date | null>(null);
+  readonly connectionStatus = signal<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
+  readonly connectionLabel = computed<TranslationKey>(() => `analytics.live.${this.connectionStatus()}`);
 
-  loadProfile(): void {
-    if (this.profileState() === 'loading') return;
-    this.profileState.set('loading');
-    this.users.getCurrentUser().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: response => {
-        this.profile.set(response.data);
-        this.profileState.set('loaded');
-        this.loadView();
-        this.loadSummary();
+  readonly activityChart = computed<ChartData<'line', number[], string> | null>(() => {
+    const analytics = this.analytics();
+    if (!analytics) return null;
+
+    const dates = this.createChartDates();
+    const theme = getComputedStyle(this.document.documentElement);
+    const jobsColor = theme.getPropertyValue('--color-primary-700').trim();
+    const applicationsColor = theme.getPropertyValue('--color-secondary-700').trim();
+
+    return {
+      labels: dates,
+      datasets: [
+        {
+          label: this.i18n.translate('analytics.jobs'),
+          data: this.getCountsForDates(dates, analytics.jobs.activity),
+          borderColor: jobsColor,
+          backgroundColor: jobsColor,
+        },
+        {
+          label: this.i18n.translate('analytics.applications'),
+          data: this.getCountsForDates(dates, analytics.applications.activity),
+          borderColor: applicationsColor,
+          backgroundColor: applicationsColor,
+        },
+      ],
+    };
+  });
+
+  readonly chartOptions = computed<ChartOptions<'line'>>(() => {
+    const isRightToLeft = this.i18n.direction() === 'rtl';
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      plugins: {
+        legend: { position: 'bottom', rtl: isRightToLeft },
+        tooltip: { rtl: isRightToLeft },
       },
-      error: () => this.profileState.set('error'),
+      scales: {
+        x: { ticks: { maxRotation: 0, maxTicksLimit: 6 } },
+        y: { beginAtZero: true, ticks: { precision: 0 } },
+      },
+    };
+  });
+
+  constructor() {
+    this.liveUpdates.pipe(auditTime(250), takeUntilDestroyed()).subscribe(() => this.refreshAnalytics());
+
+    effect(onCleanup => {
+      // Clear the previous account's data whenever login or logout changes the session.
+      this.auth.sessionRevision();
+      this.clearDashboard();
+      const token = this.auth.getToken();
+
+      if (token) {
+        // Applying filters should not reconnect the socket.
+        untracked(() => this.refreshAnalytics());
+        this.connectLiveUpdates(token);
+      }
+
+      onCleanup(() => {
+        this.currentRequest?.unsubscribe();
+        this.disconnectLiveUpdates();
+      });
     });
   }
 
-  selectView(view: DashboardView): void {
-    this.view.set(view);
+  applyFilters(): void {
+    this.filterError.set(null);
+
     try {
-      localStorage.setItem(this.storageKey(), view);
+      const start = Temporal.PlainDate.from(this.startDate);
+      const end = Temporal.PlainDate.from(this.endDate);
+
+      if (Temporal.PlainDate.compare(start, end) > 0) {
+        this.filterError.set('analytics.invalidRange');
+        return;
+      }
+
+      let numberOfPoints = start.until(end).days;
+      if (this.granularity === 'week') {
+        numberOfPoints /= 7;
+      } else if (this.granularity === 'month') {
+        numberOfPoints = start.until(end, { largestUnit: 'months' }).months;
+      }
+
+      if (numberOfPoints > 1200) {
+        this.filterError.set('analytics.rangeTooLarge');
+        return;
+      }
     } catch {
-      // Storage can be blocked. The switch still works for this visit.
+      this.filterError.set('analytics.invalidRange');
+      return;
     }
-    this.loadView();
+
+    this.appliedFilters.set({ start: this.startDate, end: this.endDate, granularity: this.granularity });
+    this.analytics.set(null);
+    this.lastUpdatedAt.set(null);
+    this.refreshAnalytics();
   }
 
-  loadView(refresh = false): void {
-    const userId = this.profile()?.id;
-    const view = this.view();
-    const state = view === 'hiring' ? this.hiringState : this.workingState;
-    const result = view === 'hiring' ? this.hiring : this.working;
-    if (!userId || (!refresh && (state() === 'loading' || state() === 'loaded'))) return;
-    // Cancel an older refresh so a late response cannot restore an outdated reminder.
-    this.requests[view]?.unsubscribe();
-    state.set('loading');
-    const request = view === 'hiring' ? this.data.loadHiring(userId) : this.data.loadWorking(userId);
-    this.requests[view] = request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: snapshot => {
-        result.set(snapshot);
-        state.set('loaded');
+  refreshAnalytics(): void {
+    const token = this.auth.getToken();
+    if (!token) return;
+
+    this.currentRequest?.unsubscribe();
+    this.isLoading.set(true);
+    this.loadFailed.set(false);
+
+    const query = this.createQuery();
+    this.currentRequest = forkJoin({
+      jobs: this.api.jobs(query),
+      applications: this.api.applications(query),
+    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: analytics => {
+        if (this.auth.getToken() !== token) return;
+        this.analytics.set(analytics);
+        this.lastUpdatedAt.set(new Date());
+        this.isLoading.set(false);
       },
-      error: () => state.set('error'),
+      error: () => {
+        if (this.auth.getToken() !== token) return;
+        this.loadFailed.set(true);
+        this.isLoading.set(false);
+      },
     });
   }
 
-  loadProfessional(): void {
-    if (this.professionalState() === 'loading') return;
-    this.professionalState.set('loading');
-    this.users.getCurrentProfessionalProfile().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: response => {
-        this.professional.set(response.data);
-        this.professionalState.set('loaded');
+  private createQuery(): AnalyticsQuery {
+    const { start, end, granularity } = this.appliedFilters();
+    // Include the selected end date by stopping at midnight on the next day.
+    const firstDay = Temporal.PlainDate.from(start);
+    const dayAfterEnd = Temporal.PlainDate.from(end).add({ days: 1 });
+    return {
+      from: firstDay.toZonedDateTime(TIME_ZONE).toInstant().toString(),
+      to: dayAfterEnd.toZonedDateTime(TIME_ZONE).toInstant().toString(),
+      granularity,
+    };
+  }
+
+  private createChartDates(): string[] {
+    const { start, end, granularity } = this.appliedFilters();
+    let currentDate = Temporal.PlainDate.from(start);
+    const endDate = Temporal.PlainDate.from(end);
+    let step: Temporal.DurationLike = { days: 1 };
+
+    if (granularity === 'week') {
+      currentDate = currentDate.subtract({ days: currentDate.dayOfWeek - 1 });
+      step = { weeks: 1 };
+    } else if (granularity === 'month') {
+      currentDate = currentDate.with({ day: 1 });
+      step = { months: 1 };
+    }
+
+    const dates: string[] = [];
+    while (Temporal.PlainDate.compare(currentDate, endDate) <= 0) {
+      dates.push(currentDate.toString());
+      currentDate = currentDate.add(step);
+    }
+    return dates;
+  }
+
+  private getCountsForDates(dates: string[], activity: AnalyticsCount[]): number[] {
+    const countsByDate = new Map<string, number>();
+    for (const item of activity) {
+      countsByDate.set(item.value.slice(0, 10), item.count);
+    }
+    // Successful responses omit dates with no activity; display those dates as zero.
+    return dates.map(date => countsByDate.get(date) ?? 0);
+  }
+
+  private clearDashboard(): void {
+    this.analytics.set(null);
+    this.lastUpdatedAt.set(null);
+    this.loadFailed.set(false);
+    this.isLoading.set(false);
+    this.connectionStatus.set('disconnected');
+  }
+
+  private connectLiveUpdates(token: string): void {
+    const client = new Client({
+      brokerURL: environment.analyticsSocketUrl || this.sameHostSocketUrl(),
+      reconnectDelay: 3000,
+      heartbeatIncoming: 10_000,
+      heartbeatOutgoing: 10_000,
+      beforeConnect: () => {
+        if (this.auth.getToken() !== token) {
+          void client.deactivate();
+          return;
+        }
+        client.connectHeaders = { Authorization: `Bearer ${token}` };
       },
-      error: (error: HttpErrorResponse) => {
-        if (error.status === 404) {
-          this.professional.set(null);
-          this.professionalState.set('loaded');
-        } else {
-          this.professionalState.set('error');
+      onConnect: () => {
+        if (this.socket !== client || this.auth.getToken() !== token) return;
+        client.subscribe('/user/queue/analytics', frame => {
+          if (this.socket !== client || this.auth.getToken() !== token) return;
+          try {
+            const message = JSON.parse(frame.body);
+            if (message.resource !== 'jobs' && message.resource !== 'applications') {
+              throw new Error('Invalid analytics message');
+            }
+            this.liveUpdates.next();
+          } catch {
+            this.connectionStatus.set('error');
+            void client.deactivate();
+          }
+        });
+        this.connectionStatus.set('connected');
+        this.refreshAnalytics();
+      },
+      onWebSocketClose: () => {
+        if (this.socket === client && this.connectionStatus() !== 'error') {
+          this.connectionStatus.set('disconnected');
         }
       },
-    });
-  }
-
-  loadSummary(): void {
-    const userId = this.profile()?.id;
-    if (!userId || this.summaryState() === 'loading') return;
-    this.summaryState.set('loading');
-    this.ratings.getSummary(userId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: summary => {
-        this.summary.set(summary);
-        this.summaryState.set('loaded');
+      onStompError: () => {
+        if (this.socket === client) this.connectionStatus.set('error');
+        void client.deactivate();
       },
-      error: () => this.summaryState.set('error'),
     });
+
+    this.socket = client;
+    this.connectionStatus.set('connecting');
+    client.activate();
   }
 
-  openJob(jobId: string, review = false): void {
-    this.reviewOpen.set(review);
-    this.selectedJob.set(jobId);
+  private disconnectLiveUpdates(): void {
+    const client = this.socket;
+    this.socket = null;
+    void client?.deactivate();
   }
 
-  canReview(row: DashboardJob): boolean {
-    const job = row.job;
-    const userId = this.profile()?.id;
-    return !!job && job.status === 'COMPLETED' && !!job.assignedWorkerId &&
-      (job.clientId === userId || job.assignedWorkerId === userId);
-  }
-
-  statusLabel(row: DashboardJob): TranslationKey {
-    if (row.applicationStatus && row.applicationStatus !== 'ACCEPTED') {
-      if (row.applicationStatus === 'PENDING' && row.job && row.job.status !== 'OPEN') {
-        return 'dashboard.status.CLOSED';
-      }
-      return `dashboard.status.${row.applicationStatus}`;
-    }
-    if (row.job && row.job.status !== 'OPEN') return `dashboard.status.${row.job.status}`;
-    if (row.applicationStatus) return `dashboard.status.${row.applicationStatus}`;
-    return 'dashboard.status.OPEN';
-  }
-
-  emptyTitle(): TranslationKey {
-    if (this.view() === 'hiring') return 'dashboard.hiringEmptyTitle';
-    if (this.professionalState() !== 'loaded') return 'dashboard.workingEmptyTitle';
-    if (this.professional()?.onboardingStatus === 'SUSPENDED') return 'dashboard.suspendedTitle';
-    return this.activeProfessional() ? 'dashboard.workingEmptyTitle' : 'dashboard.setupTitle';
-  }
-
-  emptyHint(): TranslationKey {
-    if (this.view() === 'hiring') return 'dashboard.hiringEmptyHint';
-    if (this.professionalState() !== 'loaded') return 'dashboard.workingEmptyHint';
-    if (this.professional()?.onboardingStatus === 'SUSPENDED') return 'dashboard.suspendedHint';
-    return this.activeProfessional() ? 'dashboard.workingEmptyHint' : 'dashboard.setupHint';
-  }
-
-  private storageKey(): string {
-    return `dashboard-view:${this.auth.currentUserId() ?? 'signed-in'}`;
-  }
-
-  private initialView(): DashboardView {
-    try {
-      return localStorage.getItem(this.storageKey()) === 'working' ? 'working' : 'hiring';
-    } catch {
-      return 'hiring';
-    }
+  private sameHostSocketUrl(): string {
+    const scheme = location.protocol === 'https:' ? 'wss' : 'ws';
+    return `${scheme}://${location.host}/ws/analytics`;
   }
 }
