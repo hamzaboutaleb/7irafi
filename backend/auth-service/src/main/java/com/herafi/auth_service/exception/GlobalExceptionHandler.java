@@ -31,14 +31,6 @@ public class GlobalExceptionHandler {
                 .body(ApiErrorResponse.of("INVALID_CREDENTIALS", exception.getMessage()));
     }
 
-    @ExceptionHandler(UserServiceUnavailableException.class)
-    public ResponseEntity<ApiErrorResponse> handleUserServiceUnavailable(
-            UserServiceUnavailableException exception) {
-        return ResponseEntity
-                .status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body(ApiErrorResponse.of("USER_SERVICE_UNAVAILABLE", exception.getMessage()));
-    }
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorResponse> handleValidation(
             MethodArgumentNotValidException exception) {
