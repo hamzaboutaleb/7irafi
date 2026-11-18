@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { catchError, forkJoin, map, of, Subscription, switchMap } from 'rxjs';
+import { catchError, EMPTY, finalize, forkJoin, map, of, Subject, switchMap } from 'rxjs';
 import {
   LucideArrowLeft,
   LucideUsersRound,
@@ -51,11 +51,13 @@ export class JobApplicants implements OnInit {
   private readonly chat = inject(ChatService);
   private readonly i18n = inject(I18nService);
   private readonly destroyRef = inject(DestroyRef);
+
   private jobId = '';
-  private request?: Subscription;
+  private readonly loadRequests = new Subject<number>();
+
   readonly profiles = signal<Record<string, PublicProfessionalProfile | null>>({});
   readonly people = signal<Record<string, PublicUserProfile | null>>({});
-  readonly refreshingProfiles = signal<ReadonlySet<string>>(new Set());
+  readonly refreshingProfiles = signal<string[]>([]);
   readonly job = signal<JobDetail | null>(null);
   readonly result = signal<ApplicationPage | null>(null);
   readonly loading = signal(false);
@@ -68,6 +70,52 @@ export class JobApplicants implements OnInit {
   readonly messageError = signal<{ id: string; key: TranslationKey } | null>(null);
 
   ngOnInit(): void {
+    this.loadRequests
+      .pipe(
+        switchMap((page) => {
+          this.loading.set(true);
+          this.error.set(null);
+          this.profiles.set({});
+          this.people.set({});
+          return forkJoin({
+            job: this.jobsService.getJob(this.jobId),
+            result: this.service.getApplicants(this.jobId, page),
+          }).pipe(
+            switchMap(({ job, result }) => {
+              const requests = result.content.map((app) => this.profileRequest(app.applicantId));
+              return (requests.length ? forkJoin(requests) : of([])).pipe(
+                map((entries) => ({
+                  job,
+                  result,
+                  profiles: Object.fromEntries(
+                    entries.map((entry) => [entry.id, entry.professional]),
+                  ),
+                  people: Object.fromEntries(entries.map((entry) => [entry.id, entry.person])),
+                })),
+              );
+            }),
+            catchError((error: HttpErrorResponse) => {
+              this.error.set(this.errorKey(error, 'applicants.loadFailed'));
+              return EMPTY;
+            }),
+            finalize(() => this.loading.set(false)),
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(({ job, result, profiles, people }) => {
+        this.profiles.set(profiles);
+        this.people.set(people);
+        this.job.set(job);
+        this.result.set(result);
+        const retry = this.retryApplication();
+        if (retry && job.assignedWorkerId === retry.applicantId) {
+          this.retryApplication.set(null);
+          this.notice.set('applicants.accepted');
+          this.noticeTone.set('success');
+        }
+      });
+
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       this.jobId = params.get('jobId') ?? '';
       this.result.set(null);
@@ -77,7 +125,7 @@ export class JobApplicants implements OnInit {
       this.accepting.set(null);
       this.opening.set(null);
       this.messageError.set(null);
-      this.refreshingProfiles.set(new Set());
+      this.refreshingProfiles.set([]);
       this.load(0);
     });
   }
@@ -96,69 +144,22 @@ export class JobApplicants implements OnInit {
   }
 
   retryProfile(id: string): void {
-    if (this.loading() || this.accepting() || this.refreshingProfiles().has(id)) return;
+    if (this.loading() || this.accepting() || this.refreshingProfiles().includes(id)) return;
     const jobId = this.jobId;
-    this.refreshingProfiles.update((current) => new Set([...current, id]));
+    this.refreshingProfiles.update((ids) => [...ids, id]);
     this.profileRequest(id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((data) => {
         if (jobId !== this.jobId) return;
         this.profiles.update((current) => ({ ...current, [id]: data.professional }));
         this.people.update((current) => ({ ...current, [id]: data.person }));
-        this.refreshingProfiles.update((current) => {
-          const next = new Set(current);
-          next.delete(id);
-          return next;
-        });
+        this.refreshingProfiles.update((ids) => ids.filter((profileId) => profileId !== id));
       });
   }
 
   load(page = this.result()?.page ?? 0): void {
     if (page < 0 || this.accepting()) return;
-    this.request?.unsubscribe();
-    this.loading.set(true);
-    this.error.set(null);
-    this.profiles.set({});
-    this.people.set({});
-    this.request = forkJoin({
-      job: this.jobsService.getJob(this.jobId),
-      result: this.service.getApplicants(this.jobId, page),
-    })
-      .pipe(
-        switchMap(({ job, result }) => {
-          const ids = [...new Set(result.content.map((application) => application.applicantId))];
-          return (ids.length ? forkJoin(ids.map((id) => this.profileRequest(id))) : of([])).pipe(
-            map((entries) => ({
-              job,
-              result,
-              profiles: Object.fromEntries(entries.map((entry) => [entry.id, entry.professional])),
-              people: Object.fromEntries(entries.map((entry) => [entry.id, entry.person])),
-            })),
-          );
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: ({ job, result, profiles, people }) => {
-          this.profiles.set(profiles);
-          this.people.set(people);
-          this.job.set(job);
-          this.result.set(result);
-          this.loading.set(false);
-          if (
-            this.retryApplication() &&
-            job.assignedWorkerId === this.retryApplication()?.applicantId
-          ) {
-            this.retryApplication.set(null);
-            this.notice.set('applicants.accepted');
-            this.noticeTone.set('success');
-          }
-        },
-        error: (error: HttpErrorResponse) => {
-          this.error.set(this.errorKey(error, 'applicants.loadFailed'));
-          this.loading.set(false);
-        },
-      });
+    this.loadRequests.next(page);
   }
 
   message(application: JobApplication): void {
@@ -173,7 +174,7 @@ export class JobApplicants implements OnInit {
         next: (conversation) => {
           if (jobId !== this.jobId) return;
           this.opening.set(null);
-          void this.router.navigate(['/conversations', conversation.id]);
+          this.router.navigate(['/conversations', conversation.id]);
         },
         error: (error: HttpErrorResponse) => {
           if (jobId !== this.jobId) return;
@@ -198,7 +199,7 @@ export class JobApplicants implements OnInit {
     )
       return;
     this.accepting.set(application.id);
-    if (!retry) this.notice.set(null);
+    this.notice.set(null);
     const jobId = this.jobId;
     this.service
       .accept(application.id)

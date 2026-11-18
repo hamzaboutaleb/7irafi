@@ -17,6 +17,7 @@ export class JobApplicantsSummary {
   private readonly i18n = inject(I18nService);
 
   readonly job = input.required<JobResponse>();
+
   readonly budgetLabel = computed(() =>
     new Intl.NumberFormat(this.i18n.language(), {
       maximumFractionDigits: 2,

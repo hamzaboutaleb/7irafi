@@ -1,7 +1,7 @@
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Subscription } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { catchError, EMPTY, finalize, Subject, switchMap } from 'rxjs';
 
 import { Footer } from '../../components/footer/footer.js';
 import { JobDetailsModal } from '../../components/job-details-modal/job-details-modal.js';
@@ -25,6 +25,7 @@ export class Job implements OnInit {
   private readonly jobService = inject(JobService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly i18n = inject(I18nService);
+  private readonly loadRequests = new Subject<number>();
 
   readonly jobs = signal<JobListItem[]>([]);
   readonly selectedJobId = signal<string | null>(null);
@@ -39,7 +40,6 @@ export class Job implements OnInit {
   );
 
   readonly sort = signal('createdAt,desc');
-  private request?: Subscription;
 
   applyFilters(filters: JobFilterValues): void {
     this.filters.set(filters);
@@ -56,38 +56,41 @@ export class Job implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadRequests
+      .pipe(
+        switchMap((pageNumber) => {
+          this.isLoading.set(true);
+          this.errorMessage.set(null);
+          const filters = this.filters();
+          return this.jobService
+            .getJobs({
+              ...filters,
+              duration: filters.duration || null,
+              preferredTime: filters.preferredTime || null,
+              sort: this.sort(),
+              page: pageNumber,
+              size: 12,
+            })
+            .pipe(
+              catchError((err: HttpErrorResponse) => {
+                this.errorMessage.set(this.getErrorMessage(err));
+                return EMPTY;
+              }),
+              finalize(() => this.isLoading.set(false)),
+            );
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((page) => {
+        this.jobs.set(page.content);
+        this.currentPage.set(page.page);
+        this.totalPages.set(page.totalPages);
+      });
     this.loadJobs();
   }
 
   loadJobs(pageNumber = this.currentPage()): void {
-    this.request?.unsubscribe();
-
-    this.isLoading.set(true);
-    this.errorMessage.set(null);
-
-    const filters = this.filters();
-    this.request = this.jobService
-      .getJobs({
-        ...filters,
-        duration: filters.duration || null,
-        preferredTime: filters.preferredTime || null,
-        sort: this.sort(),
-        page: pageNumber,
-        size: 12,
-      })
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (page) => {
-          this.jobs.set(page.content);
-          this.currentPage.set(page.page);
-          this.totalPages.set(page.totalPages);
-          this.isLoading.set(false);
-        },
-        error: (err: HttpErrorResponse) => {
-          this.errorMessage.set(this.getErrorMessage(err));
-          this.isLoading.set(false);
-        },
-      });
+    this.loadRequests.next(pageNumber);
   }
 
   changePage(pageNumber: number): void {

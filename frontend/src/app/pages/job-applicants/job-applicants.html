@@ -103,7 +103,7 @@
                   "
                   [accepting]="accepting()"
                   [opening]="opening()"
-                  [refreshing]="refreshingProfiles().has(application.applicantId)"
+                  [refreshing]="refreshingProfiles().includes(application.applicantId)"
                   [messageError]="failure && failure.id === application.id ? failure.key : null"
                   (acceptRequested)="accept(application)"
                   (messageRequested)="message(application)"

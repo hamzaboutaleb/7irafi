@@ -57,6 +57,7 @@ export class ApplicantCard implements OnChanges {
 
   readonly expanded = signal(false);
   readonly imageFailed = signal(false);
+
   readonly name = computed(() => {
     const person = this.person();
     return (

@@ -31,6 +31,7 @@ export class JobApplicationAction implements OnInit {
   private readonly users = inject(UserService);
   private readonly i18n = inject(I18nService);
   private readonly destroyRef = inject(DestroyRef);
+
   private readonly professionalEligibility = signal<
     'loading' | 'eligible' | 'ineligible' | 'error'
   >('loading');

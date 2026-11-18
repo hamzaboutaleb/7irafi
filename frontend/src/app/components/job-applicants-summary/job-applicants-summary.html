@@ -21,8 +21,9 @@
       job().status === 'OPEN' || job().status === 'COMPLETED'
     "
     [attr.data-status]="job().status"
-    >{{ statusLabel() }}</span
   >
+    {{ statusLabel() }}
+  </span>
   <details class="applicants-summary__context">
     <summary class="applicants-summary__context-toggle">
       {{ 'applications.viewJob' | translate }}
