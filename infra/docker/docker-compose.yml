@@ -584,6 +584,34 @@ services:
     entrypoint: ["/bin/sh", "/scripts/setup.sh"]
     restart: "no"
 
+  analytics-service:
+    build:
+      context: ../../backend/analytics-service
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/analytics_db
+      DB_USERNAME: ${DB_USERNAME:-herafi}
+      DB_PASSWORD: ${DB_PASSWORD:-herafi}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka/
+      GATEWAY_SHARED_SECRET: ${GATEWAY_SHARED_SECRET:-7irafi-development-gateway-key}
+      JWT_SECRET: ${JWT_SECRET:-7irafi-development-jwt-secret-change-me-2026}
+      JWT_ISSUER: 7irafi-auth-service
+      FRONTEND_ORIGIN: http://localhost:4200
+    ports:
+      - "8087:8087"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8087/actuator/health | grep -q UP"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
 volumes:
   kafka-data:
   postgres-data:
