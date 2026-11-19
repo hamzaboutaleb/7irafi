@@ -1,0 +1,118 @@
+# Overlay for a single-host deployment behind an HTTPS reverse proxy.
+# Requires Docker Compose 2.24.4+ for !override and !reset.
+services:
+  postgres:
+    container_name: !reset null
+    ports: !reset []
+    restart: unless-stopped
+  kafka:
+    ports: !reset []
+  minio:
+    container_name: !reset null
+    ports: !override
+      - "127.0.0.1:${MINIO_PROXY_PORT:-9000}:9000"
+    restart: unless-stopped
+  discovery-service:
+    container_name: !reset null
+    ports: !reset []
+    restart: unless-stopped
+  auth-service:
+    environment:
+      APP_ENVIRONMENT: prod
+      SQL_LOG_LEVEL: info
+    restart: unless-stopped
+  user-service:
+    environment:
+      APP_ENVIRONMENT: prod
+      SQL_LOG_LEVEL: info
+      S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:?Set the public S3 origin}
+    restart: unless-stopped
+  job-service:
+    container_name: !reset null
+    ports: !reset []
+    volumes: !reset []
+    develop: !reset null
+    entrypoint: ["java", "-jar", "target/job-service-1.0.0.jar"]
+    command: !reset null
+    environment:
+      APP_ENVIRONMENT: prod
+      SHOW_SQL: "false"
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:?Set the public HTTPS origin}
+      S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:?Set the public S3 origin}
+    restart: unless-stopped
+  application-service:
+    environment:
+      APP_ENVIRONMENT: prod
+    restart: unless-stopped
+  rating-service:
+    environment:
+      APP_ENVIRONMENT: prod
+      SHOW_SQL: "false"
+    restart: unless-stopped
+  chat-service:
+    ports: !reset []
+    environment:
+      APP_ENVIRONMENT: prod
+      SQL_LOG_LEVEL: info
+      ALLOWED_ORIGIN: ${FRONTEND_ORIGIN:?Set the public HTTPS origin}
+    restart: unless-stopped
+  notification-service:
+    ports: !reset []
+    environment:
+      APP_ENVIRONMENT: prod
+      SQL_LOG_LEVEL: info
+      ALLOWED_ORIGIN: ${FRONTEND_ORIGIN:?Set the public HTTPS origin}
+    restart: unless-stopped
+  analytics-service:
+    ports: !reset []
+    environment:
+      APP_ENVIRONMENT: prod
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:?Set the public HTTPS origin}
+    restart: unless-stopped
+  api-gateway:
+    container_name: !reset null
+    ports: !reset []
+    environment:
+      APP_ENVIRONMENT: prod
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:?Set the public HTTPS origin}
+    restart: unless-stopped
+  frontend:
+    container_name: !reset null
+    image: 7irafi-frontend:prod
+    build:
+      context: ../..
+      dockerfile: infra/docker/prod/frontend.Dockerfile
+    ports: !override
+      - "127.0.0.1:${FRONTEND_PROXY_PORT:-8088}:80"
+    volumes: !reset []
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+      chat-service:
+        condition: service_healthy
+      notification-service:
+        condition: service_healthy
+      analytics-service:
+        condition: service_healthy
+    restart: unless-stopped
+  db-backup:
+    container_name: !reset null
+    restart: unless-stopped
+  prometheus:
+    container_name: !reset null
+  grafana:
+    container_name: !reset null
+  node-exporter:
+    container_name: !reset null
+  alertmanager:
+    container_name: !reset null
+  elasticsearch:
+    container_name: !reset null
+  es-setup:
+    container_name: !reset null
+  logstash:
+    container_name: !reset null
+  kibana:
+    container_name: !reset null
+  kibana-setup:
+    container_name: !reset null
