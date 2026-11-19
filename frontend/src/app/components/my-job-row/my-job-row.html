@@ -1,0 +1,40 @@
+<article class="my-job-row">
+  <div class="my-job-row__info">
+    <div class="my-job-row__heading">
+      <h2 class="my-job-row__title">
+        <button
+          type="button"
+          class="my-job-row__details"
+          aria-haspopup="dialog"
+          (click)="detailsRequested.emit()"
+        >
+          {{ job().title }}
+        </button>
+      </h2>
+      <span class="my-job-row__status" [class.my-job-row__status--open]="job().status === 'OPEN'">
+        {{ statusLabel() }}
+      </span>
+    </div>
+    <div class="my-job-row__metadata">
+      <span class="my-job-row__metadata-item">
+        <svg lucideBriefcaseBusiness class="my-job-row__icon" aria-hidden="true" />
+        {{ job().skill.replaceAll('_', ' ') | titlecase }}
+      </span>
+      <span class="my-job-row__metadata-item">
+        <svg lucideMapPin class="my-job-row__icon" aria-hidden="true" />
+        {{ job().city.replaceAll('_', ' ') | titlecase }}
+      </span>
+      <span>{{ 'myJobs.posted' | translate }} {{ dateLabel() }}</span>
+    </div>
+  </div>
+  <p class="my-job-row__budget">
+    {{ budgetLabel() }} <span class="my-job-row__currency">MAD</span>
+  </p>
+  <app-my-job-actions
+    [job]="job()"
+    (completed)="completed.emit($event)"
+    (refreshRequested)="refreshRequested.emit()"
+    (detailsRequested)="detailsRequested.emit()"
+    (reviewRequested)="reviewRequested.emit()"
+  />
+</article>

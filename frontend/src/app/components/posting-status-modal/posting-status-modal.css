@@ -1,0 +1,62 @@
+@reference '../../../styles.css';
+
+.posting-status-modal {
+  @apply fixed inset-0 m-auto overflow-y-auto;
+  max-height: 80dvh;
+  width: calc(100% - 2rem);
+  max-width: 384px;
+  padding: 24px;
+  border: 0;
+  border-radius: 16px;
+  background: white;
+  color: var(--color-gray-900);
+  box-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 10%),
+    0 8px 10px -6px rgb(0 0 0 / 10%);
+}
+
+.posting-status-modal::backdrop {
+  @apply bg-gray-900/50;
+}
+
+.posting-status-modal__title {
+  font-size: 18px;
+  line-height: 28px;
+  font-weight: 600;
+}
+
+.posting-status-modal__message {
+  margin-top: 12px;
+  color: var(--color-gray-600);
+  font-size: 14px;
+  line-height: 24px;
+}
+
+.posting-status-modal__error {
+  margin-top: 8px;
+  color: var(--color-red-700);
+  font-size: 14px;
+  line-height: 20px;
+  overflow-wrap: break-word;
+}
+
+.posting-status-modal__actions {
+  @apply flex flex-wrap justify-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.posting-status-modal__close {
+  padding: 10px 16px;
+  border: 1px solid var(--color-gray-300);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+}
+
+.posting-status-modal__close:focus-visible {
+  outline-style: none;
+  box-shadow: 0 0 0 2px var(--color-primary-400);
+}

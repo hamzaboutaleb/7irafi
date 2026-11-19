@@ -1,0 +1,51 @@
+@if (loading()) {
+  <app-my-jobs-loading />
+} @else if (error()) {
+  <div class="my-jobs-results__state my-jobs-results__state--error" role="alert">
+    {{ error() }}
+    <button
+      type="button"
+      class="my-jobs-results__button my-jobs-results__button--secondary"
+      (click)="reloadRequested.emit()"
+    >
+      {{ 'common.retry' | translate }}
+    </button>
+  </div>
+} @else if (!jobs().length) {
+  <div class="my-jobs-results__state my-jobs-results__state--empty">
+    <svg lucideBriefcaseBusiness class="my-jobs-results__empty-icon" aria-hidden="true" />
+    <h2 class="my-jobs-results__heading">
+      {{ (hasJobs() ? 'myJobs.emptyFilter' : 'myJobs.emptyTitle') | translate }}
+    </h2>
+    <p class="my-jobs-results__hint">
+      {{ (hasJobs() ? 'myJobs.emptyFilterHint' : 'myJobs.emptyHint') | translate }}
+    </p>
+    @if (hasJobs()) {
+      <button
+        type="button"
+        class="my-jobs-results__button my-jobs-results__button--secondary"
+        (click)="showAllRequested.emit()"
+      >
+        {{ 'myJobs.showAll' | translate }}
+      </button>
+    } @else {
+      <a routerLink="/jobs/new" class="my-jobs-results__button my-jobs-results__button--primary">
+        {{ 'myJobs.post' | translate }}
+      </a>
+    }
+  </div>
+} @else {
+  <ul class="my-jobs-results__list">
+    @for (job of jobs(); track job.id) {
+      <li class="my-jobs-results__item">
+        <app-my-job-row
+          [job]="job"
+          (completed)="completed.emit($event)"
+          (refreshRequested)="reloadRequested.emit()"
+          (detailsRequested)="detailsRequested.emit(job.id)"
+          (reviewRequested)="reviewRequested.emit(job.id)"
+        />
+      </li>
+    }
+  </ul>
+}

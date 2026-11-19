@@ -1,0 +1,68 @@
+@if (isLoading()) {
+  <div class="job-results__grid" aria-hidden="true">
+    @for (placeholder of [1, 2, 3, 4, 5, 6]; track placeholder) {
+      <div class="job-results__placeholder">
+        <div class="job-results__placeholder-image"></div>
+        <div class="job-results__placeholder-body">
+          <div class="job-results__placeholder-line"></div>
+          <div class="job-results__placeholder-line"></div>
+          <div class="job-results__placeholder-line job-results__placeholder-line--short"></div>
+        </div>
+      </div>
+    }
+  </div>
+} @else if (errorMessage()) {
+  <div class="job-results__state job-results__state--error" role="alert">
+    <p>{{ errorMessage() }}</p>
+    <button type="button" class="job-results__button" (click)="retryRequested.emit()">
+      {{ 'common.retry' | translate }}
+    </button>
+  </div>
+} @else if (!jobs().length) {
+  <div class="job-results__state" role="status">
+    <svg lucideBriefcaseBusiness class="job-results__state-icon" aria-hidden="true" />
+    <h2 class="job-results__title">
+      {{ 'jobs.none' | translate }}
+    </h2>
+    <p>{{ (hasFilters() ? 'jobs.emptyFiltered' : 'jobs.emptyDefault') | translate }}</p>
+    @if (hasFilters()) {
+      <button type="button" class="job-results__button" (click)="clearFiltersRequested.emit()">
+        {{ 'directory.clearFilters' | translate }}
+      </button>
+    }
+  </div>
+} @else {
+  <ul class="job-results__grid">
+    @for (job of jobs(); track job.id) {
+      <li>
+        <app-job-card [job]="job" (viewDetails)="jobSelected.emit(job.id)" />
+      </li>
+    }
+  </ul>
+}
+
+@if (!isLoading() && !errorMessage() && totalPages() > 1) {
+  <nav [attr.aria-label]="'jobs.pagination' | translate" class="job-results__pagination">
+    <button
+      type="button"
+      class="job-results__button"
+      (click)="pageChange.emit(currentPage() - 1)"
+      [disabled]="currentPage() === 0"
+    >
+      <svg lucideChevronLeft class="job-results__page-icon" aria-hidden="true" />
+      {{ 'common.previous' | translate }}
+    </button>
+    <span aria-live="polite">{{
+      'jobs.pageLabel' | translate: { page: currentPage() + 1, total: totalPages() }
+    }}</span>
+    <button
+      type="button"
+      class="job-results__button"
+      (click)="pageChange.emit(currentPage() + 1)"
+      [disabled]="currentPage() >= totalPages() - 1"
+    >
+      {{ 'common.next' | translate }}
+      <svg lucideChevronRight class="job-results__page-icon" aria-hidden="true" />
+    </button>
+  </nav>
+}

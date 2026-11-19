@@ -1,0 +1,151 @@
+@reference '../../../styles.css';
+
+:host {
+  display: contents;
+}
+
+.job-photo-picker {
+  min-width: 0;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--color-slate-200);
+}
+
+.job-photo-picker__title {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+}
+
+.job-photo-picker__hint,
+.job-photo-picker__error {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.job-photo-picker__hint {
+  color: var(--color-slate-500);
+}
+
+.job-photo-picker__input {
+  @apply sr-only;
+}
+
+.job-photo-picker__add {
+  @apply inline-flex items-center justify-center;
+  min-height: 44px;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 8px 20px;
+  border: 1px solid var(--color-gray-300);
+  border-radius: 8px;
+  background: white;
+  color: var(--color-gray-700);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+.job-photo-picker__add:focus-visible,
+.job-photo-picker__remove:focus-visible {
+  outline: 2px solid var(--color-primary-600);
+  outline-offset: 3px;
+}
+
+.job-photo-picker__add:disabled,
+.job-photo-picker__remove:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.job-photo-picker__icon {
+  @apply shrink-0;
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.5;
+}
+
+.job-photo-picker__error {
+  color: var(--color-red-700);
+  overflow-wrap: anywhere;
+}
+
+.job-photo-picker__count {
+  margin-top: 16px;
+  color: var(--color-slate-500);
+  font-size: 12px;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.job-photo-picker__grid {
+  @apply grid grid-cols-2;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.job-photo-picker__item {
+  min-width: 0;
+}
+
+.job-photo-picker__preview {
+  position: relative;
+}
+
+.job-photo-picker__image {
+  @apply w-full object-cover;
+  height: 112px;
+  border: 1px solid var(--color-slate-200);
+  border-radius: 8px;
+}
+
+.job-photo-picker__remove {
+  @apply absolute grid place-items-center;
+  inset-inline-end: 4px;
+  top: 4px;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--color-slate-200);
+  border-radius: 8px;
+  background: white;
+  color: var(--color-slate-600);
+  cursor: pointer;
+}
+
+.job-photo-picker__name {
+  @apply truncate;
+  margin-top: 8px;
+  color: var(--color-slate-500);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.job-photo-picker__status {
+  margin-top: 4px;
+  color: var(--color-primary-700);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+@media (width >= 640px) {
+  .job-photo-picker__grid {
+    @apply grid-cols-3;
+    gap: 16px;
+  }
+
+  .job-photo-picker__image {
+    height: 120px;
+  }
+}
+
+@media (hover: hover) {
+  .job-photo-picker__add:hover:enabled {
+    background: var(--color-gray-50);
+  }
+
+  .job-photo-picker__remove:hover:enabled {
+    background: var(--color-gray-100);
+  }
+}

@@ -1,0 +1,15 @@
+<div class="job-sort">
+  <div class="job-sort__field">
+    <label for="jobs-sort" class="job-sort__label">
+      {{ 'jobs.sortBy' | translate }}
+    </label>
+    <app-select
+      class="job-sort__select"
+      controlId="jobs-sort"
+      [label]="'jobs.sortBy' | translate"
+      [options]="sortOptions()"
+      [value]="sort()"
+      (valueChange)="sortChange.emit($event)"
+    />
+  </div>
+</div>

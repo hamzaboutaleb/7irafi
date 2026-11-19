@@ -1,0 +1,38 @@
+<section class="job-owner-card" aria-labelledby="owner-heading">
+  @if (owner()?.avatarUrl && !ownerImageFailed()) {
+    <img
+      class="job-owner-card__avatar"
+      [src]="owner()!.avatarUrl"
+      alt=""
+      (error)="ownerImageFailed.set(true)"
+    />
+  } @else {
+    <span class="job-owner-card__avatar job-owner-card__avatar--fallback" aria-hidden="true">
+      <svg class="job-owner-card__icon" lucideUserRound></svg>
+    </span>
+  }
+  <div class="job-owner-card__copy">
+    <h3 id="owner-heading" class="job-owner-card__title">
+      {{ 'jobDetails.postedBy' | translate }}
+    </h3>
+    @if (ownerState() === 'loading') {
+      <p class="job-owner-card__status" role="status">
+        {{ 'common.loading' | translate }}
+      </p>
+    } @else if (ownerState() === 'error') {
+      <p class="job-owner-card__status job-owner-card__status--unavailable">
+        {{ 'jobDetails.ownerUnavailable' | translate }}
+      </p>
+      <button type="button" class="job-owner-card__retry" (click)="loadOwner()">
+        {{ 'common.retry' | translate }}
+      </button>
+    } @else {
+      <p class="job-owner-card__name">
+        {{ ownerName() }}
+      </p>
+    }
+  </div>
+  <time class="job-owner-card__date" [attr.datetime]="createdAt()">
+    {{ dateLabel() }}
+  </time>
+</section>

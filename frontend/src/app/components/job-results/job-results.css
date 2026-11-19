@@ -1,0 +1,112 @@
+@reference '../../../styles.css';
+
+:host {
+  display: block;
+}
+
+.job-results__grid {
+  @apply grid grid-cols-1 gap-4;
+}
+
+.job-results__placeholder {
+  @apply overflow-hidden rounded-xl;
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--color-gray-200);
+  background-color: var(--color-white);
+}
+
+.job-results__placeholder-image {
+  @apply h-40;
+  background-color: var(--color-gray-100);
+}
+
+.job-results__placeholder-body {
+  @apply grid gap-4 p-5;
+}
+
+.job-results__placeholder-line {
+  @apply h-5 rounded;
+  background-color: var(--color-gray-100);
+}
+
+.job-results__placeholder-line--short {
+  @apply h-8 w-3/5;
+}
+
+.job-results__state {
+  @apply grid justify-items-center gap-3 rounded-xl px-6 py-12 text-center text-sm;
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--color-gray-200);
+  background-color: var(--color-white);
+  line-height: 1.5rem;
+  color: var(--color-gray-500);
+}
+
+.job-results__state--error {
+  color: var(--color-red-700);
+}
+
+.job-results__state-icon {
+  @apply size-8 shrink-0 stroke-2;
+}
+
+.job-results__title {
+  @apply text-lg;
+  line-height: 1.5rem;
+  font-weight: 500;
+  color: var(--color-gray-700);
+}
+
+.job-results__button {
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm;
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--color-gray-300);
+  background-color: var(--color-white);
+  line-height: 1.25rem;
+  font-weight: 500;
+  color: var(--color-gray-600);
+}
+
+.job-results__button:focus-visible {
+  outline: 2px solid var(--color-primary-700);
+  outline-offset: 2px;
+}
+
+.job-results__button:disabled {
+  @apply cursor-not-allowed opacity-50;
+}
+
+.job-results__pagination {
+  @apply mt-8 flex flex-wrap items-center justify-center gap-4 text-[13px];
+  line-height: 1.25rem;
+  color: var(--color-gray-500);
+}
+
+.job-results__page-icon {
+  @apply size-4 shrink-0 stroke-2;
+}
+
+.job-results__page-icon:dir(rtl) {
+  rotate: 180deg;
+}
+
+@media (width >= 48rem) {
+  .job-results__grid {
+    @apply grid-cols-2 gap-6;
+  }
+}
+
+@media (width >= 64rem) {
+  .job-results__grid {
+    @apply grid-cols-3;
+  }
+}
+
+@media (hover: hover) {
+  .job-results__button:hover {
+    background-color: var(--color-gray-50);
+  }
+}

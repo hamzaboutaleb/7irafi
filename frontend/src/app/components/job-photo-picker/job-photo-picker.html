@@ -1,0 +1,71 @@
+<section class="job-photo-picker" aria-labelledby="photos-title">
+  <h2 class="job-photo-picker__title" id="photos-title">
+    {{ 'createJob.photosOptional' | translate }}
+  </h2>
+  <p id="photos-help" class="job-photo-picker__hint">{{ 'createJob.photoLimits' | translate }}</p>
+  @if (!locked()) {
+    <input
+      #photoInput
+      id="photos"
+      type="file"
+      multiple
+      accept="image/jpeg,image/png,image/webp"
+      tabindex="-1"
+      class="job-photo-picker__input"
+      (change)="selectFiles($event)"
+      [disabled]="disabled() || photos().length >= maxPhotos()"
+      aria-describedby="photos-help"
+    />
+    <button
+      type="button"
+      class="job-photo-picker__add"
+      (click)="photoInput.click()"
+      [disabled]="disabled() || photos().length >= maxPhotos()"
+      aria-controls="photos"
+      aria-describedby="photos-help"
+    >
+      <svg class="job-photo-picker__icon" lucidePlus aria-hidden="true" />{{
+        'createJob.addPhotos' | translate
+      }}
+    </button>
+  }
+  @for (error of errors(); track $index) {
+    <p role="alert" class="job-photo-picker__error">{{ error }}</p>
+  }
+  @if (photos().length) {
+    <p class="job-photo-picker__count">
+      {{ 'createJob.photoCount' | translate: { count: photos().length, max: maxPhotos() } }}
+    </p>
+    <ul class="job-photo-picker__grid">
+      @for (photo of photos(); track photo.previewUrl) {
+        <li class="job-photo-picker__item">
+          <div class="job-photo-picker__preview">
+            <img class="job-photo-picker__image" [src]="photo.previewUrl" [alt]="photo.file.name" />
+            @if (!locked()) {
+              <button
+                type="button"
+                class="job-photo-picker__remove"
+                (click)="photoRemoved.emit(photo)"
+                [disabled]="disabled()"
+                [attr.aria-label]="'createJob.removePhoto' | translate: { name: photo.file.name }"
+              >
+                <svg class="job-photo-picker__icon" lucideX aria-hidden="true" />
+              </button>
+            }
+          </div>
+          <p class="job-photo-picker__name" [title]="photo.file.name">{{ photo.file.name }}</p>
+          @if (photo.status === 'uploaded') {
+            <p class="job-photo-picker__status">{{ 'createJob.uploaded' | translate }}</p>
+          } @else if (photo.status === 'uploading') {
+            <p role="status" class="job-photo-picker__status">
+              {{ 'createJob.uploading' | translate }}
+            </p>
+          }
+          @if (photo.error) {
+            <p class="job-photo-picker__error">{{ photo.error }}</p>
+          }
+        </li>
+      }
+    </ul>
+  }
+</section>

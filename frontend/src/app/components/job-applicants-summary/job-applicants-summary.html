@@ -1,0 +1,38 @@
+<section class="applicants-summary" aria-labelledby="applicant-job-heading">
+  <span class="applicants-summary__mark" aria-hidden="true">
+    <svg lucideBriefcaseBusiness class="applicants-summary__icon applicants-summary__icon--job" />
+  </span>
+  <div class="applicants-summary__copy">
+    <h2 class="applicants-summary__job-title" id="applicant-job-heading">{{ job().title }}</h2>
+    <div class="applicants-summary__metadata">
+      <span class="applicants-summary__metadata-item">
+        <svg lucideMapPin class="applicants-summary__icon" aria-hidden="true" />
+        {{ job().city.replaceAll('_', ' ') | titlecase }}
+      </span>
+      <span aria-hidden="true">·</span>
+      <span
+        ><bdi>{{ budgetLabel() }} MAD</bdi></span
+      >
+    </div>
+  </div>
+  <span
+    class="applicants-summary__status"
+    [class.applicants-summary__status--highlighted]="
+      job().status === 'OPEN' || job().status === 'COMPLETED'
+    "
+    [attr.data-status]="job().status"
+  >
+    {{ statusLabel() }}
+  </span>
+  <details class="applicants-summary__context">
+    <summary class="applicants-summary__context-toggle">
+      {{ 'applications.viewJob' | translate }}
+      <svg
+        lucideChevronDown
+        class="applicants-summary__icon applicants-summary__context-icon"
+        aria-hidden="true"
+      />
+    </summary>
+    <p class="applicants-summary__description" dir="auto">{{ job().description }}</p>
+  </details>
+</section>
