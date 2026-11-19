@@ -1,26 +1,26 @@
 <app-navbar />
-<main class="profile-page min-h-screen bg-gray-50 px-4 pt-6 pb-10 md:px-6 md:pt-10 md:pb-16">
-  <div class="profile-container mx-auto max-w-[1120px]">
-    <header class="profile-heading mb-6">
-      <h1 class="text-3xl font-semibold text-gray-900">{{ 'profile.title' | translate }}</h1>
+<main class="profile">
+  <div class="profile__container">
+    <header class="profile__heading">
+      <h1 class="profile__title">{{ 'profile.title' | translate }}</h1>
 
-      <p class="mt-2 text-gray-600">
+      <p class="profile__description">
         {{ 'profile.subtitle' | translate }}
       </p>
     </header>
 
     @if (isLoading()) {
       <section
-        class="profile-panel ui-panel"
+        class="profile__panel ui-panel"
         role="status"
         aria-live="polite"
       >
-        <p class="text-sm text-gray-600">{{ 'common.loading' | translate }}</p>
+        <p class="profile__loading">{{ 'common.loading' | translate }}</p>
       </section>
     } @else {
       @if (errorMessage()) {
         <div
-          class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+          class="profile__error"
           role="alert"
         >
           {{ errorMessage() }}
@@ -29,7 +29,7 @@
 
       @if (successMessage()) {
         <div
-          class="mb-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700"
+          class="profile__success"
           role="status"
           aria-live="polite"
         >
@@ -40,40 +40,40 @@
       @if (profile(); as currentProfile) {
         <app-avatar-upload [profile]="currentProfile" [showIdentity]="true" (profileChange)="profile.set($event)" />
 
-        <div class="profile-layout grid grid-cols-[minmax(0,1fr)] items-start gap-4 md:grid-cols-[224px_minmax(0,1fr)] md:gap-6">
-          <nav class="profile-navigation flex flex-wrap gap-1 md:grid" [attr.aria-label]="'profile.sections' | translate">
+        <div class="profile__layout">
+          <nav class="profile__navigation" [attr.aria-label]="'profile.sections' | translate">
             @for (item of sections; track item.id) {
-              <button class="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-start text-sm leading-5 font-medium text-gray-600 transition-colors duration-[160ms] hover:bg-gray-100 hover:text-gray-900 [&.current]:bg-primary-50 [&.current]:text-primary-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700 md:p-3 motion-reduce:transition-none" type="button" [class.current]="section() === item.id"
+              <button class="profile__nav-button" type="button" [class.profile__nav-button--current]="section() === item.id"
                 [attr.aria-pressed]="section() === item.id" [attr.aria-controls]="'profile-' + item.id + '-panel'"
                 (click)="section.set(item.id)">
-                <svg class="size-[18px] shrink-0 stroke-[1.5]" [lucideIcon]="item.icon" aria-hidden="true"></svg>
+                <svg class="profile__icon" [lucideIcon]="item.icon" aria-hidden="true"></svg>
                 {{ item.label | translate }}
               </button>
             }
           </nav>
-          <div class="profile-content min-w-0">
-            <section class="[&[hidden]]:hidden! profile-panel ui-panel" id="profile-personal-panel" [hidden]="section() !== 'personal'" aria-labelledby="personal-heading">
-              <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div class="profile__content">
+            <section class="profile__panel profile__panel--section ui-panel" id="profile-personal-panel" [hidden]="section() !== 'personal'" aria-labelledby="personal-heading">
+              <div class="profile__section-heading">
                 <div>
-                  <h2 id="personal-heading" class="section-title text-xl leading-7 font-semibold text-gray-900">{{ 'profile.personalInformation' | translate }}</h2>
+                  <h2 id="personal-heading" class="profile__section-title">{{ 'profile.personalInformation' | translate }}</h2>
 
-                  <p class="mt-1 text-sm text-gray-500">{{ 'profile.manage' | translate }}</p>
+                  <p class="profile__section-description">{{ 'profile.manage' | translate }}</p>
                 </div>
 
                 @if (!isEditingPersonal()) {
                   <button
                     type="button"
                     (click)="startEditingPersonal()"
-                    class="profile-button ui-button border border-gray-300 px-4 py-2 leading-5 font-medium text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700"
+                    class="profile__edit-button ui-button"
                   >
-                    <svg class="size-[18px] shrink-0 stroke-[1.5]" lucidePencil aria-hidden="true"></svg>{{ 'profile.edit' | translate }}
+                    <svg class="profile__icon" lucidePencil aria-hidden="true"></svg>{{ 'profile.edit' | translate }}
                   </button>
                 }
               </div>
 
               @if (isEditingPersonal()) {
-                <div class="mt-6">
-                  <label for="email" class="mb-1.5 block text-sm font-medium text-gray-700">
+                <div class="profile__email-field">
+                  <label for="email" class="profile__label">
                     {{ 'auth.field.emailAddress' | translate }}
                   </label>
 
@@ -83,18 +83,18 @@
                     [value]="currentProfile.email"
                     readonly
                     aria-describedby="email-help"
-                    class="w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 text-sm text-gray-700"
+                    class="profile__readonly-input"
                   />
 
-                  <p id="email-help" class="mt-1.5 text-xs text-gray-500">
+                  <p id="email-help" class="profile__field-hint">
                     {{ 'profile.emailNote' | translate }}
                   </p>
                 </div>
 
-                <form class="mt-6 space-y-6" [formGroup]="form" (ngSubmit)="save()" novalidate>
-                  <div class="grid gap-6 sm:grid-cols-2">
+                <form class="profile__form" [formGroup]="form" (ngSubmit)="save()" novalidate>
+                  <div class="profile__name-fields">
                     <div>
-                      <label for="firstName" class="mb-1.5 block text-sm font-medium text-gray-700">
+                      <label for="firstName" class="profile__label">
                         {{ 'auth.field.firstName' | translate }}
                       </label>
 
@@ -109,12 +109,12 @@
                         [attr.aria-describedby]="
                           firstName.invalid && firstName.touched ? 'first-name-error' : null
                         "
-                        [class.border-red-500]="firstName.invalid && firstName.touched"
-                        class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none transition-colors duration-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
+                        [class.profile__input--invalid]="firstName.invalid && firstName.touched"
+                        class="profile__input"
                       />
 
                       @if (firstName.invalid && firstName.touched) {
-                        <p id="first-name-error" class="mt-1.5 text-sm text-red-600" role="alert">
+                        <p id="first-name-error" class="profile__field-error" role="alert">
                           @if (firstName.hasError('required')) {
                             {{ 'profile.validation.first.required' | translate }}
                           } @else if (firstName.hasError('minlength')) {
@@ -127,7 +127,7 @@
                     </div>
 
                     <div>
-                      <label for="lastName" class="mb-1.5 block text-sm font-medium text-gray-700">
+                      <label for="lastName" class="profile__label">
                         {{ 'auth.field.lastName' | translate }}
                       </label>
 
@@ -142,12 +142,12 @@
                         [attr.aria-describedby]="
                           lastName.invalid && lastName.touched ? 'last-name-error' : null
                         "
-                        [class.border-red-500]="lastName.invalid && lastName.touched"
-                        class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none transition-colors duration-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
+                        [class.profile__input--invalid]="lastName.invalid && lastName.touched"
+                        class="profile__input"
                       />
 
                       @if (lastName.invalid && lastName.touched) {
-                        <p id="last-name-error" class="mt-1.5 text-sm text-red-600" role="alert">
+                        <p id="last-name-error" class="profile__field-error" role="alert">
                           @if (lastName.hasError('required')) {
                             {{ 'profile.validation.last.required' | translate }}
                           } @else if (lastName.hasError('minlength')) {
@@ -161,20 +161,20 @@
                   </div>
 
                   <div
-                    class="ui-dialog-actions"
+                    class="profile__actions ui-dialog-actions"
                   >
                     <button
                       type="button"
                       (click)="cancelEditingPersonal()"
                       [disabled]="isSaving()"
-                      class="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-700 transition-colors duration-200 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+                      class="profile__cancel"
                     >{{ 'common.cancel' | translate }}</button>
 
                     <button
                       type="submit"
                       [disabled]="isSaving()"
                       [attr.aria-busy]="isSaving()"
-                      class="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-lg bg-primary-700 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-primary-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+                      class="profile__save"
                     >
                       @if (isSaving()) {
                         {{ 'profile.saving' | translate }}
@@ -185,60 +185,60 @@
                   </div>
                 </form>
               } @else {
-                <dl class="detail-list mt-6 grid grid-cols-[minmax(0,1fr)] gap-x-6 md:grid-cols-2">
-                  <div class="detail-row min-w-0 border-t border-gray-100 py-4">
-                    <dt class="text-sm font-medium text-gray-500">{{ 'auth.field.firstName' | translate }}</dt>
-                    <dd class="mt-1 text-sm font-medium text-gray-900">
+                <dl class="profile__details">
+                  <div class="profile__detail">
+                    <dt class="profile__detail-label">{{ 'auth.field.firstName' | translate }}</dt>
+                    <dd class="profile__value">
                       {{ currentProfile.firstName }}
                     </dd>
                   </div>
 
-                  <div class="detail-row min-w-0 border-t border-gray-100 py-4">
-                    <dt class="text-sm font-medium text-gray-500">{{ 'auth.field.lastName' | translate }}</dt>
-                    <dd class="mt-1 text-sm font-medium text-gray-900">
+                  <div class="profile__detail">
+                    <dt class="profile__detail-label">{{ 'auth.field.lastName' | translate }}</dt>
+                    <dd class="profile__value">
                       {{ currentProfile.lastName }}
                     </dd>
                   </div>
 
-                  <div class="detail-row min-w-0 border-t border-gray-100 py-4 detail-wide col-span-full">
-                    <dt class="text-sm font-medium text-gray-500">{{ 'auth.field.emailAddress' | translate }}</dt>
-                    <dd class="mt-1 break-all text-sm font-medium text-gray-900">
+                  <div class="profile__detail profile__detail--wide">
+                    <dt class="profile__detail-label">{{ 'auth.field.emailAddress' | translate }}</dt>
+                    <dd class="profile__email-value">
                       {{ currentProfile.email }}
                     </dd>
                   </div>
 
-                  <div class="detail-row min-w-0 border-t border-gray-100 py-4">
-                    <dt class="text-sm font-medium text-gray-500">{{ 'profile.memberSince' | translate }}</dt>
-                    <dd class="mt-1 text-sm font-medium text-gray-900">
+                  <div class="profile__detail">
+                    <dt class="profile__detail-label">{{ 'profile.memberSince' | translate }}</dt>
+                    <dd class="profile__value">
                       {{ currentProfile.createdAt | date: 'mediumDate' }}
                     </dd>
                   </div>
 
-                  <div class="detail-row min-w-0 border-t border-gray-100 py-4">
-                    <dt class="text-sm font-medium text-gray-500">{{ 'profile.lastUpdated' | translate }}</dt>
-                    <dd class="mt-1 text-sm font-medium text-gray-900">
+                  <div class="profile__detail">
+                    <dt class="profile__detail-label">{{ 'profile.lastUpdated' | translate }}</dt>
+                    <dd class="profile__value">
                       {{ currentProfile.updatedAt | date: 'MMM d, y, h:mm a' }}
                     </dd>
                   </div>
                 </dl>
               }
             </section>
-            <section class="[&[hidden]]:hidden! profile-panel ui-panel" id="profile-professional-panel" [hidden]="section() !== 'professional'" aria-labelledby="professional-heading">
-              <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <section class="profile__panel profile__panel--section ui-panel" id="profile-professional-panel" [hidden]="section() !== 'professional'" aria-labelledby="professional-heading">
+              <div class="profile__section-heading">
                 <div>
-                  <div class="flex flex-wrap items-center gap-3">
-                  <h2 id="professional-heading" class="section-title text-xl leading-7 font-semibold text-gray-900">{{ 'profile.professional' | translate }}</h2>
+                  <div class="profile__professional-heading">
+                  <h2 id="professional-heading" class="profile__section-title">{{ 'profile.professional' | translate }}</h2>
 
                     @if (professionalProfile(); as pro) {
                       <span
-                        class="professional-status inline-flex min-h-6 items-center rounded bg-gray-100 px-2 py-1 text-xs leading-4 text-gray-600 data-[status=ACTIVE]:bg-primary-50 data-[status=ACTIVE]:text-primary-800 data-[status=SUSPENDED]:bg-red-50 data-[status=SUSPENDED]:text-red-800" [attr.data-status]="pro.onboardingStatus"
+                        class="profile__professional-status" [attr.data-status]="pro.onboardingStatus"
                       >
                         {{ professionalStatus(pro.onboardingStatus) | translate }}
                       </span>
                     }
                   </div>
 
-                  <p class="mt-1 text-sm text-gray-500">
+                  <p class="profile__section-description">
                     {{ 'profile.professionalIntro' | translate }}
                   </p>
                 </div>
@@ -246,7 +246,7 @@
                 @if (professionalSection() === 'loaded') {
                   <a
                     routerLink="/professional-profile"
-                    class="profile-button ui-button border border-gray-300 px-4 py-2 leading-5 font-medium text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700"
+                    class="profile__edit-button ui-button"
                   >
                     {{ 'profile.editProfessional' | translate }}
                   </a>
@@ -255,19 +255,19 @@
 
               @switch (professionalSection()) {
                 @case ('loading') {
-                  <p role="status" aria-live="polite" class="mt-6 text-sm text-gray-600">
+                  <p role="status" aria-live="polite" class="profile__loading-professional">
                     {{ 'profile.loadingProfessional' | translate }}
                   </p>
                 }
                 @case ('none') {
-                  <div class="mt-6 rounded-xl border border-dashed border-gray-300 bg-gray-50 p-6 text-center">
-                    <p class="text-sm text-gray-600">
+                  <div class="profile__empty">
+                    <p class="profile__loading">
                       {{ 'profile.notProfessional' | translate }}
                   </p>
 
                     <a
                       routerLink="/professional-profile"
-                      class="mt-4 inline-flex min-h-11 items-center justify-center rounded-xl bg-primary-700 px-5 py-2.5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
+                      class="profile__professional-action"
                     >
                       {{ 'profile.becomeProfessional' | translate }}
                     </a>
@@ -275,21 +275,21 @@
                 }
                 @case ('loaded') {
                   @if (professionalProfile(); as pro) {
-                    <dl class="detail-list mt-6 grid grid-cols-[minmax(0,1fr)] gap-x-6 md:grid-cols-2">
-                      <div class="detail-row min-w-0 border-t border-gray-100 py-4 detail-wide col-span-full">
-                        <dt class="text-sm font-medium text-gray-500">{{ 'profile.biography' | translate }}</dt>
-                        <dd class="mt-1 text-base whitespace-pre-line text-gray-900">
+                    <dl class="profile__details">
+                      <div class="profile__detail profile__detail--wide">
+                        <dt class="profile__detail-label">{{ 'profile.biography' | translate }}</dt>
+                        <dd class="profile__biography">
                           {{ pro.biography }}
                         </dd>
                       </div>
 
-                      <div class="detail-row min-w-0 border-t border-gray-100 py-4">
-                        <dt class="text-sm font-medium text-gray-500">{{ 'profile.servicesProvided' | translate }}</dt>
-                        <dd class="mt-2">
-                          <ul class="flex flex-wrap gap-2">
+                      <div class="profile__detail">
+                        <dt class="profile__detail-label">{{ 'profile.servicesProvided' | translate }}</dt>
+                        <dd class="profile__tags">
+                          <ul class="profile__tag-list">
                             @for (category of pro.categories; track category.code) {
                               <li
-                                class="rounded-full border border-primary-100 bg-primary-50 px-3 py-1 text-sm font-medium text-primary-700"
+                                class="profile__service-tag"
                               >
                                 {{ category.displayName }}
                               </li>
@@ -298,13 +298,13 @@
                         </dd>
                       </div>
 
-                      <div class="detail-row min-w-0 border-t border-gray-100 py-4">
-                        <dt class="text-sm font-medium text-gray-500">{{ 'profile.serviceAreas' | translate }}</dt>
-                        <dd class="mt-2">
-                          <ul class="flex flex-wrap gap-2">
+                      <div class="profile__detail">
+                        <dt class="profile__detail-label">{{ 'profile.serviceAreas' | translate }}</dt>
+                        <dd class="profile__tags">
+                          <ul class="profile__tag-list">
                             @for (city of pro.cities; track city.code) {
                               <li
-                                class="rounded-full border border-gray-200 bg-white px-3 py-1 text-sm font-medium text-gray-700"
+                                class="profile__city-tag"
                               >
                                 {{ city.displayName }}
                               </li>
@@ -316,31 +316,31 @@
                   }
                 }
                 @case ('error') {
-                  <p role="alert" class="mt-6 text-sm text-red-700">
+                  <p role="alert" class="profile__professional-error">
                     {{ 'profile.professionalError' | translate }}
                   </p>
                 }
               }
-            </section>        <section class="[&[hidden]]:hidden! profile-panel ui-panel" id="profile-reviews-panel" [hidden]="section() !== 'reviews'" aria-labelledby="profile-ratings-heading">
-              <h2 id="profile-ratings-heading" class="section-title text-xl leading-7 font-semibold text-gray-900">{{ 'reviews.title' | translate }}</h2>
-              <p class="mb-5 mt-1 text-sm leading-6 text-gray-500">{{ 'reviews.intro' | translate }}</p>
+            </section>        <section class="profile__panel profile__panel--section ui-panel" id="profile-reviews-panel" [hidden]="section() !== 'reviews'" aria-labelledby="profile-ratings-heading">
+              <h2 id="profile-ratings-heading" class="profile__section-title">{{ 'reviews.title' | translate }}</h2>
+              <p class="profile__reviews-intro">{{ 'reviews.intro' | translate }}</p>
               @if (ratingsLoading() && reviewListState() !== 'error') {
-                <div role="status" class="mb-5 h-32 animate-pulse rounded-xl bg-gray-50 motion-reduce:animate-none"><span class="sr-only">{{ 'reviews.loading' | translate }}</span></div>
+                <div role="status" class="profile__reviews-loading"><span class="profile__accessible-label">{{ 'reviews.loading' | translate }}</span></div>
               } @else if (ratingsError() && reviewListState() !== 'error') {
-                <div role="alert" class="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-600">
+                <div role="alert" class="profile__reviews-error">
                   <span>{{ 'reviews.summaryError' | translate }}</span>
-                  <button type="button" (click)="loadRatingSummary()" class="min-h-11 font-semibold text-primary-800 underline">{{ 'common.retry' | translate }}</button>
+                  <button type="button" (click)="loadRatingSummary()" class="profile__retry">{{ 'common.retry' | translate }}</button>
                 </div>
               } @else if (ratingSummary()) {
                 <app-rating-display [summary]="ratingSummary()" />
               }
-              <div class="flex flex-wrap gap-1 border-b border-gray-200" role="group" [attr.aria-label]="'reviews.type' | translate">
-                <button type="button" (click)="ratingType.set('received')" [attr.aria-pressed]="ratingType() === 'received'" class="min-h-11 cursor-pointer border-b-2 border-transparent px-3 py-3 text-sm font-semibold text-gray-500 hover:text-primary-800 focus-visible:outline-2 focus-visible:outline-primary-600 aria-pressed:border-primary-700 aria-pressed:text-primary-800">{{ 'reviews.aboutMe' | translate }}</button>
-                <button type="button" (click)="ratingType.set('written')" [attr.aria-pressed]="ratingType() === 'written'" class="min-h-11 cursor-pointer border-b-2 border-transparent px-3 py-3 text-sm font-semibold text-gray-500 hover:text-primary-800 focus-visible:outline-2 focus-visible:outline-primary-600 aria-pressed:border-primary-700 aria-pressed:text-primary-800">{{ 'reviews.byMe' | translate }}</button>
+              <div class="profile__review-tabs" role="group" [attr.aria-label]="'reviews.type' | translate">
+                <button type="button" (click)="ratingType.set('received')" [attr.aria-pressed]="ratingType() === 'received'" class="profile__review-tab">{{ 'reviews.aboutMe' | translate }}</button>
+                <button type="button" (click)="ratingType.set('written')" [attr.aria-pressed]="ratingType() === 'written'" class="profile__review-tab">{{ 'reviews.byMe' | translate }}</button>
               </div>
               <app-rating-list [userId]="currentProfile.id" [reviewType]="ratingType()" (loadStateChange)="reviewListState.set($event)" (retryRequested)="loadRatingSummary()" (viewJobRequested)="reviewJobId.set($event)" />
             </section>
-            <div class="[&[hidden]]:hidden!" id="profile-notifications-panel" [hidden]="section() !== 'notifications'">
+            <div class="profile__notifications" id="profile-notifications-panel" [hidden]="section() !== 'notifications'">
               <app-notification-panel />
             </div>
           </div>

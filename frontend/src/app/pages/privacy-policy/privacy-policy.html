@@ -1,45 +1,45 @@
 <app-navbar />
 
-<main class="ui-document-page">
-  <article class="ui-document-card">
-    <header class="ui-document-header">
-      <p class="text-sm font-semibold text-primary-700">7irafy</p>
-      <h1 class="ui-document-title">{{ 'privacy.title' | translate }}</h1>
-      <p class="mt-4 max-w-2xl leading-7 text-gray-700">
+<main class="privacy-policy document-page">
+  <article class="privacy-policy__card document-page__card">
+    <header class="privacy-policy__header document-page__header">
+      <p class="privacy-policy__brand">7irafy</p>
+      <h1 class="privacy-policy__title document-page__title">{{ 'privacy.title' | translate }}</h1>
+      <p class="privacy-policy__introduction">
         {{ 'privacy.intro' | translate }}
       </p>
-      <p class="mt-5 text-sm text-gray-500">{{ 'privacy.updated' | translate }}</p>
+      <p class="privacy-policy__updated">{{ 'privacy.updated' | translate }}</p>
     </header>
 
-    <div class="ui-document-body">
+    <div class="privacy-policy__body document-page__body">
       <section aria-labelledby="privacy-scope">
-        <h2 id="privacy-scope" class="text-xl font-semibold text-gray-900">{{ 'privacy.coversTitle' | translate }}</h2>
-        <p class="mt-3 leading-7">
+        <h2 id="privacy-scope" class="privacy-policy__section-title">{{ 'privacy.coversTitle' | translate }}</h2>
+        <p class="privacy-policy__paragraph">
           {{ 'privacy.coversBody' | translate }}
         </p>
       </section>
 
       <section aria-labelledby="privacy-data">
-        <h2 id="privacy-data" class="text-xl font-semibold text-gray-900">{{ 'privacy.dataTitle' | translate }}</h2>
-        <dl class="mt-4 divide-y divide-gray-100 rounded-xl border border-gray-200">
-          <div class="px-4 py-4">
-            <dt class="font-semibold text-gray-900">{{ 'privacy.accountTitle' | translate }}</dt>
-            <dd class="mt-1 leading-6">{{ 'privacy.accountBody' | translate }}</dd>
+        <h2 id="privacy-data" class="privacy-policy__section-title">{{ 'privacy.dataTitle' | translate }}</h2>
+        <dl class="privacy-policy__data-list">
+          <div class="privacy-policy__data-row">
+            <dt class="privacy-policy__data-label">{{ 'privacy.accountTitle' | translate }}</dt>
+            <dd class="privacy-policy__data-description">{{ 'privacy.accountBody' | translate }}</dd>
           </div>
-          <div class="px-4 py-4">
-            <dt class="font-semibold text-gray-900">{{ 'privacy.professionalTitle' | translate }}</dt>
-            <dd class="mt-1 leading-6">{{ 'privacy.professionalBody' | translate }}</dd>
+          <div class="privacy-policy__data-row">
+            <dt class="privacy-policy__data-label">{{ 'privacy.professionalTitle' | translate }}</dt>
+            <dd class="privacy-policy__data-description">{{ 'privacy.professionalBody' | translate }}</dd>
           </div>
-          <div class="px-4 py-4">
-            <dt class="font-semibold text-gray-900">{{ 'privacy.activityTitle' | translate }}</dt>
-            <dd class="mt-1 leading-6">{{ 'privacy.activityBody' | translate }}</dd>
+          <div class="privacy-policy__data-row">
+            <dt class="privacy-policy__data-label">{{ 'privacy.activityTitle' | translate }}</dt>
+            <dd class="privacy-policy__data-description">{{ 'privacy.activityBody' | translate }}</dd>
           </div>
         </dl>
       </section>
 
       <section aria-labelledby="privacy-use">
-        <h2 id="privacy-use" class="text-xl font-semibold text-gray-900">{{ 'privacy.whyTitle' | translate }}</h2>
-        <ul class="ui-document-list">
+        <h2 id="privacy-use" class="privacy-policy__section-title">{{ 'privacy.whyTitle' | translate }}</h2>
+        <ul class="privacy-policy__list document-page__list">
           <li>{{ 'privacy.why1' | translate }}</li>
           <li>{{ 'privacy.why2' | translate }}</li>
           <li>{{ 'privacy.why3' | translate }}</li>
@@ -48,33 +48,33 @@
       </section>
 
       <section aria-labelledby="privacy-sharing">
-        <h2 id="privacy-sharing" class="text-xl font-semibold text-gray-900">{{ 'privacy.whoTitle' | translate }}</h2>
-        <p class="mt-3 leading-7">
+        <h2 id="privacy-sharing" class="privacy-policy__section-title">{{ 'privacy.whoTitle' | translate }}</h2>
+        <p class="privacy-policy__paragraph">
           {{ 'privacy.whoBody' | translate }}
         </p>
       </section>
 
       <section aria-labelledby="privacy-retention">
-        <h2 id="privacy-retention" class="text-xl font-semibold text-gray-900">{{ 'privacy.storageTitle' | translate }}</h2>
-        <p class="mt-3 leading-7">
+        <h2 id="privacy-retention" class="privacy-policy__section-title">{{ 'privacy.storageTitle' | translate }}</h2>
+        <p class="privacy-policy__paragraph">
           {{ 'privacy.storageBody' | translate }}
         </p>
       </section>
 
       <section aria-labelledby="privacy-rights">
-        <h2 id="privacy-rights" class="text-xl font-semibold text-gray-900">{{ 'privacy.rightsTitle' | translate }}</h2>
-        <p class="mt-3 leading-7">
+        <h2 id="privacy-rights" class="privacy-policy__section-title">{{ 'privacy.rightsTitle' | translate }}</h2>
+        <p class="privacy-policy__paragraph">
           {{ 'privacy.rightsBody' | translate }}
         </p>
-        <p class="mt-3 leading-7">
+        <p class="privacy-policy__paragraph">
           {{ 'privacy.lawBody' | translate }}
-          <a href="https://www.cndp.ma/personnes-concernees/" class="font-semibold text-primary-700 underline decoration-primary-300 underline-offset-4 hover:text-primary-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400" target="_blank" rel="noreferrer">{{ 'privacy.cndp' | translate }}</a>.
+          <a href="https://www.cndp.ma/personnes-concernees/" class="privacy-policy__link" target="_blank" rel="noreferrer">{{ 'privacy.cndp' | translate }}</a>.
         </p>
       </section>
 
       <section aria-labelledby="privacy-changes">
-        <h2 id="privacy-changes" class="text-xl font-semibold text-gray-900">{{ 'privacy.changesTitle' | translate }}</h2>
-        <p class="mt-3 leading-7">
+        <h2 id="privacy-changes" class="privacy-policy__section-title">{{ 'privacy.changesTitle' | translate }}</h2>
+        <p class="privacy-policy__paragraph">
           {{ 'privacy.changesBody' | translate }}
         </p>
       </section>

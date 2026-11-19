@@ -11,5 +11,6 @@ import { TranslatePipe } from '../../pipes/translate-pipe.js';
   selector: 'app-landing',
   imports: [Navbar, Hero, Categories, HowItWorks, Footer, RouterLink, TranslatePipe],
   templateUrl: './landing.html',
+  styleUrl: './landing.css',
 })
 export class Landing {}

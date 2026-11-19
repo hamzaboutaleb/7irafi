@@ -1,0 +1,105 @@
+.privacy-policy__brand {
+  font-size: .875rem;
+  line-height: 1.42857142857;
+  color: var(--color-primary-700, #007f7b);
+  font-weight: 600;
+}
+
+.privacy-policy__introduction {
+  max-width: 42rem;
+  color: var(--color-gray-700, oklch(37.3% .034 259.733));
+  margin-top: 1rem;
+  line-height: 1.75rem;
+}
+
+.privacy-policy__updated {
+  font-size: .875rem;
+  line-height: 1.42857142857;
+  color: var(--color-gray-500, oklch(55.1% .027 264.364));
+  margin-top: 1.25rem;
+}
+
+.privacy-policy__section-title {
+  font-size: 1.25rem;
+  line-height: 1.4;
+  color: var(--color-gray-900, oklch(21% .034 264.665));
+  font-weight: 600;
+}
+
+.privacy-policy__paragraph {
+  margin-top: .75rem;
+  line-height: 1.75rem;
+}
+
+.privacy-policy__data-list {
+  margin-top: 1rem;
+}
+
+:where(.privacy-policy__data-list > :not(:last-child)) {
+  --tw-divide-y-reverse: 0;
+  border-bottom-style: var(--tw-border-style);
+  border-top-style: var(--tw-border-style);
+  border-top-width: calc(1px * var(--tw-divide-y-reverse));
+  border-bottom-width: calc(1px * calc(1 - var(--tw-divide-y-reverse)));
+  border-color: var(--color-gray-100, oklch(96.7% .003 264.542));
+}
+
+.privacy-policy__data-list {
+  border-style: var(--tw-border-style);
+  border-width: 1px;
+  border-color: var(--color-gray-200, oklch(92.8% .006 264.531));
+  border-radius: .75rem;
+}
+
+.privacy-policy__data-row {
+  padding-block: 1rem;
+  padding-inline: 1rem;
+}
+
+.privacy-policy__data-label {
+  color: var(--color-gray-900, oklch(21% .034 264.665));
+  font-weight: 600;
+}
+
+.privacy-policy__data-description {
+  margin-top: .25rem;
+  line-height: 1.5rem;
+}
+
+.privacy-policy__link {
+  color: var(--color-primary-700, #007f7b);
+  text-decoration-line: underline;
+  -webkit-text-decoration-color: var(--color-primary-300, #4dcac8);
+  -webkit-text-decoration-color: var(--color-primary-300, #4dcac8);
+  text-decoration-color: var(--color-primary-300, #4dcac8);
+  text-underline-offset: 4px;
+  font-weight: 600;
+}
+
+@media (hover: hover) {
+  .privacy-policy__link:hover {
+    color: var(--color-primary-800, #006663);
+  }
+}
+
+.privacy-policy__link:focus-visible {
+  --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);
+  box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  --tw-ring-color: var(--color-primary-400, #26bbb9);
+  --tw-outline-style: none;
+  outline-style: none;
+}
+
+@property --tw-divide-y-reverse {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0;
+}
+
+@layer properties {
+  @supports (((-webkit-hyphens: none)) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color: rgb(from red r g b)))) {
+    *, :before, :after, ::backdrop {
+      --tw-divide-y-reverse: 0;
+    }
+  }
+}

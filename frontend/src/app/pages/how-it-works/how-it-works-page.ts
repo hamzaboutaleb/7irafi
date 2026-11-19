@@ -12,6 +12,10 @@ import { TranslatePipe } from '../../pipes/translate-pipe.js';
   selector: 'app-how-it-works-page',
   imports: [Navbar, Footer, HowItWorks, RouterLink, TranslatePipe],
   templateUrl: './how-it-works-page.html',
+  styleUrls: [
+    './how-it-works-page.css',
+    './how-it-works-faq.css',
+  ],
 })
 export class HowItWorksPage {
   private readonly authService = inject(AuthService);

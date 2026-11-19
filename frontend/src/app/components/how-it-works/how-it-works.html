@@ -1,9 +1,9 @@
-<section class="bg-white px-5 py-10 text-gray-900 md:px-6 md:py-16" aria-labelledby="hiring-steps-title">
-  <div class="mx-auto max-w-[1200px]">
-    <header class="mb-8"><h2 id="hiring-steps-title" class="text-2xl leading-8 font-semibold md:text-[28px] md:leading-9">{{ 'landing.howTitle' | translate }}</h2><p class="mt-2 text-sm leading-6 text-slate-500">{{ 'landing.howBody' | translate }}</p></header>
-    <ol class="grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-10">
+<section class="hiring-steps" aria-labelledby="hiring-steps-title">
+  <div class="hiring-steps__container">
+    <header class="hiring-steps__header"><h2 id="hiring-steps-title" class="hiring-steps__title">{{ 'landing.howTitle' | translate }}</h2><p class="hiring-steps__description">{{ 'landing.howBody' | translate }}</p></header>
+    <ol class="hiring-steps__list">
       @for (step of steps; track step.number) {
-        <li class="border-t border-slate-200 pt-5 md:pt-6"><span class="text-[13px] text-primary-700 tabular-nums" aria-hidden="true">{{ step.number }}</span><h3 class="mt-3 text-lg leading-7 font-medium">{{ step.title | translate }}</h3><p class="mt-2 text-sm leading-6 text-slate-500">{{ step.body | translate }}</p></li>
+        <li class="hiring-steps__step"><span class="hiring-steps__number" aria-hidden="true">{{ step.number }}</span><h3 class="hiring-steps__step-title">{{ step.title | translate }}</h3><p class="hiring-steps__description">{{ step.body | translate }}</p></li>
       }
     </ol>
   </div>

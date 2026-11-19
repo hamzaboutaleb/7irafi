@@ -1,0 +1,197 @@
+.categories {
+  color: var(--color-gray-900, oklch(21% .034 264.665));
+  background-color: #f8f9fa;
+  padding-block: 2.5rem;
+  padding-inline: 1.25rem;
+}
+
+@media (min-width: 48rem) {
+  .categories {
+    padding-block: 3.5rem;
+    padding-inline: 1.5rem;
+  }
+}
+
+.categories__container {
+  max-width: 1200px;
+  margin-inline: auto;
+}
+
+.categories__header {
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: .5rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+}
+
+@media (min-width: 48rem) {
+  .categories__header {
+    flex-wrap: nowrap;
+    gap: 1.5rem;
+  }
+}
+
+.categories__title {
+  font-size: 1.5rem;
+  line-height: 1.33333333333;
+  font-weight: 600;
+  line-height: 2rem;
+}
+
+@media (min-width: 48rem) {
+  .categories__title {
+    --tw-leading: 2.25rem;
+    font-size: 28px;
+    line-height: 2.25rem;
+  }
+}
+
+.categories__description {
+  font-size: .875rem;
+  line-height: 1.42857142857;
+  color: var(--color-slate-500, oklch(55.4% .046 257.417));
+  margin-top: .5rem;
+  line-height: 1.5rem;
+}
+
+.categories__browse-link {
+  min-height: 2.75rem;
+  font-size: .875rem;
+  line-height: 1.42857142857;
+  white-space: nowrap;
+  color: var(--color-primary-700, #007f7b);
+  align-items: center;
+  gap: .5rem;
+  display: inline-flex;
+}
+
+.categories__browse-link:focus-visible {
+  outline-style: var(--tw-outline-style);
+  outline-offset: 3px;
+  outline-width: 2px;
+  outline-color: var(--color-primary-600, #009995);
+}
+
+.categories__arrow {
+  stroke-width: 1.5px;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+}
+
+.categories__arrow:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
+  --tw-scale-x: -1;
+  scale: var(--tw-scale-x) var(--tw-scale-y);
+}
+
+.categories__grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .75rem;
+  display: grid;
+}
+
+@media (min-width: 48rem) {
+  .categories__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.categories__category {
+  border-style: var(--tw-border-style);
+  border-width: 1px;
+  border-color: var(--color-slate-200, oklch(92.9% .013 255.508));
+  background-color: var(--color-white, #fff);
+  min-height: 5rem;
+  font-size: .875rem;
+  line-height: 1.42857142857;
+  color: var(--color-gray-700, oklch(37.3% .034 259.733));
+  border-radius: .5rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .5rem;
+  padding-block: 1rem;
+  padding-inline: .75rem;
+  display: flex;
+}
+
+@media (hover: hover) {
+  .categories__category:hover {
+    border-color: var(--color-slate-400, oklch(70.4% .04 256.788));
+  }
+}
+
+.categories__category:focus-visible {
+  outline-style: var(--tw-outline-style);
+  outline-offset: 3px;
+  outline-width: 2px;
+  outline-color: var(--color-primary-600, #009995);
+}
+
+@media (min-width: 48rem) {
+  .categories__category {
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+    min-height: 76px;
+    padding: 1.25rem;
+  }
+}
+
+.categories__icon {
+  stroke-width: 1.5px;
+  width: 18px;
+  height: 18px;
+  color: var(--color-slate-500, oklch(55.4% .046 257.417));
+  flex-shrink: 0;
+}
+
+.categories__category-arrow {
+  stroke-width: 1.5px;
+  width: 1rem;
+  height: 1rem;
+  color: var(--color-slate-500, oklch(55.4% .046 257.417));
+  flex-shrink: 0;
+  margin-inline-start: auto;
+  display: none;
+}
+
+@media (min-width: 48rem) {
+  .categories__category-arrow {
+    display: block;
+  }
+}
+
+.categories__category-arrow:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
+  --tw-scale-x: -1;
+  scale: var(--tw-scale-x) var(--tw-scale-y);
+}
+
+@property --tw-scale-x {
+  syntax: "*";
+  inherits: false;
+  initial-value: 1;
+}
+
+@property --tw-scale-y {
+  syntax: "*";
+  inherits: false;
+  initial-value: 1;
+}
+
+@property --tw-scale-z {
+  syntax: "*";
+  inherits: false;
+  initial-value: 1;
+}
+
+@layer properties {
+  @supports (((-webkit-hyphens: none)) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color: rgb(from red r g b)))) {
+    *, :before, :after, ::backdrop {
+      --tw-scale-x: 1;
+      --tw-scale-y: 1;
+      --tw-scale-z: 1;
+    }
+  }
+}

@@ -30,6 +30,7 @@ const TIME_ZONE = 'Africa/Casablanca';
     registerables: [LineController, LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Legend],
   })],
   templateUrl: './dashboard.html',
+  styleUrl: './dashboard.css',
 })
 export class Dashboard {
   private readonly api = inject(AnalyticsApi);

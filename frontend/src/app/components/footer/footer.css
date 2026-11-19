@@ -1,0 +1,95 @@
+.footer {
+  background-color: var(--color-gray-900, oklch(21% .034 264.665));
+  color: var(--color-white, #fff);
+}
+
+.footer__container {
+  max-width: 80rem;
+  margin-inline: auto;
+  padding-block: 3rem;
+  padding-inline: 1rem;
+}
+
+@media (min-width: 40rem) {
+  .footer__container {
+    padding-inline: 2rem;
+  }
+}
+
+.footer__columns {
+  gap: 2.5rem;
+  display: grid;
+}
+
+@media (min-width: 40rem) {
+  .footer__columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 64rem) {
+  .footer__columns {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .footer__brand {
+    grid-column: span 2 / span 2;
+  }
+}
+
+.footer__brand-link {
+  border-radius: .5rem;
+  display: inline-block;
+}
+
+.footer__brand-link:focus-visible {
+  --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);
+  box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  --tw-ring-color: var(--color-primary-300, #4dcac8);
+  --tw-ring-offset-width: 2px;
+  --tw-ring-offset-shadow: var(--tw-ring-inset, ) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+  --tw-ring-offset-color: var(--color-gray-900, oklch(21% .034 264.665));
+  --tw-outline-style: none;
+  outline-style: none;
+}
+
+.footer__logo {
+  height: 2.5rem;
+}
+
+.footer__description {
+  max-width: 24rem;
+  font-size: .875rem;
+  line-height: 1.42857142857;
+  color: var(--color-gray-400, oklch(70.7% .022 261.325));
+  margin-top: 1rem;
+  line-height: 1.5rem;
+}
+
+.footer__heading {
+  font-size: .875rem;
+  line-height: 1.42857142857;
+  color: var(--color-white, #fff);
+  font-weight: 600;
+}
+
+.footer__links {
+  flex-direction: column;
+  gap: .75rem;
+  margin-top: 1rem;
+  display: flex;
+}
+
+.footer__bottom {
+  border-top-style: var(--tw-border-style);
+  border-top-width: 1px;
+  border-color: var(--color-gray-800, oklch(27.8% .033 256.848));
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+}
+
+.footer__copyright {
+  font-size: .875rem;
+  line-height: 1.42857142857;
+  color: var(--color-gray-500, oklch(55.1% .027 264.364));
+}

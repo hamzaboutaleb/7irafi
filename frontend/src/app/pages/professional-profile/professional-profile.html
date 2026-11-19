@@ -1,34 +1,34 @@
 <app-navbar />
 
-<main class="min-h-screen bg-gray-50 px-4 py-10 sm:px-6">
-  <div class="mx-auto max-w-3xl">
-    <header class="mb-8">
-      <p class="text-sm font-semibold text-primary-600">{{ 'proProfile.eyebrow' | translate }}</p>
-      <h1 class="mt-2 text-3xl font-bold text-gray-900">{{ 'profile.professional' | translate }}</h1>
-      <p class="mt-2 max-w-2xl text-gray-600">
+<main class="professional-profile">
+  <div class="professional-profile__container">
+    <header class="professional-profile__header">
+      <p class="professional-profile__eyebrow">{{ 'proProfile.eyebrow' | translate }}</p>
+      <h1 class="professional-profile__title">{{ 'profile.professional' | translate }}</h1>
+      <p class="professional-profile__description">
         {{ 'proProfile.intro' | translate }}
       </p>
     </header>
 
     @if (mode() === 'loading') {
       <section
-        class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8"
+        class="professional-profile__panel"
         role="status"
         aria-live="polite"
       >
-        <p class="font-medium text-gray-900">{{ 'profile.loadingProfessional' | translate }}</p>
-        <p class="mt-1 text-sm text-gray-600">
+        <p class="professional-profile__loading-title">{{ 'profile.loadingProfessional' | translate }}</p>
+        <p class="professional-profile__loading-description">
           {{ 'proProfile.loadingDetail' | translate }}
         </p>
       </section>
     } @else if (mode() === 'error') {
-      <section class="rounded-2xl border border-red-200 bg-red-50 p-6 sm:p-8" role="alert">
-        <h2 class="text-lg font-semibold text-red-900">{{ 'proProfile.loadError' | translate }}</h2>
-        <p class="mt-2 text-sm text-red-700">{{ errorMessage() }}</p>
+      <section class="professional-profile__error-panel" role="alert">
+        <h2 class="professional-profile__error-title">{{ 'proProfile.loadError' | translate }}</h2>
+        <p class="professional-profile__error-description">{{ errorMessage() }}</p>
         <button
           type="button"
           (click)="loadPage()"
-          class="mt-5 inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl bg-red-700 px-5 py-2.5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-red-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+          class="professional-profile__retry"
         >
           {{ 'common.retry' | translate }}
         </button>
@@ -36,20 +36,20 @@
     } @else {
       @if (errorMessage()) {
         <div
-          class="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+          class="professional-profile__error"
           role="alert"
         >
           {{ errorMessage() }}
         </div>
       }
 
-      <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <section class="professional-profile__panel">
+        <div class="professional-profile__heading">
           <div>
-            <h2 class="text-xl font-semibold text-gray-900">
+            <h2 class="professional-profile__panel-title">
               {{ mode() === 'create' ? 'Become a professional' : 'Professional information' }}
             </h2>
-            <p class="mt-1 text-sm text-gray-600">
+            <p class="professional-profile__loading-description">
               {{
                 mode() === 'create'
                   ? 'Complete these details to publish your professional profile.'
@@ -59,10 +59,10 @@
           </div>
 
           @if (professionalProfile(); as currentProfile) {
-            <div class="shrink-0">
-              <p class="text-xs font-medium uppercase tracking-wide text-gray-500">{{ 'proProfile.status' | translate }}</p>
+            <div class="professional-profile__status-wrapper">
+              <p class="professional-profile__status-label">{{ 'proProfile.status' | translate }}</p>
               <span
-                class="mt-1 inline-flex min-h-11 items-center rounded-full bg-primary-50 px-4 py-2 text-sm font-semibold text-primary-700"
+                class="professional-profile__status"
               >
                 {{ currentProfile.onboardingStatus }}
               </span>
@@ -71,18 +71,18 @@
         </div>
 
         @if (professionalProfile()?.onboardingStatus === 'SUSPENDED') {
-          <div class="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <div class="professional-profile__warning">
             {{ 'proProfile.suspended' | translate }}
           </div>
         }
 
-        <form class="mt-8 space-y-8" [formGroup]="form" (ngSubmit)="save()" novalidate>
+        <form class="professional-profile__form" [formGroup]="form" (ngSubmit)="save()" novalidate>
           <div>
-            <div class="flex items-end justify-between gap-4">
-              <label for="biography" class="block text-sm font-semibold text-gray-800">
+            <div class="professional-profile__field-heading">
+              <label for="biography" class="professional-profile__label">
                 {{ 'proProfile.biography' | translate }}
               </label>
-              <span class="text-xs text-gray-500">{{ biography.value.length }}/2000</span>
+              <span class="professional-profile__character-count">{{ biography.value.length }}/2000</span>
             </div>
 
             <textarea
@@ -97,16 +97,16 @@
                   ? 'biography-help biography-error'
                   : 'biography-help'
               "
-              [class.border-red-500]="biography.invalid && biography.touched"
-              class="mt-2 w-full resize-y rounded-xl border border-gray-300 px-4 py-3 text-base text-gray-900 outline-none transition-colors duration-200 placeholder:text-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
+              [class.professional-profile__biography--invalid]="biography.invalid && biography.touched"
+              class="professional-profile__biography"
             ></textarea>
 
-            <p id="biography-help" class="mt-1.5 text-sm text-gray-500">
+            <p id="biography-help" class="professional-profile__field-hint">
               {{ 'proProfile.biographyHint' | translate }}
             </p>
 
             @if (biography.invalid && biography.touched) {
-              <p id="biography-error" class="mt-1.5 text-sm font-medium text-red-600" role="alert">
+              <p id="biography-error" class="professional-profile__field-error" role="alert">
                 @if (biography.hasError('required')) {
                   A professional biography is required.
                 } @else if (biography.hasError('minlength')) {
@@ -119,19 +119,19 @@
           </div>
 
           <fieldset>
-            <legend class="text-sm font-semibold text-gray-800">{{ 'profile.servicesProvided' | translate }}</legend>
-            <p id="categories-help" class="mt-1 text-sm text-gray-500">
+            <legend class="professional-profile__legend">{{ 'profile.servicesProvided' | translate }}</legend>
+            <p id="categories-help" class="professional-profile__help">
               {{ 'proProfile.selectCategory' | translate }}
             </p>
 
             <div
-              class="mt-4 grid gap-3 sm:grid-cols-2"
+              class="professional-profile__category-grid"
               aria-describedby="categories-help categories-error"
             >
               @for (category of categories(); track category.code) {
                 <label
                   [for]="'category-' + category.code"
-                  class="flex min-h-11 cursor-pointer items-start gap-3 rounded-xl border border-gray-200 p-4 transition-colors duration-200 hover:border-primary-300 hover:bg-primary-50 focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-200"
+                  class="professional-profile__category"
                 >
                   <input
                     [id]="'category-' + category.code"
@@ -139,41 +139,41 @@
                     [checked]="categoryCodes.value.includes(category.code)"
                     [disabled]="isSaving()"
                     (change)="toggleCategory(category.code, $any($event.target).checked)"
-                    class="mt-0.5 h-5 w-5 shrink-0 cursor-pointer accent-primary-600 disabled:cursor-not-allowed"
+                    class="professional-profile__checkbox"
                   />
                   <span>
-                    <span class="block text-sm font-semibold text-gray-900">
+                    <span class="professional-profile__category-name">
                       {{ category.displayName }}
                     </span>
-                    <span class="mt-1 block text-xs leading-5 text-gray-600">
+                    <span class="professional-profile__category-description">
                       {{ category.description }}
                     </span>
                   </span>
                 </label>
               } @empty {
-                <p class="text-sm text-gray-600">{{ 'proProfile.noCategories' | translate }}</p>
+                <p class="professional-profile__empty">{{ 'proProfile.noCategories' | translate }}</p>
               }
             </div>
 
             @if (categoryCodes.invalid && categoryCodes.touched) {
-              <p id="categories-error" class="mt-2 text-sm font-medium text-red-600" role="alert">{{ 'proProfile.selectCategory' | translate }}</p>
+              <p id="categories-error" class="professional-profile__selection-error" role="alert">{{ 'proProfile.selectCategory' | translate }}</p>
             }
           </fieldset>
 
           <fieldset>
-            <legend class="text-sm font-semibold text-gray-800">{{ 'proProfile.cities' | translate }}</legend>
-            <p id="cities-help" class="mt-1 text-sm text-gray-500">
+            <legend class="professional-profile__legend">{{ 'proProfile.cities' | translate }}</legend>
+            <p id="cities-help" class="professional-profile__help">
               {{ 'proProfile.citiesHint' | translate }}
             </p>
 
             <div
-              class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
+              class="professional-profile__city-grid"
               aria-describedby="cities-help cities-error"
             >
               @for (city of cities(); track city.code) {
                 <label
                   [for]="'city-' + city.code"
-                  class="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-gray-200 px-4 py-3 transition-colors duration-200 hover:border-primary-300 hover:bg-primary-50 focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-200"
+                  class="professional-profile__city"
                 >
                   <input
                     [id]="'city-' + city.code"
@@ -181,28 +181,28 @@
                     [checked]="cityCodes.value.includes(city.code)"
                     [disabled]="isSaving()"
                     (change)="toggleCity(city.code, $any($event.target).checked)"
-                    class="h-5 w-5 shrink-0 cursor-pointer accent-primary-600 disabled:cursor-not-allowed"
+                    class="professional-profile__city-checkbox"
                   />
-                  <span class="text-sm font-semibold text-gray-900">{{ city.displayName }}</span>
+                  <span class="professional-profile__city-name">{{ city.displayName }}</span>
                 </label>
               } @empty {
-                <p class="text-sm text-gray-600">{{ 'proProfile.noCities' | translate }}</p>
+                <p class="professional-profile__empty">{{ 'proProfile.noCities' | translate }}</p>
               }
             </div>
 
             @if (cityCodes.invalid && cityCodes.touched) {
-              <p id="cities-error" class="mt-2 text-sm font-medium text-red-600" role="alert">
+              <p id="cities-error" class="professional-profile__selection-error" role="alert">
                 {{ 'proProfile.selectCity' | translate }}
               </p>
             }
           </fieldset>
 
           <div
-            class="ui-dialog-actions"
+            class="professional-profile__actions ui-dialog-actions"
           >
             <a
               routerLink="/profile"
-              class="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-700 transition-colors duration-200 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2"
+              class="professional-profile__cancel"
             >
               {{ 'proProfile.back' | translate }}
             </a>
@@ -211,7 +211,7 @@
               type="submit"
               [disabled]="isSaving()"
               [attr.aria-busy]="isSaving()"
-              class="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl ui-button-primary px-6 py-3 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+              class="professional-profile__submit primary-action"
             >
               @if (isSaving()) {
                 Saving…

@@ -14,7 +14,11 @@ import { LucideLayoutDashboard, LucideMessageSquare, LucideUserRound, LucideLogO
   selector: 'app-navbar',
   imports: [RouterLink, RouterLinkActive, TranslatePipe, LanguageSwitcher, NotificationBell, LucideLayoutDashboard, LucideMessageSquare, LucideUserRound, LucideLogOut, LucideCircleHelp, LucideUsersRound, LucideBriefcaseBusiness, LucideChevronDown, LucideListFilter, LucidePlus, LucideClipboardList],
   templateUrl: './navbar.html',
-  host: { class: 'sticky top-0 z-50 block' },
+  styleUrls: [
+    './navbar.css',
+    './navbar-account.css',
+    './navbar-mobile.css',
+  ],
 })
 export class Navbar {
   readonly jobsOpen = signal(false);
