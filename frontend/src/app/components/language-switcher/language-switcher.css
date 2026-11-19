@@ -1,0 +1,11 @@
+:host {
+  display: inline-flex;
+}
+
+.language-switcher__icon {
+  stroke-width: 1.5px;
+  width: 1.125rem;
+  height: 1.125rem;
+  color: var(--color-gray-500, oklch(55.1% .027 264.364));
+  flex-shrink: 0;
+}

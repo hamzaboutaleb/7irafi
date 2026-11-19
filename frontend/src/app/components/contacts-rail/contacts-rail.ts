@@ -16,6 +16,10 @@ import { TranslatePipe } from '../../pipes/translate-pipe.js';
   selector: 'app-contacts-rail',
   imports: [TranslatePipe],
   templateUrl: './contacts-rail.html',
+  styleUrls: [
+    './contacts-rail.css',
+    './contacts-rail-list.css',
+  ],
 })
 export class ContactsRail implements OnInit {
   private readonly network = inject(NetworkService);

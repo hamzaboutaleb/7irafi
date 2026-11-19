@@ -7,6 +7,7 @@ import { TranslatePipe } from '../../pipes/translate-pipe.js';
   selector: 'app-testimonials',
   imports: [LucideDynamicIcon, TranslatePipe],
   templateUrl: './testimonials.html',
+  styleUrl: './testimonials.css',
 })
 export class Testimonials {
   StarIcon = LucideStar;

@@ -1,0 +1,32 @@
+.terms-of-service__brand {
+  font-size: .875rem;
+  line-height: 1.42857142857;
+  color: var(--color-primary-700, #007f7b);
+  font-weight: 600;
+}
+
+.terms-of-service__introduction {
+  max-width: 42rem;
+  color: var(--color-gray-700, oklch(37.3% .034 259.733));
+  margin-top: 1rem;
+  line-height: 1.75rem;
+}
+
+.terms-of-service__updated {
+  font-size: .875rem;
+  line-height: 1.42857142857;
+  color: var(--color-gray-500, oklch(55.1% .027 264.364));
+  margin-top: 1.25rem;
+}
+
+.terms-of-service__section-title {
+  font-size: 1.25rem;
+  line-height: 1.4;
+  color: var(--color-gray-900, oklch(21% .034 264.665));
+  font-weight: 600;
+}
+
+.terms-of-service__paragraph {
+  margin-top: .75rem;
+  line-height: 1.75rem;
+}

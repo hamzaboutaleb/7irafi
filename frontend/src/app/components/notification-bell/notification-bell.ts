@@ -168,7 +168,7 @@ export class NotificationBell {
       return buttonBottom + gap;
     }
 
-    const navbar = this.host.nativeElement.closest('.navbar-inner');
+    const navbar = this.host.nativeElement.closest('.navbar__inner');
     const navbarBottom = navbar?.getBoundingClientRect().bottom;
 
     return (navbarBottom ?? buttonBottom) + gap;

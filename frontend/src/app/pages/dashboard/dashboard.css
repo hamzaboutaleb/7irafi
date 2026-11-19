@@ -1,0 +1,226 @@
+.dashboard {
+  background-color: var(--color-gray-50, oklch(98.5% .002 247.839));
+  min-height: 100vh;
+  padding-block: 2rem;
+  padding-inline: 1rem;
+}
+
+@media (min-width: 40rem) {
+  .dashboard {
+    padding-inline: 1.5rem;
+  }
+}
+
+.dashboard__container {
+  max-width: 72rem;
+  margin-inline: auto;
+}
+
+:where(.dashboard__container > :not(:last-child)) {
+  --tw-space-y-reverse: 0;
+  margin-block-start: calc(1.5rem * var(--tw-space-y-reverse));
+  margin-block-end: calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));
+}
+
+.dashboard__header {
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  display: flex;
+}
+
+.dashboard__title {
+  font-size: 1.5rem;
+  line-height: 1.33333333333;
+  color: var(--color-gray-900, oklch(21% .034 264.665));
+  font-weight: 600;
+}
+
+.dashboard__description {
+  font-size: .875rem;
+  line-height: 1.42857142857;
+  color: var(--color-slate-500, oklch(55.4% .046 257.417));
+  margin-top: .25rem;
+}
+
+.dashboard__action {
+  padding-block: .5rem;
+  padding-inline: 1rem;
+}
+
+.dashboard__filters {
+  font-size: .875rem;
+  line-height: 1.42857142857;
+  color: var(--color-slate-600, oklch(44.6% .043 257.281));
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: .75rem;
+  display: flex;
+}
+
+.dashboard__input {
+  margin-top: .25rem;
+}
+
+.dashboard__metadata {
+  font-size: .75rem;
+  line-height: 1.33333333333;
+  color: var(--color-slate-500, oklch(55.4% .046 257.417));
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: .5rem;
+  display: flex;
+}
+
+.dashboard__loading {
+  font-size: .875rem;
+  line-height: 1.42857142857;
+  color: var(--color-slate-500, oklch(55.4% .046 257.417));
+}
+
+.dashboard__error--load {
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: .5rem;
+  display: flex;
+}
+
+.dashboard__hint {
+  font-size: .75rem;
+  line-height: 1.33333333333;
+  color: var(--color-slate-500, oklch(55.4% .046 257.417));
+}
+
+.dashboard__totals {
+  gap: 1rem;
+  display: grid;
+}
+
+@media (min-width: 40rem) {
+  .dashboard__totals {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+:where(.dashboard__total > :not(:last-child)) {
+  --tw-space-y-reverse: 0;
+  margin-block-start: calc(.5rem * var(--tw-space-y-reverse));
+  margin-block-end: calc(.5rem * calc(1 - var(--tw-space-y-reverse)));
+}
+
+.dashboard__total {
+  transition-property: transform, translate, scale, rotate;
+  transition-timing-function: var(--tw-ease, var(--default-transition-timing-function, cubic-bezier(.4, 0, .2, 1)));
+  transition-duration: var(--tw-duration, var(--default-transition-duration, .15s));
+  --tw-duration: .15s;
+  --tw-ease: var(--ease-out, cubic-bezier(0, 0, .2, 1));
+  transition-duration: .15s;
+  transition-timing-function: var(--ease-out, cubic-bezier(0, 0, .2, 1));
+}
+
+.dashboard__total:active {
+  scale: .99;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard__total {
+    transition-property: none;
+    transform: none;
+  }
+}
+
+.dashboard__total-value {
+  font-size: 1.875rem;
+  line-height: 1.2;
+  font-weight: 600;
+}
+
+.dashboard__total-value--jobs {
+  color: var(--color-primary-700, #007f7b);
+}
+
+.dashboard__total-value--applications {
+  color: var(--color-secondary-700, #cc5454);
+}
+
+.dashboard__panel-title {
+  color: var(--color-gray-900, oklch(21% .034 264.665));
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.dashboard__chart {
+  height: 14rem;
+  position: relative;
+}
+
+.dashboard__data {
+  font-size: .75rem;
+  line-height: 1.33333333333;
+  color: var(--color-slate-500, oklch(55.4% .046 257.417));
+  margin-top: .75rem;
+}
+
+.dashboard__disclosure {
+  cursor: pointer;
+  color: var(--color-primary-700, #007f7b);
+}
+
+.dashboard__table-scroll {
+  max-height: 12rem;
+  margin-top: .5rem;
+  overflow: auto;
+}
+
+.dashboard__table {
+  text-align: start;
+  width: 100%;
+}
+
+.dashboard__caption {
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border-width: 0;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  position: absolute;
+  overflow: hidden;
+}
+
+.dashboard__table-heading {
+  text-align: start;
+  padding: .5rem;
+}
+
+.dashboard__table-row {
+  border-top-style: var(--tw-border-style);
+  border-top-width: 1px;
+  border-color: var(--color-gray-100, oklch(96.7% .003 264.542));
+}
+
+.dashboard__row-heading {
+  text-align: start;
+  padding: .5rem;
+  font-weight: 400;
+}
+
+.dashboard__cell {
+  padding: .5rem;
+}
+
+@property --tw-ease {
+  syntax: "*";
+  inherits: false
+}
+
+@layer properties {
+  @supports (((-webkit-hyphens: none)) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color: rgb(from red r g b)))) {
+    *, :before, :after, ::backdrop {
+      --tw-ease: initial;
+    }
+  }
+}

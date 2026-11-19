@@ -12,6 +12,7 @@ import { TranslatePipe } from '../../pipes/translate-pipe.js';
   selector: 'app-status-page',
   imports: [Navbar, Footer, DatePipe, TranslatePipe],
   templateUrl: './status-page.html',
+  styleUrl: './status-page.css',
 })
 export class StatusPage implements OnInit {
   private readonly statusService = inject(StatusService);

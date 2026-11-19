@@ -1,26 +1,26 @@
-<section class="py-16 bg-gray-50">
-  <div class="max-w-7xl mx-auto px-8">
-    <div class="flex flex-col items-center mb-12">
-      <span class="bg-primary-50 text-primary-600 text-sm font-medium px-4 py-1 rounded-full mb-4">{{ 'testimonials.eyebrow' | translate }}</span>
-      <h2 class="text-4xl font-bold text-gray-900 text-center">{{ 'testimonials.title' | translate }}</h2>
-      <p class="mt-3 text-sm text-gray-500 text-center max-w-xl">{{ 'testimonials.subtitle' | translate }}</p>
+<section class="testimonials">
+  <div class="testimonials__container">
+    <div class="testimonials__header">
+      <span class="testimonials__eyebrow">{{ 'testimonials.eyebrow' | translate }}</span>
+      <h2 class="testimonials__title">{{ 'testimonials.title' | translate }}</h2>
+      <p class="testimonials__description">{{ 'testimonials.subtitle' | translate }}</p>
     </div>
-    <div class="grid grid-cols-3 gap-8">
+    <div class="testimonials__grid">
       @for (testimonial of testimonials(); track testimonial.name) {
-        <div class="bg-white p-6 rounded-2xl border border-gray-100 hover:border-primary-200 hover:shadow-md transition-all duration-200">
-          <div class="flex items-center justify-between mb-4">
-            <div class="flex">
+        <div class="testimonials__card">
+          <div class="testimonials__card-header">
+            <div class="testimonials__stars">
               @for (star of getStars(testimonial.rating); track star) {
-                <svg [lucideIcon]="StarIcon" class="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                <svg [lucideIcon]="StarIcon" class="testimonials__star" />
               }
             </div>
-            <span class="text-xs font-medium px-3 py-1 rounded-full"
-              [class]="testimonial.role === 'testimonials.role.client' ? 'bg-primary-50 text-primary-600' : 'bg-secondary-50 text-secondary-600'">
+            <span class="testimonials__role"
+              [class]="testimonial.role === 'testimonials.role.client' ? 'testimonials__role--client' : 'testimonials__role--professional'">
               {{ testimonial.role | translate }}
             </span>
           </div>
-          <p class="text-gray-600 mb-6">"{{ testimonial.text | translate }}"</p>
-          <p class="font-semibold text-gray-900">{{ testimonial.name }}</p>
+          <p class="testimonials__quote">"{{ testimonial.text | translate }}"</p>
+          <p class="testimonials__name">{{ testimonial.name }}</p>
         </div>
       }
     </div>

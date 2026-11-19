@@ -18,6 +18,7 @@ type Field = 'firstName' | 'lastName' | 'email' | 'password';
   selector: 'app-register',
   imports: [ReactiveFormsModule, RouterLink, TranslatePipe, LucideDynamicIcon],
   templateUrl: './register.html',
+  styleUrl: './register.css',
 })
 export class Register {
   private readonly fb = inject(FormBuilder);

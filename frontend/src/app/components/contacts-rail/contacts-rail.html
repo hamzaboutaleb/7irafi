@@ -2,18 +2,18 @@
   <!-- Hidden below md: a fixed right rail cannot work at phone width. Mobile
        needs its own treatment; see todo.md. -->
   <aside
-    class="fixed right-0 top-1/2 z-40 hidden -translate-y-1/2 flex-col rounded-l-2xl border border-r-0 border-gray-200 bg-white/90 py-3 shadow-lg backdrop-blur-sm md:flex"
-    [class.w-16]="!expanded()"
-    [class.w-64]="expanded()"
+    class="contacts-rail"
+    [class.contacts-rail--collapsed]="!expanded()"
+    [class.contacts-rail--expanded]="expanded()"
     aria-label="{{ 'network.title' | translate }}"
   >
     <button
       type="button"
       (click)="toggleExpanded()"
       [attr.aria-expanded]="expanded()"
-      class="mx-2 mb-2 flex min-h-9 cursor-pointer items-center gap-2 rounded-lg px-2 text-xs font-semibold uppercase tracking-wide text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+      class="contacts-rail__toggle"
     >
-      <svg class="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+      <svg class="contacts-rail__toggle-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
         <path
           [attr.d]="
             expanded()
@@ -24,29 +24,29 @@
       </svg>
 
       @if (expanded()) {
-        <span class="truncate">{{ 'network.title' | translate }}</span>
+        <span class="contacts-rail__title">{{ 'network.title' | translate }}</span>
       }
 
-      <span class="sr-only">
+      <span class="contacts-rail__accessible-label">
         {{ expanded() ? 'Collapse your network' : 'Expand your network' }}
       </span>
     </button>
 
-    <ul class="flex max-h-[60vh] flex-col gap-1 overflow-y-auto px-2">
+    <ul class="contacts-rail__list">
       @for (contact of contacts(); track contact.userId) {
         <li>
           <button
             type="button"
             (click)="openConversation(contact.userId)"
-            class="flex w-full cursor-pointer items-center gap-3 rounded-lg p-1 text-left transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+            class="contacts-rail__contact"
             [attr.title]="expanded() ? null : contact.firstName"
           >
-            <span class="relative shrink-0">
+            <span class="contacts-rail__avatar">
               @if (contact.avatarUrl) {
-                <img [src]="contact.avatarUrl" alt="" class="h-10 w-10 rounded-full object-cover" />
+                <img [src]="contact.avatarUrl" alt="" class="contacts-rail__image" />
               } @else {
                 <span
-                  class="flex h-10 w-10 items-center justify-center rounded-full bg-primary-100 text-sm font-bold uppercase text-primary-700"
+                  class="contacts-rail__initials"
                   aria-hidden="true"
                 >
                   {{ contact.firstName.charAt(0) }}
@@ -54,19 +54,19 @@
               }
 
               <span
-                class="absolute bottom-0 right-0 block h-3 w-3 rounded-full border-2 border-white"
-                [class.bg-green-500]="contact.online"
-                [class.bg-gray-300]="!contact.online"
+                class="contacts-rail__presence"
+                [class.contacts-rail__presence--online]="contact.online"
+                [class.contacts-rail__presence--offline]="!contact.online"
                 aria-hidden="true"
               ></span>
             </span>
 
             @if (expanded()) {
-              <span class="min-w-0 flex-1">
-                <span class="block truncate text-sm font-medium capitalize text-gray-900">
+              <span class="contacts-rail__identity">
+                <span class="contacts-rail__name">
                   {{ contact.firstName }}
                 </span>
-                <span class="block truncate text-xs text-gray-500">
+                <span class="contacts-rail__category">
                   @if (contact.categories.length > 0) {
                     {{ contact.categories[0].displayName }}
                   } @else {
@@ -76,7 +76,7 @@
               </span>
             }
 
-            <span class="sr-only">
+            <span class="contacts-rail__accessible-label">
               {{ contact.firstName }}, {{ contact.online ? 'online' : 'offline' }}
             </span>
           </button>

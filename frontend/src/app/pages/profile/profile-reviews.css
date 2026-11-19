@@ -1,0 +1,105 @@
+.profile__reviews-intro {
+  font-size: .875rem;
+  line-height: 1.42857142857;
+  color: var(--color-gray-500, oklch(55.1% .027 264.364));
+  margin-top: .25rem;
+  margin-bottom: 1.25rem;
+  line-height: 1.5rem;
+}
+
+.profile__reviews-loading {
+  height: 8rem;
+  animation: var(--animate-pulse, pulse 2s cubic-bezier(.4, 0, .6, 1) infinite);
+  background-color: var(--color-gray-50, oklch(98.5% .002 247.839));
+  border-radius: .75rem;
+  margin-bottom: 1.25rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profile__reviews-loading {
+    animation: none;
+  }
+}
+
+.profile__accessible-label {
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border-width: 0;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  position: absolute;
+  overflow: hidden;
+}
+
+.profile__reviews-error {
+  background-color: var(--color-gray-50, oklch(98.5% .002 247.839));
+  font-size: .875rem;
+  line-height: 1.42857142857;
+  color: var(--color-gray-600, oklch(44.6% .03 256.802));
+  border-radius: .75rem;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: .75rem;
+  margin-bottom: 1.25rem;
+  padding-block: .75rem;
+  padding-inline: 1rem;
+  display: flex;
+}
+
+.profile__retry {
+  min-height: 2.75rem;
+  color: var(--color-primary-800, #006663);
+  font-weight: 600;
+  text-decoration-line: underline;
+}
+
+.profile__review-tabs {
+  border-bottom-style: var(--tw-border-style);
+  border-bottom-width: 1px;
+  border-color: var(--color-gray-200, oklch(92.8% .006 264.531));
+  flex-wrap: wrap;
+  gap: .25rem;
+  display: flex;
+}
+
+.profile__review-tab {
+  cursor: pointer;
+  border-bottom-style: var(--tw-border-style);
+  min-height: 2.75rem;
+  font-size: .875rem;
+  line-height: 1.42857142857;
+  color: var(--color-gray-500, oklch(55.1% .027 264.364));
+  border-color: #0000;
+  border-bottom-width: 2px;
+  padding-block: .75rem;
+  padding-inline: .75rem;
+  font-weight: 600;
+}
+
+@media (hover: hover) {
+  .profile__review-tab:hover {
+    color: var(--color-primary-800, #006663);
+  }
+}
+
+.profile__review-tab:focus-visible {
+  outline-style: var(--tw-outline-style);
+  outline-width: 2px;
+  outline-color: var(--color-primary-600, #009995);
+}
+
+.profile__review-tab[aria-pressed="true"] {
+  border-color: var(--color-primary-700, #007f7b);
+  color: var(--color-primary-800, #006663);
+}
+
+.profile__notifications[hidden] {
+  display: none !important;
+}
+
+.profile__input--invalid {
+  border-color: var(--color-red-500, oklch(63.7% .237 25.331));
+}

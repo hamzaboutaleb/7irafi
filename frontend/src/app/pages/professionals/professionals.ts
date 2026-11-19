@@ -21,6 +21,12 @@ import { LucideDynamicIcon, LucideMapPin, LucideWrench, LucideBookmark, LucideX,
   selector: 'app-professionals',
   imports: [Navbar, Footer, RouterLink, TranslatePipe, Select, LucideDynamicIcon, RatingStars],
   templateUrl: './professionals.html',
+  styleUrls: [
+    './professionals.css',
+    './professionals-cards.css',
+    './professionals-dialog.css',
+    './professionals-reviews.css',
+  ],
 })
 export class Professionals implements OnInit {
   private readonly route = inject(ActivatedRoute);

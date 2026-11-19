@@ -1,0 +1,211 @@
+:host {
+  z-index: 50;
+  display: block;
+  position: sticky;
+  top: 0;
+}
+
+.navbar {
+  border-bottom-style: var(--tw-border-style);
+  border-bottom-width: 1px;
+  border-color: var(--color-gray-100, oklch(96.7% .003 264.542));
+  background-color: #fffffff2;
+}
+
+@supports (color: color-mix(in lab, red, red)) {
+  .navbar {
+    background-color: color-mix(in oklab, var(--color-white, #fff) 95%, transparent);
+  }
+}
+
+.navbar {
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.navbar__inner {
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: .75rem 1.5rem;
+  max-width: 80rem;
+  margin-inline: auto;
+  padding-block: .75rem;
+  padding-inline: 1rem;
+  display: flex;
+}
+
+@media (min-width: 40rem) {
+  .navbar__inner {
+    padding-inline: 2rem;
+  }
+}
+
+@media (min-width: 80rem) {
+  .navbar__inner {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    column-gap: 1rem;
+  }
+}
+
+.navbar__brand {
+  border-radius: .5rem;
+  flex-shrink: 0;
+}
+
+.navbar__brand:focus-visible {
+  --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);
+  box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  --tw-ring-color: var(--color-primary-400, #26bbb9);
+  --tw-ring-offset-width: 2px;
+  --tw-ring-offset-shadow: var(--tw-ring-inset, ) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+  --tw-outline-style: none;
+  outline-style: none;
+}
+
+.navbar__logo {
+  height: 2.5rem;
+}
+
+.navbar__mobile-controls {
+  align-items: center;
+  gap: .5rem;
+  display: flex;
+}
+
+@media (min-width: 80rem) {
+  .navbar__mobile-controls {
+    display: none;
+  }
+}
+
+.navbar__mobile-toggle {
+  cursor: pointer;
+  border-style: var(--tw-border-style);
+  border-width: 1px;
+  border-color: var(--color-gray-200, oklch(92.8% .006 264.531));
+  min-height: 2.75rem;
+  color: var(--color-gray-700, oklch(37.3% .034 259.733));
+  border-radius: .75rem;
+  justify-content: center;
+  align-items: center;
+  gap: .5rem;
+  padding-block: .6rem;
+  padding-inline: .8rem;
+  font-size: .85rem;
+  font-weight: 600;
+  display: inline-flex;
+}
+
+.navbar__mobile-toggle:focus-visible {
+  outline-style: var(--tw-outline-style);
+  outline-offset: 2px;
+  outline-width: 2px;
+  outline-color: var(--color-primary-600, #009995);
+}
+
+@media (min-width: 80rem) {
+  .navbar__mobile-toggle {
+    display: none;
+  }
+}
+
+.navbar__toggle-icon {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8px;
+  stroke-linecap: round;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.navbar__primary-navigation {
+  align-items: center;
+  gap: .5rem;
+  display: none;
+}
+
+@media (min-width: 1440px) {
+  .navbar__primary-navigation {
+    margin-inline-start: 1rem;
+  }
+}
+
+@media (min-width: 80rem) {
+  .navbar__primary-navigation {
+    flex-shrink: 0;
+    gap: .25rem;
+    margin-inline-start: 0;
+    display: flex;
+  }
+}
+
+@media (min-width: 1440px) {
+  .navbar__link {
+    padding-inline: .5rem;
+  }
+}
+
+@media (min-width: 80rem) {
+  .navbar__link {
+    padding-inline: .25rem;
+  }
+}
+
+.navbar__icon {
+  stroke-width: 1.5px;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+}
+
+.navbar__jobs-menu {
+  position: relative;
+}
+
+.navbar__jobs-chevron {
+  stroke-width: 1.5px;
+  width: 18px;
+  height: 18px;
+  transition-property: transform, translate, scale, rotate;
+  transition-timing-function: var(--tw-ease, var(--default-transition-timing-function, cubic-bezier(.4, 0, .2, 1)));
+  transition-duration: var(--tw-duration, var(--default-transition-duration, .15s));
+  --tw-duration: .16s;
+  flex-shrink: 0;
+  transition-duration: .16s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navbar__jobs-chevron {
+    transition-property: none;
+  }
+}
+
+.navbar__jobs-chevron.navbar__jobs-chevron--expanded {
+  rotate: 180deg;
+}
+
+.navbar__jobs-dropdown {
+  z-index: 50;
+  border-style: var(--tw-border-style);
+  border-width: 1px;
+  border-color: var(--color-gray-200, oklch(92.8% .006 264.531));
+  background-color: var(--color-white, #fff);
+  --tw-shadow: 0 8px 24px var(--tw-shadow-color, #0000000f);
+  width: max-content;
+  min-width: 13rem;
+  max-width: calc(100vw - 32px);
+  box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  inset-inline-end: 0;
+  border-radius: .75rem;
+  padding: .5rem;
+  position: absolute;
+  top: calc(100% + 8px);
+}
+
+.navbar__jobs-divider {
+  background-color: var(--color-gray-200, oklch(92.8% .006 264.531));
+  height: 1px;
+  margin-block: .5rem;
+}

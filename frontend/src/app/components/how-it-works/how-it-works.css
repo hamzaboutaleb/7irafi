@@ -1,0 +1,123 @@
+.hiring-steps {
+  background-color: var(--color-white, #fff);
+  color: var(--color-gray-900, oklch(21% .034 264.665));
+  padding-block: 2.5rem;
+  padding-inline: 1.25rem;
+}
+
+@media (min-width: 48rem) {
+  .hiring-steps {
+    padding-block: 4rem;
+    padding-inline: 1.5rem;
+  }
+}
+
+.hiring-steps__container {
+  max-width: 1200px;
+  margin-inline: auto;
+}
+
+.hiring-steps__header {
+  margin-bottom: 2rem;
+}
+
+.hiring-steps__title {
+  font-size: 1.5rem;
+  line-height: 1.33333333333;
+  font-weight: 600;
+  line-height: 2rem;
+}
+
+@media (min-width: 48rem) {
+  .hiring-steps__title {
+    --tw-leading: 2.25rem;
+    font-size: 28px;
+    line-height: 2.25rem;
+  }
+}
+
+.hiring-steps__description {
+  font-size: .875rem;
+  line-height: 1.42857142857;
+  color: var(--color-slate-500, oklch(55.4% .046 257.417));
+  margin-top: .5rem;
+  line-height: 1.5rem;
+}
+
+.hiring-steps__list {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1.5rem;
+  display: grid;
+}
+
+@media (min-width: 48rem) {
+  .hiring-steps__list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2.5rem;
+  }
+}
+
+.hiring-steps__step {
+  border-top-style: var(--tw-border-style);
+  border-top-width: 1px;
+  border-color: var(--color-slate-200, oklch(92.9% .013 255.508));
+  padding-top: 1.25rem;
+}
+
+@media (min-width: 48rem) {
+  .hiring-steps__step {
+    padding-top: 1.5rem;
+  }
+}
+
+.hiring-steps__number {
+  color: var(--color-primary-700, #007f7b);
+  --tw-numeric-spacing: tabular-nums;
+  font-variant-numeric: var(--tw-ordinal, ) var(--tw-slashed-zero, ) var(--tw-numeric-figure, ) var(--tw-numeric-spacing, ) var(--tw-numeric-fraction, );
+  font-size: 13px;
+}
+
+.hiring-steps__step-title {
+  font-size: 1.125rem;
+  line-height: 1.55555555556;
+  margin-top: .75rem;
+  font-weight: 500;
+  line-height: 1.75rem;
+}
+
+@property --tw-ordinal {
+  syntax: "*";
+  inherits: false
+}
+
+@property --tw-slashed-zero {
+  syntax: "*";
+  inherits: false
+}
+
+@property --tw-numeric-figure {
+  syntax: "*";
+  inherits: false
+}
+
+@property --tw-numeric-spacing {
+  syntax: "*";
+  inherits: false
+}
+
+@property --tw-numeric-fraction {
+  syntax: "*";
+  inherits: false
+}
+
+@layer properties {
+  @supports (((-webkit-hyphens: none)) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color: rgb(from red r g b)))) {
+    *, :before, :after, ::backdrop {
+      --tw-ordinal: initial;
+      --tw-slashed-zero: initial;
+      --tw-numeric-figure: initial;
+      --tw-numeric-spacing: initial;
+      --tw-numeric-fraction: initial;
+    }
+  }
+}
