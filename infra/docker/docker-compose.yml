@@ -44,7 +44,7 @@ services:
       POSTGRES_USER: ${DB_USERNAME:-herafi}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-herafi}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5432}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./postgres/init:/docker-entrypoint-initdb.d:ro
@@ -290,6 +290,37 @@ services:
       timeout: 5s
       retries: 20
 
+  analytics-service:
+    build:
+      context: ../../backend/analytics-service
+      dockerfile: Dockerfile
+    environment:
+      SERVER_PORT: 8087
+      APP_ENVIRONMENT: ${APP_ENVIRONMENT:-dev}
+      DB_URL: jdbc:postgresql://postgres:5432/analytics_db
+      DB_USERNAME: ${DB_USERNAME:-herafi}
+      DB_PASSWORD: ${DB_PASSWORD:-herafi}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka/
+      GATEWAY_SHARED_SECRET: ${GATEWAY_SHARED_SECRET:-7irafi-development-gateway-key}
+      JWT_SECRET: ${JWT_SECRET:-7irafi-development-jwt-secret-change-me-2026}
+      JWT_ISSUER: 7irafi-auth-service
+      FRONTEND_ORIGIN: http://localhost:4200
+    ports:
+      - "127.0.0.1:8087:8087"
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8087/actuator/health | grep -q UP"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
   rating-service:
     build:
       context: ../../backend/rating-service
@@ -377,6 +408,8 @@ services:
         condition: service_healthy
       rating-service:
         condition: service_healthy
+      analytics-service:
+        condition: service_healthy
       discovery-service:
         condition: service_healthy
     healthcheck:
@@ -422,6 +455,7 @@ services:
       - "127.0.0.1:8761:8761"
 
   prometheus:
+    profiles: ["observability"]
     container_name: prometheus-dev
     image: prom/prometheus:v2.53.1
     entrypoint: ["/bin/sh", "/etc/prometheus/entrypoint.sh"]
@@ -450,6 +484,7 @@ services:
       retries: 20
 
   grafana:
+    profiles: ["observability"]
     container_name: grafana-dev
     image: grafana/grafana:11.1.0
     environment:
@@ -472,6 +507,7 @@ services:
       retries: 20
 
   node-exporter:
+    profiles: ["observability"]
     container_name: node-exporter-dev
     image: prom/node-exporter:v1.8.2
     # No rslave, --path.rootfs or pid: host: Docker Desktop refuses rslave on / and
@@ -488,6 +524,7 @@ services:
       retries: 20
 
   alertmanager:
+    profiles: ["observability"]
     container_name: alertmanager-dev
     image: prom/alertmanager:v0.27.0
     volumes:
@@ -501,6 +538,7 @@ services:
       retries: 20
 
   elasticsearch:
+    profiles: ["observability"]
     container_name: elasticsearch-dev
     image: docker.elastic.co/elasticsearch/elasticsearch:8.15.3
     environment:
@@ -519,6 +557,7 @@ services:
       retries: 30
 
   es-setup:
+    profiles: ["observability"]
     container_name: es-setup
     image: curlimages/curl:8.9.1
     depends_on:
@@ -535,6 +574,7 @@ services:
     restart: "no"
 
   logstash:
+    profiles: ["observability"]
     container_name: logstash-dev
     image: docker.elastic.co/logstash/logstash:8.15.3
     # The image runs as uid 1000, but Docker's *-json.log files are root-owned
@@ -555,6 +595,7 @@ services:
     restart: unless-stopped
 
   kibana:
+    profiles: ["observability"]
     container_name: kibana-dev
     image: docker.elastic.co/kibana/kibana:8.15.3
     environment:
@@ -568,6 +609,7 @@ services:
         condition: service_completed_successfully
 
   kibana-setup:
+    profiles: ["observability"]
     container_name: kibana-setup
     image: curlimages/curl:8.9.1
     depends_on:
