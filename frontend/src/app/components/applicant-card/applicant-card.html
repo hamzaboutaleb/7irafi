@@ -1,0 +1,147 @@
+<article
+  class="applicant"
+  [class.applicant--accepted]="application().status === 'ACCEPTED'"
+  [attr.aria-labelledby]="'applicant-name-' + application().id"
+>
+  <div class="applicant__main">
+    <div class="applicant__identity">
+      @if (avatar(); as image) {
+        <img class="applicant__avatar" [src]="image" alt="" (error)="imageFailed.set(true)" />
+      } @else {
+        <span class="applicant__avatar applicant__avatar--fallback" aria-hidden="true">
+          @if (initials(); as letters) {
+            {{ letters }}
+          } @else {
+            <svg lucideUserRound class="applicant__icon" />
+          }
+        </span>
+      }
+      <div class="applicant__identity-copy">
+        <h3 class="applicant__name" [id]="'applicant-name-' + application().id">
+          {{ name() }}
+        </h3>
+        <p class="applicant__date">
+          {{ 'applicants.appliedOn' | translate: { date: dateLabel() } }}
+        </p>
+        @if (profile(); as professional) {
+          <p class="applicant__presence">
+            <span
+              class="applicant__dot"
+              [class.applicant__dot--online]="professional.online"
+              aria-hidden="true"
+            ></span>
+            {{ (professional.online ? 'applicants.online' : 'applicants.offline') | translate }}
+          </p>
+        }
+      </div>
+    </div>
+
+    @if (profile(); as professional) {
+      <div class="applicant__facts">
+        <div class="applicant__fact">
+          <svg lucideWrench class="applicant__icon applicant__icon--fact" aria-hidden="true" />
+          <span class="applicant__sr-only">{{ 'applicants.trades' | translate }}: </span>
+          <p class="applicant__fact-value">
+            @for (category of professional.categories; track category.code; let last = $last) {
+              {{ category.displayName }}{{ last ? '' : ' · ' }}
+            } @empty {
+              {{ 'applicants.noTrades' | translate }}
+            }
+          </p>
+        </div>
+        <div class="applicant__fact">
+          <svg lucideMapPin class="applicant__icon applicant__icon--fact" aria-hidden="true" />
+          <span class="applicant__sr-only">{{ 'profile.serviceAreas' | translate }}: </span>
+          <p class="applicant__fact-value">
+            @for (city of professional.cities; track city.code; let last = $last) {
+              {{ city.displayName }}{{ last ? '' : ' · ' }}
+            } @empty {
+              {{ 'applicants.noCities' | translate }}
+            }
+          </p>
+        </div>
+      </div>
+      @if (professional.biography) {
+        <button
+          type="button"
+          class="applicant__bio-toggle"
+          [attr.aria-expanded]="expanded()"
+          [attr.aria-controls]="'applicant-bio-' + application().id"
+          (click)="expanded.set(!expanded())"
+        >
+          {{ 'applicants.aboutProfessional' | translate }}
+          <svg
+            lucideChevronDown
+            class="applicant__icon applicant__icon--chevron"
+            [class.applicant__icon--expanded]="expanded()"
+            aria-hidden="true"
+          />
+        </button>
+        @if (expanded()) {
+          <p class="applicant__biography" [id]="'applicant-bio-' + application().id" dir="auto">
+            {{ professional.biography }}
+          </p>
+        }
+      } @else {
+        <p class="applicant__no-bio">{{ 'applicants.noBio' | translate }}</p>
+      }
+    } @else {
+      <div class="applicant__unavailable">
+        <p class="applicant__unavailable-title">
+          {{ 'applicants.profileUnavailable' | translate }}
+        </p>
+        <span>{{ 'applicants.profileUnavailableBody' | translate }}</span>
+        <button
+          type="button"
+          class="applicant__retry"
+          (click)="profileRetryRequested.emit()"
+          [disabled]="accepting() !== null || refreshing()"
+        >
+          {{ (refreshing() ? 'common.loading' : 'applicants.retryProfile') | translate }}
+        </button>
+      </div>
+    }
+  </div>
+
+  <div class="applicant__actions">
+    <span
+      class="applicant__status"
+      [class.applicant__status--accepted]="application().status === 'ACCEPTED'"
+    >
+      {{ statusLabel() }}
+    </span>
+    <div class="applicant__buttons">
+      <button
+        type="button"
+        class="applicant__button"
+        (click)="messageRequested.emit()"
+        [disabled]="opening() !== null"
+        [attr.aria-label]="'applicants.messageNamed' | translate: { name: name() }"
+      >
+        <svg lucideMessageSquare class="applicant__icon" aria-hidden="true" />
+        {{
+          (opening() === application().id ? 'applicants.opening' : 'applicants.message') | translate
+        }}
+      </button>
+      @if (showAccept()) {
+        <button
+          type="button"
+          class="applicant__button applicant__button--primary"
+          (click)="acceptRequested.emit()"
+          [disabled]="accepting() !== null || !profile()"
+          [attr.aria-busy]="accepting() === application().id"
+          [attr.aria-label]="'applicants.acceptNamed' | translate: { name: name() }"
+        >
+          <svg lucideCheck class="applicant__icon" aria-hidden="true" />
+          {{
+            (accepting() === application().id ? 'applicants.accepting' : 'applicants.accept')
+              | translate
+          }}
+        </button>
+      }
+    </div>
+    @if (messageError(); as message) {
+      <p class="applicant__error" role="alert">{{ message | translate }}</p>
+    }
+  </div>
+</article>

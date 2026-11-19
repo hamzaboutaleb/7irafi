@@ -1,64 +1,193 @@
 <app-navbar />
-<main class="create-page min-h-[75dvh] bg-[#f8f9fa] px-4 pt-4 pb-12 text-gray-900 sm:px-6 sm:pt-8 sm:pb-16">
-  <section class="create-content mx-auto max-w-[800px]" aria-labelledby="create-job-title">
-    <a routerLink="/jobs" class="back-link inline-flex min-h-11 items-center gap-2 text-[13px] text-slate-500 hover:text-primary-700 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-primary-600"><svg [lucideIcon]="icons.back" class="directional size-[18px] shrink-0 stroke-[1.5] rtl:scale-x-[-1]" aria-hidden="true" />{{ 'createJob.back' | translate }}</a>
-    <header class="page-heading mt-3 mb-6"><h1 class="text-2xl leading-8 font-semibold sm:text-[28px] sm:leading-9" id="create-job-title">{{ 'myJobs.post' | translate }}</h1><p class="mt-1 text-sm leading-6 text-slate-500">{{ 'createJob.intro' | translate }}</p></header>
-    <form [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="isLoading() || isPosting()" class="job-form rounded-xl border border-slate-200 bg-white px-4 py-6 sm:px-8 sm:py-7" novalidate>
-      <p class="required-note text-xs text-slate-500">{{ 'createJob.requiredNote' | translate }}</p>
-      @if (isLoading()) { <p role="status" class="form-notice mt-4 text-sm text-slate-500">{{ 'createJob.loading' | translate }}</p> }
-      @if (referenceError(); as error) { <div class="form-error ui-form-error"><p role="alert">{{ error }}</p><button type="button" class="text-button min-h-11 cursor-pointer text-[13px] underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-primary-600 disabled:cursor-not-allowed disabled:opacity-50" (click)="loadReferences()">{{ 'common.retry' | translate }}</button></div> }
-      <fieldset class="form-section mt-6 min-w-0 p-0" [disabled]="isPosting() || !!createdJob()">
-        <legend class="float-left w-full text-base leading-6 font-semibold">{{ 'createJob.details' | translate }}</legend>
-        <div class="section-fields clear-both grid gap-5 pt-4">
-          <div class="field-group min-w-0"><label class="mb-2 block text-[13px] font-medium text-gray-700" for="title">{{ 'createJob.jobTitle' | translate }}</label><input class="ui-form-input" id="title" type="text" formControlName="title" required maxlength="120" [placeholder]="'createJob.titleExample' | translate" [attr.aria-invalid]="!!fieldError('title')" [attr.aria-describedby]="fieldError('title') ? 'title-error' : null" />@if (fieldError('title'); as error) { <p id="title-error" class="field-error ui-field-error [overflow-wrap:anywhere]">{{ error }}</p> }</div>
-          <div class="field-group min-w-0"><label class="mb-2 block text-[13px] font-medium text-gray-700" for="description">{{ 'job.description' | translate }}</label><textarea class="ui-form-input min-h-28 resize-y" id="description" formControlName="description" required rows="4" [placeholder]="'createJob.descriptionExample' | translate" [attr.aria-invalid]="!!fieldError('description')" [attr.aria-describedby]="'description-help' + (fieldError('description') ? ' description-error' : '')"></textarea><p id="description-help" class="field-hint mt-2 text-xs leading-5 text-slate-500">{{ 'createJob.descriptionHelp' | translate }}</p>@if (fieldError('description'); as error) { <p id="description-error" class="field-error ui-field-error [overflow-wrap:anywhere]">{{ error }}</p> }</div>
-          <div class="field-grid ui-form-grid">
-            <div class="field-group min-w-0"><label class="mb-2 block text-[13px] font-medium text-gray-700" for="skill">{{ 'directory.service' | translate }}</label><app-select class="block! w-full" controlId="skill" [label]="'directory.service' | translate" [options]="skillOptions()" [value]="form.controls.skill.value" (valueChange)="setChoice('skill', $event)" [disabled]="isLoading() || !!referenceError() || isPosting() || !!createdJob()" [invalid]="!!fieldError('skill')" [describedBy]="fieldError('skill') ? 'skill-error' : null" />@if (fieldError('skill'); as error) { <p id="skill-error" class="field-error ui-field-error [overflow-wrap:anywhere]">{{ error }}</p> }</div>
-            <div class="field-group min-w-0"><label class="mb-2 block text-[13px] font-medium text-gray-700" for="budget">{{ 'job.budget' | translate }}</label><div class="currency-field relative"><input class="ui-form-input pe-16" id="budget" type="number" inputmode="decimal" formControlName="budget" required min="0.01" max="99999999.99" step="0.01" [placeholder]="'createJob.budgetPlaceholder' | translate" [attr.aria-invalid]="!!fieldError('budget')" [attr.aria-describedby]="'budget-help' + (fieldError('budget') ? ' budget-error' : '')" /><span class="pointer-events-none absolute end-4 top-3 text-[13px] text-slate-500" aria-hidden="true">MAD</span></div><p id="budget-help" class="field-hint mt-2 text-xs leading-5 text-slate-500">{{ 'createJob.budgetHelp' | translate }}</p>@if (fieldError('budget'); as error) { <p id="budget-error" class="field-error ui-field-error [overflow-wrap:anywhere]">{{ error }}</p> }</div>
-          </div>
-        </div>
-      </fieldset>
-      <fieldset class="form-section mt-6 min-w-0 p-0 border-t border-slate-200 pt-6" [disabled]="isPosting() || !!createdJob()">
-        <legend class="float-left w-full text-base leading-6 font-semibold">{{ 'createJob.locationTiming' | translate }}</legend>
-        <div class="section-fields clear-both grid gap-5 pt-4">
-          <div class="field-grid ui-form-grid">
-            <div class="field-group min-w-0"><label class="mb-2 block text-[13px] font-medium text-gray-700" for="city">{{ 'job.city' | translate }}</label><app-select class="block! w-full" controlId="city" [label]="'job.city' | translate" [options]="cityOptions()" [value]="form.controls.city.value" (valueChange)="setChoice('city', $event)" [disabled]="isLoading() || !!referenceError() || isPosting() || !!createdJob()" [invalid]="!!fieldError('city')" [describedBy]="fieldError('city') ? 'city-error' : null" />@if (fieldError('city'); as error) { <p id="city-error" class="field-error ui-field-error [overflow-wrap:anywhere]">{{ error }}</p> }</div>
-            <div class="field-group min-w-0"><label class="mb-2 block text-[13px] font-medium text-gray-700" for="addressLine">{{ 'createJob.addressOptional' | translate }}</label><input class="ui-form-input" id="addressLine" type="text" formControlName="addressLine" maxlength="200" autocomplete="address-line1" [attr.aria-invalid]="!!fieldError('addressLine')" [attr.aria-describedby]="fieldError('addressLine') ? 'addressLine-error' : null" />@if (fieldError('addressLine'); as error) { <p id="addressLine-error" class="field-error ui-field-error [overflow-wrap:anywhere]">{{ error }}</p> }</div>
-          </div>
-          <div class="field-grid ui-form-grid">
-            <div class="field-group min-w-0"><label class="mb-2 block text-[13px] font-medium text-gray-700" for="estimatedDuration">{{ 'jobs.duration' | translate }}</label><app-select class="block! w-full" controlId="estimatedDuration" [label]="'jobs.duration' | translate" [options]="durationOptions()" [value]="form.controls.estimatedDuration.value ?? ''" (valueChange)="setDuration($event)" [disabled]="isPosting() || !!createdJob()" [invalid]="!!fieldError('estimatedDuration')" [describedBy]="fieldError('estimatedDuration') ? 'estimatedDuration-error' : null" />@if (fieldError('estimatedDuration'); as error) { <p id="estimatedDuration-error" class="field-error ui-field-error [overflow-wrap:anywhere]">{{ error }}</p> }</div>
-            <div class="field-group min-w-0"><label class="mb-2 block text-[13px] font-medium text-gray-700" for="preferredTime">{{ 'createJob.timeOptional' | translate }}</label><app-select class="block! w-full" controlId="preferredTime" [label]="'createJob.timeOptional' | translate" [options]="timeOptions()" [value]="form.controls.preferredTime.value" (valueChange)="setTime($event)" [disabled]="isPosting() || !!createdJob()" [invalid]="!!fieldError('preferredTime')" [describedBy]="fieldError('preferredTime') ? 'preferredTime-error' : null" />@if (fieldError('preferredTime'); as error) { <p id="preferredTime-error" class="field-error ui-field-error [overflow-wrap:anywhere]">{{ error }}</p> }</div>
-          </div>
-        </div>
-      </fieldset>
-      <section class="form-section mt-6 min-w-0 p-0 photos-section border-t border-slate-200 pt-6" aria-labelledby="photos-title">
-        <h2 class="text-base leading-6 font-semibold" id="photos-title">{{ 'createJob.photosOptional' | translate }}</h2><p id="photos-help" class="field-hint mt-2 text-xs leading-5 text-slate-500">{{ 'createJob.photoLimits' | translate }}</p>
-        @if (!createdJob()) {
-          <input #photoInput id="photos" type="file" multiple accept="image/jpeg,image/png,image/webp" tabindex="-1" class="sr-only" (change)="selectPhotos($event)" [disabled]="isPosting() || photos().length >= maxPhotos" aria-describedby="photos-help" />
-          <button type="button" class="secondary-button ui-button px-5 py-2 font-medium focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-primary-600 disabled:cursor-not-allowed disabled:opacity-50 border border-gray-300 bg-white text-gray-700 enabled:hover:bg-gray-50 add-photos mt-4" (click)="photoInput.click()" [disabled]="isPosting() || photos().length >= maxPhotos" aria-controls="photos" aria-describedby="photos-help"><svg class="size-[18px] shrink-0 stroke-[1.5]" [lucideIcon]="icons.add" aria-hidden="true" />{{ 'createJob.addPhotos' | translate }}</button>
-        }
-        @for (error of photoErrors(); track $index) { <p role="alert" class="field-error ui-field-error [overflow-wrap:anywhere]">{{ error }}</p> }
-        @if (photos().length) {
-          <p class="photo-count mt-4 text-xs text-slate-500 tabular-nums">{{ 'createJob.photoCount' | translate:{count: photos().length, max: maxPhotos} }}</p>
-          <ul class="photo-grid mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-            @for (photo of photos(); track photo.previewUrl) {
-              <li class="min-w-0"><div class="photo-preview relative"><img class="h-28 w-full rounded-lg border border-slate-200 object-cover sm:h-[120px]" [src]="photo.previewUrl" [alt]="photo.file.name" />@if (photo.status !== 'uploaded') { <button type="button" class="remove-photo absolute end-1 top-1 grid size-11 cursor-pointer place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 enabled:hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-primary-600 disabled:cursor-not-allowed disabled:opacity-50" (click)="removePhoto(photo)" [disabled]="isPosting()" [attr.aria-label]="'createJob.removePhoto' | translate:{name: photo.file.name}"><svg class="size-[18px] shrink-0 stroke-[1.5]" [lucideIcon]="icons.remove" aria-hidden="true" /></button> }</div><p class="photo-name mt-2 truncate text-xs text-slate-500" [title]="photo.file.name">{{ photo.file.name }}</p>
-                @if (photo.status === 'uploaded') { <p class="photo-status mt-1 text-xs text-primary-700">{{ 'createJob.uploaded' | translate }}</p> } @else if (photo.status === 'uploading') { <p role="status" class="photo-status mt-1 text-xs text-primary-700">{{ 'createJob.uploading' | translate }}</p> }
-                @if (photo.error) { <p class="field-error ui-field-error [overflow-wrap:anywhere]">{{ photo.error }}</p> }
-              </li>
+<main class="create-job">
+  <section class="create-job__content" aria-labelledby="create-job-title">
+    <a routerLink="/jobs" class="create-job__back">
+      <svg [lucideIcon]="icons.back" class="create-job__icon create-job__icon--back" aria-hidden="true" />
+      {{ 'createJob.back' | translate }}
+    </a>
+    <header class="create-job__heading">
+      <h1 class="create-job__title" id="create-job-title">{{ 'myJobs.post' | translate }}</h1>
+      <p class="create-job__intro">{{ 'createJob.intro' | translate }}</p>
+    </header>
+    <form [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="isLoading() || isPosting()"
+      class="create-job__form" novalidate>
+      <p class="create-job__note">{{ 'createJob.requiredNote' | translate }}</p>
+      @if (isLoading()) {
+      <p role="status" class="create-job__notice">{{ 'createJob.loading' | translate }}</p>
+      }
+      @if (referenceError(); as error) {
+      <div class="create-job__error">
+        <p role="alert">{{ error }}</p>
+        <button type="button" class="create-job__button create-job__button--text" (click)="loadReferences()">
+          {{ 'common.retry' | translate }}
+        </button>
+      </div>
+      }
+      <fieldset class="create-job__section" [disabled]="formLocked()">
+        <legend class="create-job__legend">{{ 'createJob.details' | translate }}</legend>
+        <div class="create-job__fields">
+          <div class="create-job__field">
+            <label class="create-job__label" for="title">
+              {{ 'createJob.jobTitle' | translate }}
+            </label>
+            <input class="create-job__input" id="title" type="text" formControlName="title" required maxlength="120"
+              [placeholder]="'createJob.titleExample' | translate" [attr.aria-invalid]="!!fieldError('title')"
+              [attr.aria-describedby]="fieldError('title') ? 'title-error' : null" />
+            @if (fieldError('title'); as error) {
+            <p id="title-error" class="create-job__field-error">{{ error }}</p>
             }
-          </ul>
-        }
-      </section>
-      @if (errorMessage()) { <p role="alert" class="form-error ui-form-error">{{ errorMessage() }}</p> }
-      <footer class="form-footer mt-7 flex flex-col items-stretch justify-between gap-4 border-t border-slate-200 pt-6 sm:flex-row sm:items-center sm:gap-6">
+          </div>
+          <div class="create-job__field">
+            <label class="create-job__label" for="description">
+              {{ 'job.description' | translate }}
+            </label>
+            <textarea class="create-job__input create-job__input--description" id="description"
+              formControlName="description" required rows="4" [placeholder]="'createJob.descriptionExample' | translate"
+              [attr.aria-invalid]="!!fieldError('description')" [attr.aria-describedby]="
+                'description-help' + (fieldError('description') ? ' description-error' : '')
+              "></textarea>
+            <p id="description-help" class="create-job__hint">
+              {{ 'createJob.descriptionHelp' | translate }}
+            </p>
+            @if (fieldError('description'); as error) {
+            <p id="description-error" class="create-job__field-error">{{ error }}</p>
+            }
+          </div>
+          <div class="create-job__grid">
+            <div class="create-job__field">
+              <label class="create-job__label" for="skill">
+                {{ 'directory.service' | translate }}
+              </label>
+              <app-select class="create-job__select" controlId="skill" [label]="'directory.service' | translate"
+                [options]="skillOptions()" [value]="form.controls.skill.value"
+                (valueChange)="setControl(form.controls.skill, $event)" [disabled]="referencesDisabled()"
+                [invalid]="!!fieldError('skill')" [describedBy]="fieldError('skill') ? 'skill-error' : null" />
+              @if (fieldError('skill'); as error) {
+              <p id="skill-error" class="create-job__field-error">{{ error }}</p>
+              }
+            </div>
+            <div class="create-job__field">
+              <label class="create-job__label" for="budget"> {{ 'job.budget' | translate }}</label>
+              <div class="create-job__currency">
+                <input class="create-job__input create-job__input--budget" id="budget" type="number" inputmode="decimal"
+                  formControlName="budget" required min="0.01" max="99999999.99" step="0.01"
+                  [placeholder]="'createJob.budgetPlaceholder' | translate" [attr.aria-invalid]="!!fieldError('budget')"
+                  [attr.aria-describedby]="
+                    'budget-help' + (fieldError('budget') ? ' budget-error' : '')
+                  " /><span class="create-job__unit" aria-hidden="true">MAD</span>
+              </div>
+              <p id="budget-help" class="create-job__hint">
+                {{ 'createJob.budgetHelp' | translate }}
+              </p>
+              @if (fieldError('budget'); as error) {
+              <p id="budget-error" class="create-job__field-error">{{ error }}</p>
+              }
+            </div>
+          </div>
+        </div>
+      </fieldset>
+      <fieldset class="create-job__section create-job__section--divided" [disabled]="formLocked()">
+        <legend class="create-job__legend">{{ 'createJob.locationTiming' | translate }}</legend>
+        <div class="create-job__fields">
+          <div class="create-job__grid">
+            <div class="create-job__field">
+              <label class="create-job__label" for="city">{{ 'job.city' | translate }} </label>
+              <app-select class="create-job__select" controlId="city" [label]="'job.city' | translate"
+                [options]="cityOptions()" [value]="form.controls.city.value"
+                (valueChange)="setControl(form.controls.city, $event)" [disabled]="referencesDisabled()"
+                [invalid]="!!fieldError('city')" [describedBy]="fieldError('city') ? 'city-error' : null" />
+              @if (fieldError('city'); as error) {
+              <p id="city-error" class="create-job__field-error">{{ error }}</p>
+              }
+            </div>
+            <div class="create-job__field">
+              <label class="create-job__label" for="addressLine">
+                {{ 'createJob.addressOptional' | translate }}
+              </label>
+              <input class="create-job__input" id="addressLine" type="text" formControlName="addressLine"
+                maxlength="200" autocomplete="address-line1" [attr.aria-invalid]="!!fieldError('addressLine')"
+                [attr.aria-describedby]="fieldError('addressLine') ? 'addressLine-error' : null" />
+              @if (fieldError('addressLine'); as error) {
+              <p id="addressLine-error" class="create-job__field-error">{{ error }}</p>
+              }
+            </div>
+          </div>
+          <div class="create-job__grid">
+            <div class="create-job__field">
+              <label class="create-job__label" for="estimatedDuration">
+                {{ 'jobs.duration' | translate }}
+              </label>
+              <app-select class="create-job__select" controlId="estimatedDuration" [label]="'jobs.duration' | translate"
+                [options]="durationOptions()" [value]="form.controls.estimatedDuration.value ?? ''"
+                (valueChange)="setControl(form.controls.estimatedDuration, $event || null)" [disabled]="formLocked()"
+                [invalid]="!!fieldError('estimatedDuration')"
+                [describedBy]="fieldError('estimatedDuration') ? 'estimatedDuration-error' : null" />
+              @if (fieldError('estimatedDuration'); as error) {
+              <p id="estimatedDuration-error" class="create-job__field-error">{{ error }}</p>
+              }
+            </div>
+            <div class="create-job__field">
+              <label class="create-job__label" for="preferredTime">
+                {{ 'createJob.timeOptional' | translate }}
+              </label>
+              <app-select class="create-job__select" controlId="preferredTime"
+                [label]="'createJob.timeOptional' | translate" [options]="timeOptions()"
+                [value]="form.controls.preferredTime.value"
+                (valueChange)="setControl(form.controls.preferredTime, $event)" [disabled]="formLocked()"
+                [invalid]="!!fieldError('preferredTime')"
+                [describedBy]="fieldError('preferredTime') ? 'preferredTime-error' : null" />
+              @if (fieldError('preferredTime'); as error) {
+              <p id="preferredTime-error" class="create-job__field-error">{{ error }}</p>
+              }
+            </div>
+          </div>
+        </div>
+      </fieldset>
+      <app-job-photo-picker [photos]="photoState.photos()" [errors]="photoState.errors()"
+        [maxPhotos]="photoState.maxPhotos" [disabled]="isPosting()" [locked]="!!createdJob()"
+        (filesSelected)="selectPhotos($event)" (photoRemoved)="removePhoto($event)" />
+      @if (errorMessage()) {
+      <p role="alert" class="create-job__error">{{ errorMessage() }}</p>
+      }
+      <footer class="create-job__footer">
         @if (isPosting()) {
-          <div role="status" aria-live="polite" aria-atomic="true" class="posting-progress flex items-center gap-3 text-[13px] leading-5 text-slate-600"><svg [lucideIcon]="icons.loading" class="spinner size-[18px] shrink-0 stroke-[1.5] animate-spin motion-reduce:animate-none" aria-hidden="true" /><div><p>{{ (isUploading() ? 'createJob.uploadingPhotos' : isSaving() ? 'createJob.posting' : 'createJob.openingJobs') | translate }}</p>@if (isUploading()) { <p>{{ 'createJob.uploadProgress' | translate:{uploaded: uploadedPhotoCount(), total: photos().length} }}</p> }</div></div>
-        } @else { <p class="field-hint max-w-[400px] text-xs leading-5 text-slate-500">{{ 'createJob.nextStep' | translate }}</p> }
-        <button type="submit" class="primary-button ui-button px-5 py-2 font-medium focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-primary-600 disabled:cursor-not-allowed disabled:opacity-50 shrink-0 bg-primary-700 text-white enabled:hover:bg-primary-800" [disabled]="isLoading() || isPosting() || !!createdJob() || !!referenceError()">{{ (isUploading() ? 'createJob.uploadingPhotos' : isSaving() ? 'createJob.posting' : isRedirecting() ? 'createJob.openingJobs' : 'createJob.post') | translate }}</button>
+        <div role="status" aria-live="polite" aria-atomic="true" class="create-job__progress">
+          <svg [lucideIcon]="icons.loading" class="create-job__icon create-job__icon--busy" aria-hidden="true" />
+          <div>
+            <p>{{ postingLabel() | translate }}</p>
+            @if (photoState.isUploading()) {
+            <p>
+              {{
+              'createJob.uploadProgress'
+              | translate
+              : {
+              uploaded: photoState.uploadedCount(),
+              total: photoState.photos().length,
+              }
+              }}
+            </p>
+            }
+          </div>
+        </div>
+        } @else {
+        <p class="create-job__hint create-job__hint--footer">
+          {{ 'createJob.nextStep' | translate }}
+        </p>
+        }
+        <button type="submit" class="create-job__button create-job__button--primary" [disabled]="referencesDisabled()">
+          {{ postingLabel() | translate }}
+        </button>
       </footer>
     </form>
   </section>
 </main>
 <app-footer />
-@if (showFailure()) { <app-posting-status-modal [heading]="'createJob.postingStatus' | translate" [message]="errorMessage() || ('createJob.postError' | translate)" (closed)="showFailure.set(false)" /> }
+@if (showFailure()) {
+<app-posting-status-modal [heading]="
+      (createdJob() && photoState.uploadErrors().length
+        ? 'jobs.postedPartial'
+        : 'createJob.postingStatus'
+      ) | translate
+    " [message]="errorMessage() || ('createJob.postError' | translate)" [errors]="photoState.uploadErrors()"
+  (closed)="closeFailure()" />
+}

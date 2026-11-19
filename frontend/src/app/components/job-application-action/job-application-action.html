@@ -1,0 +1,46 @@
+@if (showAction()) {
+  @if (applied()) {
+    <p class="job-application-action__applied" role="status">
+      <svg class="job-application-action__icon" lucideCircleCheck aria-hidden="true"></svg>
+      {{ 'jobDetails.applied' | translate }}
+    </p>
+    <a routerLink="/applications" class="job-application-action__link">
+      {{ 'jobDetails.myApplications' | translate }}
+    </a>
+  } @else if (isOwner()) {
+    <a [routerLink]="['/jobs', job().id, 'applicants']" class="job-application-action__button">
+      {{ 'myJobs.viewApplicants' | translate }}
+    </a>
+  } @else if (job().status !== 'OPEN') {
+    <p class="job-application-action__note">{{ 'jobDetails.closed' | translate }}</p>
+  } @else if (eligibility() === 'loading') {
+    <p class="job-application-action__note" role="status">
+      {{ 'jobDetails.checkingProfile' | translate }}
+    </p>
+  } @else if (eligibility() === 'error') {
+    <p class="job-application-action__note" role="alert">
+      {{ 'jobDetails.profileCheckFailed' | translate }}
+    </p>
+    <button type="button" class="job-application-action__link" (click)="retryEligibility()">
+      {{ 'common.retry' | translate }}
+    </button>
+  } @else if (eligibility() === 'ineligible') {
+    <p class="job-application-action__note">{{ 'jobDetails.needsProfile' | translate }}</p>
+    <a routerLink="/professional-profile" class="job-application-action__link">
+      {{ 'jobDetails.viewProfile' | translate }}
+    </a>
+  } @else {
+    <button
+      type="button"
+      class="job-application-action__button"
+      (click)="apply()"
+      [disabled]="!canApply()"
+      [attr.aria-busy]="busy()"
+    >
+      {{ (busy() ? 'jobDetails.applying' : 'jobDetails.apply') | translate }}
+    </button>
+  }
+}
+@if (applyError(); as message) {
+  <p class="job-application-action__error" role="alert">{{ message }}</p>
+}

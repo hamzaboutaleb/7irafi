@@ -1,31 +1,71 @@
-<article class="job-card group relative flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white transition-colors hover:border-gray-300 motion-reduce:transition-none">
-  <button type="button" class="job-open absolute inset-0 z-0 w-full rounded-xl focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-primary-700" (click)="viewDetails.emit()" aria-haspopup="dialog"
-    [attr.aria-label]="'jobs.viewDetails' | translate: { title: job().title }"></button>
+<article class="job-card">
+  <button
+    type="button"
+    class="job-card__open"
+    (click)="viewDetails.emit()"
+    aria-haspopup="dialog"
+    [attr.aria-label]="'jobs.viewDetails' | translate: { title: job().title }"
+  ></button>
   @if (imageUrl(); as image) {
-    <img [src]="image" [alt]="job().title" (error)="onImageError()" loading="lazy" class="job-image h-40 w-full shrink-0 border-b border-gray-100 object-cover" />
+    <img
+      [src]="image"
+      [alt]="job().title"
+      (error)="onImageError()"
+      loading="lazy"
+      class="job-card__image"
+    />
   }
-  <div class="relative z-1 flex flex-1 flex-col gap-4 p-5 pointer-events-none">
-    <div class="flex items-start gap-2">
-      @if (!imageUrl()) { <span class="trade-icon grid size-8 shrink-0 place-items-center rounded-lg bg-gray-100 text-gray-500" aria-hidden="true"><svg [lucideIcon]="tradeIcon()" class="size-4 shrink-0 stroke-1.5"></svg></span> }
-      <h2 class="line-clamp-2 min-w-0 flex-1 overflow-hidden [overflow-wrap:anywhere] text-base leading-6 font-semibold text-gray-900">{{ job().title }}</h2>
-      <span class="max-w-[44%] shrink-0 rounded bg-gray-100 px-1.5 py-0.5 text-[11px] leading-4 font-medium text-gray-600 data-[status=OPEN]:bg-primary-50 data-[status=OPEN]:text-primary-800 data-[status=ACCEPTED]:bg-primary-50 data-[status=ACCEPTED]:text-primary-800 data-[status=COMPLETED]:bg-primary-50 data-[status=COMPLETED]:text-primary-800" [attr.data-status]="job().status === 'COMPLETED' ? 'COMPLETED' : applicationStatus() || job().status">{{ statusLabel() }}</span>
+  <div class="job-card__content">
+    <div class="job-card__header">
+      @if (!imageUrl()) {
+        <span class="job-card__trade-icon" aria-hidden="true"
+          ><svg [lucideIcon]="tradeIcon()" class="job-card__icon"></svg
+        ></span>
+      }
+      <h2 class="job-card__title">{{ job().title }}</h2>
+      <span
+        class="job-card__status"
+        [class.job-card__status--highlighted]="
+          displayStatus() === 'OPEN' ||
+          displayStatus() === 'ACCEPTED' ||
+          displayStatus() === 'COMPLETED'
+        "
+        [attr.data-status]="displayStatus()"
+        >{{ statusLabel() }}</span
+      >
     </div>
-    <div class="grid gap-1 text-[13px] leading-5 text-gray-500">
-      <p class="job-trade [overflow-wrap:anywhere]">{{ job().skill.replaceAll('_', ' ') | titlecase }}</p>
-      <p class="job-location flex items-center gap-1 [overflow-wrap:anywhere]"><svg lucideMapPin aria-hidden="true" class="size-3.5 shrink-0 stroke-1.5"></svg>{{ job().city.replaceAll('_', ' ') | titlecase }}</p>
+    <div class="job-card__metadata">
+      <p class="job-card__trade">{{ job().skill.replaceAll('_', ' ') | titlecase }}</p>
+      <p class="job-card__location">
+        <svg lucideMapPin aria-hidden="true" class="job-card__icon job-card__icon--small"></svg
+        >{{ job().city.replaceAll('_', ' ') | titlecase }}
+      </p>
     </div>
-    <div class="mt-auto flex flex-wrap items-end justify-between gap-3 border-t border-gray-100 pt-4">
-      <dl class="job-budget">
-        <dt class="text-xs leading-4 text-gray-500">{{ 'job.budget' | translate }}</dt>
-        <dd class="mt-1 [overflow-wrap:anywhere] text-xl leading-7 font-semibold tabular-nums text-gray-900"><bdi>{{ budgetLabel() }} <span class="text-xs font-normal text-gray-500">MAD</span></bdi></dd>
+    <div class="job-card__footer">
+      <dl class="job-card__budget">
+        <dt class="job-card__label">{{ 'job.budget' | translate }}</dt>
+        <dd class="job-card__amount">
+          <bdi>{{ budgetLabel() }} <span class="job-card__currency">MAD</span></bdi>
+        </dd>
       </dl>
-      <dl class="text-end">
-        <dt class="text-xs leading-4 text-gray-500">{{ (appliedAt() ? 'jobs.appliedOn' : 'jobDetails.posted') | translate }}</dt>
-        <dd class="mt-1 text-xs leading-5 text-gray-500"><time [attr.datetime]="appliedAt() || job().createdAt">{{ dateLabel() }}</time></dd>
+      <dl class="job-card__posted">
+        <dt class="job-card__label">
+          {{ (appliedAt() ? 'jobs.appliedOn' : 'jobDetails.posted') | translate }}
+        </dt>
+        <dd class="job-card__date">
+          <time [attr.datetime]="appliedAt() || job().createdAt">
+            {{ dateLabel() }}
+          </time>
+        </dd>
       </dl>
     </div>
     @if (canReview()) {
-      <button type="button" class="review-button pointer-events-auto relative z-2 min-h-11 rounded-lg bg-primary-700 px-3 py-2 text-sm leading-5 font-medium text-white hover:bg-primary-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700" (click)="reviewRequested.emit()" aria-haspopup="dialog">
+      <button
+        type="button"
+        class="job-card__review"
+        (click)="reviewRequested.emit()"
+        aria-haspopup="dialog"
+      >
         {{ (reviewed() ? 'reviews.viewReview' : 'reviews.reviewJob') | translate }}
       </button>
     }

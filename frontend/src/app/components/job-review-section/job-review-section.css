@@ -1,0 +1,89 @@
+@reference '../../../styles.css';
+
+:host {
+  display: contents;
+}
+
+.job-review-section {
+  @apply mt-6 pt-6;
+  border-top: 1px solid #f3f4f6;
+}
+
+.job-review-section__heading {
+  @apply mb-3 flex flex-wrap items-center justify-between gap-2;
+}
+
+:host-context(.job-details--review) .job-review-section {
+  margin-top: 20px;
+  padding-top: 0;
+  border-top: 0;
+}
+
+:host-context(.job-details--review) .job-review-section__heading {
+  margin-bottom: 8px;
+}
+
+.job-review-section__title {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  color: var(--color-gray-700);
+}
+
+.job-review-section__action:focus-visible {
+  outline: 2px solid var(--color-primary-700);
+  outline-offset: 2px;
+}
+
+.job-review-section__message,
+.job-review-section__success {
+  font-size: 14px;
+  line-height: 24px;
+}
+
+.job-review-section__message {
+  color: var(--color-gray-500);
+}
+
+.job-review-section__success {
+  @apply mb-3;
+  color: var(--color-primary-800);
+}
+
+.job-review-section__saved-heading {
+  @apply flex items-center justify-between gap-3;
+}
+
+.job-review-section__date {
+  font-size: 12px;
+  color: var(--color-gray-500);
+}
+
+.job-review-section__recipient {
+  @apply mt-3;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-gray-700);
+}
+
+.job-review-section__comment {
+  @apply mt-3 whitespace-pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+  line-height: 26px;
+  color: var(--color-gray-600);
+}
+
+.job-review-section__action {
+  @apply inline-flex min-h-11 cursor-pointer items-center underline;
+  color: var(--color-primary-800);
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+  text-underline-offset: 4px;
+}
+
+.job-review-section__action:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}

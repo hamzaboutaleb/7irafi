@@ -1,0 +1,28 @@
+<p class="my-jobs-loading__status" role="status">{{ 'myJobs.loading' | translate }}</p>
+<div class="my-jobs-loading" aria-hidden="true">
+  <div class="my-jobs-loading__bar my-jobs-loading__bar--count"></div>
+  <ul class="my-jobs-loading__list">
+    @for (placeholder of [1, 2, 3, 4, 5, 6]; track placeholder) {
+      <li class="my-jobs-loading__item">
+        <div class="my-jobs-loading__row">
+          <div class="my-jobs-loading__info">
+            <div class="my-jobs-loading__heading">
+              <div class="my-jobs-loading__bar my-jobs-loading__bar--title"></div>
+              <div class="my-jobs-loading__bar my-jobs-loading__bar--status"></div>
+            </div>
+            <div class="my-jobs-loading__metadata">
+              <div class="my-jobs-loading__bar my-jobs-loading__bar--meta"></div>
+              <div class="my-jobs-loading__bar my-jobs-loading__bar--meta"></div>
+              <div class="my-jobs-loading__bar my-jobs-loading__bar--date"></div>
+            </div>
+          </div>
+          <div class="my-jobs-loading__bar my-jobs-loading__bar--budget"></div>
+          <div class="my-jobs-loading__actions">
+            <div class="my-jobs-loading__bar my-jobs-loading__bar--button"></div>
+            <div class="my-jobs-loading__bar my-jobs-loading__bar--menu"></div>
+          </div>
+        </div>
+      </li>
+    }
+  </ul>
+</div>

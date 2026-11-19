@@ -1,64 +1,220 @@
 <app-navbar />
-<main class="applications-page min-h-[75dvh] bg-[#f8f9fa] px-4 pt-6 pb-12 text-gray-900 min-[601px]:px-6 min-[601px]:pt-10 min-[601px]:pb-16">
-  <section class="applications-content mx-auto max-w-[1120px]" aria-labelledby="applications-title">
-    <header class="page-heading mb-6 flex flex-wrap items-start justify-between gap-4 min-[601px]:flex-nowrap min-[601px]:items-center min-[601px]:gap-6 min-[601px]:mb-8">
-      <div><h1 class="text-2xl leading-8 font-semibold min-[601px]:text-[28px] min-[601px]:leading-9" id="applications-title">{{ 'applications.heading' | translate }}</h1><p class="mt-1 text-sm text-slate-500">{{ 'applications.trackerSubtitle' | translate }}</p></div>
-      <a routerLink="/jobs" class="primary-button ui-button ui-action-focus ui-button-primary px-4 py-2 font-medium"><svg class="size-[18px] shrink-0" [lucideIcon]="icons.search" aria-hidden="true" />{{ 'applications.findWork' | translate }}</a>
+<main class="applications">
+  <section class="applications__content" aria-labelledby="applications-title">
+    <header class="applications__heading">
+      <div>
+        <h1 class="applications__title" id="applications-title">
+          {{ 'applications.heading' | translate }}
+        </h1>
+        <p class="applications__subtitle">{{ 'applications.trackerSubtitle' | translate }}</p>
+      </div>
+      <a routerLink="/jobs" class="applications__button applications__button--primary">
+        <svg class="applications__icon" [lucideIcon]="icons.search" aria-hidden="true" />
+        {{ 'applications.findWork' | translate }}
+      </a>
     </header>
     @if (loading()) {
-      <p role="status" class="page-state px-6 py-12 text-center text-slate-500">{{ 'common.loading' | translate }}</p>
+      <p role="status" class="applications__state">{{ 'common.loading' | translate }}</p>
     } @else if (error(); as errorKey) {
-      <div role="alert" class="page-state px-6 py-12 text-center error-state rounded-xl border border-slate-200 bg-white text-red-700 [&>p]:mt-2 [&>p]:mb-6 [&>p]:text-sm"><p>{{ errorKey | translate }}</p><button type="button" class="secondary-button ui-button ui-action-focus ui-button-secondary px-4 py-2 font-medium" (click)="load()">{{ 'common.retry' | translate }}</button></div>
+      <div role="alert" class="applications__state applications__state--error">
+        <p class="applications__state-message">{{ errorKey | translate }}</p>
+        <button
+          type="button"
+          class="applications__button applications__button--secondary"
+          (click)="load()"
+        >
+          {{ 'common.retry' | translate }}
+        </button>
+      </div>
     } @else if (!rows().length) {
-      <div class="page-state ui-empty-state empty-state [&>p]:mb-6">
-        <svg class="size-[18px] shrink-0" [lucideIcon]="icons.work" aria-hidden="true" />
-        <h2>{{ 'applications.emptyTitle' | translate }}</h2><p>{{ 'applications.emptyHint' | translate }}</p>
-        <a routerLink="/jobs" class="primary-button ui-button ui-action-focus ui-button-primary px-4 py-2 font-medium">{{ 'applications.findWork' | translate }}</a>
+      <div class="applications__state applications__state--empty">
+        <svg class="applications__icon" [lucideIcon]="icons.work" aria-hidden="true" />
+        <h2 class="applications__state-title">{{ 'applications.emptyTitle' | translate }}</h2>
+        <p class="applications__state-message">{{ 'applications.emptyHint' | translate }}</p>
+        <a routerLink="/jobs" class="applications__button applications__button--primary">
+          {{ 'applications.findWork' | translate }}
+        </a>
       </div>
     } @else {
-      <p class="result-count mb-3 text-[13px] text-slate-500 tabular-nums">{{ number(totalElements()) }} {{ (totalElements() === 1 ? 'applications.one' : 'applications.many') | translate }}</p>
-      <ul class="application-list divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
+      <p class="applications__count">
+        {{ number(totalElements()) }}
+        {{ (totalElements() === 1 ? 'applications.one' : 'applications.many') | translate }}
+      </p>
+      <ul class="applications__list">
         @for (row of rows(); track row.id) {
-          <li><article class="application-row grid grid-cols-[minmax(0,1fr)] items-center gap-4 px-4 py-5 min-[601px]:grid-cols-[minmax(0,1fr)_176px] min-[601px]:gap-x-6 min-[601px]:p-6 min-[901px]:grid-cols-[minmax(0,1fr)_200px_176px] min-[901px]:gap-6" [attr.aria-labelledby]="'application-' + row.id">
-            <div class="application-info min-w-0">
-              <h2 class="text-base leading-6 font-semibold [overflow-wrap:anywhere]" [id]="'application-' + row.id">
-                @if (row.job; as job) { <button type="button" class="cursor-pointer text-start hover:text-primary-700 hover:underline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-primary-500" (click)="selectedJobId.set(row.jobId)">{{ job.title }}</button> }
-                @else { {{ (row.jobMissing ? 'applications.jobRemoved' : 'applications.jobUnavailable') | translate }} }
-              </h2>
-              @if (row.job; as job) {
-                <div class="job-meta ui-job-metadata"><span class="inline-flex items-center gap-1 [overflow-wrap:anywhere]"><svg class="size-3.5 shrink-0" [lucideIcon]="icons.work" aria-hidden="true" />{{ job.skill.replaceAll('_', ' ') | titlecase }}</span><span class="inline-flex items-center gap-1 [overflow-wrap:anywhere]"><svg class="size-3.5 shrink-0" [lucideIcon]="icons.city" aria-hidden="true" />{{ job.city.replaceAll('_', ' ') | titlecase }}</span><span class="budget inline-flex items-center gap-1 text-gray-900 tabular-nums">{{ number(job.budget) }} <span class="text-slate-500">MAD</span></span></div>
-              }
-              <p class="applied-date mt-2 text-xs text-slate-500">{{ 'applications.applied' | translate }} {{ date(row.createdAt) }}</p>
-              @if (!row.job) { <p class="unavailable-hint mt-2 text-[13px] leading-5 text-slate-500">{{ (row.jobMissing ? 'applications.removedHint' : 'applications.unavailableHint') | translate }}</p> }
-            </div>
-            <div class="application-state min-[601px]:row-start-2 min-[901px]:row-auto"><span class="status-label inline-block rounded bg-gray-100 px-2 py-0.5 text-xs leading-5 text-slate-600 [&.accepted]:bg-primary-50 [&.accepted]:text-primary-700" [class.accepted]="row.status === 'ACCEPTED'">{{ statusLabel(row) | translate }}</span><p class="mt-2 text-[13px] leading-5 text-slate-500">{{ statusHint(row) | translate }}</p></div>
-            <div class="application-actions flex flex-col items-stretch gap-2 min-[601px]:col-start-2 min-[601px]:row-[1/3] min-[901px]:col-auto min-[901px]:row-auto max-[600px]:empty:hidden">
-              @if (canReview(row)) {
-                <button type="button" class="primary-button ui-button ui-action-focus ui-button-primary px-4 py-2 font-medium" (click)="openReview(row.jobId)" aria-haspopup="dialog"><svg class="size-[18px] shrink-0" [lucideIcon]="icons.review" aria-hidden="true" />{{ (ratings.hasReviewedJob(row.jobId) ? 'reviews.viewReview' : 'reviews.leave') | translate }}</button>
-              } @else if (row.status === 'ACCEPTED') {
-                <button type="button" class="primary-button ui-button ui-action-focus ui-button-primary px-4 py-2 font-medium" [disabled]="!!opening()" (click)="message(row)"><svg class="size-[18px] shrink-0" [lucideIcon]="icons.message" aria-hidden="true" />{{ (opening() === row.id ? 'applications.opening' : 'applications.messageOwner') | translate }}</button>
-              } @else if (row.job) {
-                <button type="button" class="secondary-button ui-button ui-action-focus ui-button-secondary px-4 py-2 font-medium" (click)="selectedJobId.set(row.jobId)" aria-haspopup="dialog">{{ 'applications.viewJob' | translate }}</button>
-              }
-              @if (!row.job && !row.jobMissing) {
-                <button type="button" class="secondary-button ui-button ui-action-focus ui-button-secondary px-4 py-2 font-medium" [disabled]="retrying().has(row.id)" (click)="retryJob(row)">{{ (retrying().has(row.id) ? 'common.loading' : 'common.retry') | translate }}</button>
-              }
-              @if (messageError(); as failure) { @if (failure.id === row.id) { <p role="alert" class="message-error text-[13px] leading-5 text-red-700">{{ failure.key | translate }}</p> } }
-            </div>
-          </article></li>
+          <li class="applications__item">
+            <article class="applications__row" [attr.aria-labelledby]="'application-' + row.id">
+              <div class="applications__info">
+                <h2 class="applications__job-title" [id]="'application-' + row.id">
+                  @if (row.job; as job) {
+                    <button
+                      type="button"
+                      class="applications__job-link"
+                      (click)="selectedJobId.set(row.jobId)"
+                    >
+                      {{ job.title }}
+                    </button>
+                  } @else {
+                    {{
+                      (row.jobMissing ? 'applications.jobRemoved' : 'applications.jobUnavailable')
+                        | translate
+                    }}
+                  }
+                </h2>
+                @if (row.job; as job) {
+                  <div class="applications__meta">
+                    <span class="applications__meta-item">
+                      <svg
+                        class="applications__icon applications__icon--small"
+                        [lucideIcon]="icons.work"
+                        aria-hidden="true"
+                      />
+                      {{ job.skill.replaceAll('_', ' ') | titlecase }}
+                    </span>
+                    <span class="applications__meta-item">
+                      <svg
+                        class="applications__icon applications__icon--small"
+                        [lucideIcon]="icons.city"
+                        aria-hidden="true"
+                      />
+                      {{ job.city.replaceAll('_', ' ') | titlecase }}
+                    </span>
+                    <span class="applications__budget">
+                      {{ number(job.budget) }} <span class="applications__currency">MAD</span>
+                    </span>
+                  </div>
+                }
+                <p class="applications__date">
+                  {{ 'applications.applied' | translate }} {{ date(row.createdAt) }}
+                </p>
+                @if (!row.job) {
+                  <p class="applications__hint">
+                    {{
+                      (row.jobMissing ? 'applications.removedHint' : 'applications.unavailableHint')
+                        | translate
+                    }}
+                  </p>
+                }
+              </div>
+              <div class="applications__outcome">
+                <span
+                  class="applications__status"
+                  [class.applications__status--accepted]="row.status === 'ACCEPTED'"
+                >
+                  {{ statusLabel(row) | translate }}
+                </span>
+                <p class="applications__hint">{{ statusHint(row) | translate }}</p>
+              </div>
+              <div class="applications__actions">
+                @if (canReview(row)) {
+                  <button
+                    type="button"
+                    class="applications__button applications__button--primary"
+                    (click)="openReview(row.jobId)"
+                    aria-haspopup="dialog"
+                  >
+                    <svg
+                      class="applications__icon"
+                      [lucideIcon]="icons.review"
+                      aria-hidden="true"
+                    />
+                    {{
+                      (ratings.hasReviewedJob(row.jobId) ? 'reviews.viewReview' : 'reviews.leave')
+                        | translate
+                    }}
+                  </button>
+                } @else if (row.status === 'ACCEPTED') {
+                  <button
+                    type="button"
+                    class="applications__button applications__button--primary"
+                    [disabled]="!!opening()"
+                    (click)="message(row)"
+                  >
+                    <svg
+                      class="applications__icon"
+                      [lucideIcon]="icons.message"
+                      aria-hidden="true"
+                    />
+                    {{
+                      (opening() === row.id ? 'applications.opening' : 'applications.messageOwner')
+                        | translate
+                    }}
+                  </button>
+                } @else if (row.job) {
+                  <button
+                    type="button"
+                    class="applications__button applications__button--secondary"
+                    (click)="selectedJobId.set(row.jobId)"
+                    aria-haspopup="dialog"
+                  >
+                    {{ 'applications.viewJob' | translate }}
+                  </button>
+                }
+                @if (!row.job && !row.jobMissing) {
+                  <button
+                    type="button"
+                    class="applications__button applications__button--secondary"
+                    [disabled]="retrying().has(row.id)"
+                    (click)="retryJob(row)"
+                  >
+                    {{ (retrying().has(row.id) ? 'common.loading' : 'common.retry') | translate }}
+                  </button>
+                }
+                @if (messageError(); as failure) {
+                  @if (failure.id === row.id) {
+                    <p role="alert" class="applications__message-error">
+                      {{ failure.key | translate }}
+                    </p>
+                  }
+                }
+              </div>
+            </article>
+          </li>
         }
       </ul>
       @if (totalPages() > 1) {
-        <nav [attr.aria-label]="'applications.pagination' | translate" class="pagination mt-6 flex items-center justify-center gap-2 min-[601px]:gap-4 [&>span]:text-[13px] [&>span]:text-slate-500 [&>span]:tabular-nums max-[600px]:[&>button]:p-2">
-          <button type="button" class="secondary-button ui-button ui-action-focus ui-button-secondary px-4 py-2 font-medium" (click)="load(page() - 1)" [disabled]="page() === 0"><svg [lucideIcon]="icons.previous" aria-hidden="true" class="size-[18px] shrink-0 directional rtl:scale-x-[-1]" />{{ 'common.previous' | translate }}</button>
-          <span>{{ pageLabel() }}</span>
-          <button type="button" class="secondary-button ui-button ui-action-focus ui-button-secondary px-4 py-2 font-medium" (click)="load(page() + 1)" [disabled]="page() + 1 >= totalPages()">{{ 'common.next' | translate }}<svg [lucideIcon]="icons.next" aria-hidden="true" class="size-[18px] shrink-0 directional rtl:scale-x-[-1]" /></button>
+        <nav
+          [attr.aria-label]="'applications.pagination' | translate"
+          class="applications__pagination"
+        >
+          <button
+            type="button"
+            class="applications__button applications__button--secondary"
+            (click)="load(page() - 1)"
+            [disabled]="page() === 0"
+          >
+            <svg
+              [lucideIcon]="icons.previous"
+              aria-hidden="true"
+              class="applications__icon applications__icon--directional"
+            />
+            {{ 'common.previous' | translate }}
+          </button>
+          <span class="applications__page-label">{{ pageLabel() }}</span>
+          <button
+            type="button"
+            class="applications__button applications__button--secondary"
+            (click)="load(page() + 1)"
+            [disabled]="page() + 1 >= totalPages()"
+          >
+            {{ 'common.next' | translate }}
+            <svg
+              [lucideIcon]="icons.next"
+              aria-hidden="true"
+              class="applications__icon applications__icon--directional"
+            />
+          </button>
         </nav>
       }
     }
   </section>
 </main>
 @if (selectedJobId(); as jobId) {
-  <app-job-details-modal [jobId]="jobId" [alreadyApplied]="true" [startWithReview]="startWithReview()" (closed)="selectedJobId.set(null); startWithReview.set(false)" />
+  <app-job-details-modal
+    [jobId]="jobId"
+    [alreadyApplied]="true"
+    [startWithReview]="startWithReview()"
+    (closed)="selectedJobId.set(null); startWithReview.set(false)"
+  />
 }
 <app-footer />

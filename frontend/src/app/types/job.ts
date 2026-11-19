@@ -2,6 +2,8 @@ import { Page } from './api.js';
 
 export type JobStatus = 'OPEN' | 'ASSIGNED' | 'COMPLETED' | 'CANCELLED';
 
+export type JobAction = 'edit' | 'cancel' | 'complete' | 'delete';
+
 export type EstimatedDuration = 'HALF_DAY' | 'FULL_DAY' | 'MULTI_DAY';
 
 export type PreferredTime = 'MORNING' | 'AFTERNOON' | 'EVENING' | 'ANYTIME';
@@ -26,6 +28,16 @@ export interface JobListItem {
 export interface JobResponse extends Omit<JobListItem, 'thumbnailUrl'> {
   addressLine: string | null;
 }
+
+export type JobActionResult =
+  | {
+      action: 'delete';
+      jobId: string;
+    }
+  | {
+      action: Exclude<JobAction, 'delete'>;
+      job: JobResponse;
+    };
 
 export interface JobImage {
   id: string;
@@ -78,4 +90,13 @@ export interface JobPhoto {
   previewUrl: string;
   status: 'queued' | 'uploading' | 'uploaded' | 'failed';
   error: string | null;
+}
+
+export interface JobFilters {
+  skill: string;
+  city: string;
+  minBudget: number | null;
+  maxBudget: number | null;
+  duration: EstimatedDuration | '';
+  preferredTime: PreferredTime | '';
 }

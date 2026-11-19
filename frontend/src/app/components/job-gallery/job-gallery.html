@@ -1,0 +1,120 @@
+@if (visibleImages().length) {
+  <section class="job-gallery" aria-labelledby="gallery-heading">
+    <button
+      type="button"
+      class="job-gallery__preview"
+      (click)="openImage()"
+      aria-haspopup="dialog"
+      [attr.aria-label]="'jobDetails.viewFullImage' | translate"
+    >
+      <img
+        class="job-gallery__preview-image"
+        [src]="imageUrl()"
+        [alt]="title()"
+        (error)="onImageError($event)"
+      />
+      <span class="job-gallery__expand">
+        <svg class="job-gallery__icon" lucideMaximize2 aria-hidden="true" />
+        {{ 'jobDetails.viewFullImage' | translate }}
+      </span>
+    </button>
+    @if (visibleImages().length > 1) {
+      <div
+        class="job-gallery__thumbnails"
+        role="group"
+        [attr.aria-label]="'jobDetails.images' | translate"
+      >
+        @for (image of visibleImages(); track image.id; let index = $index) {
+          <button
+            type="button"
+            class="job-gallery__thumbnail"
+            [class.job-gallery__thumbnail--selected]="selectedImage() === index"
+            (click)="selectedImage.set(index)"
+            [attr.aria-pressed]="selectedImage() === index"
+            [attr.aria-label]="'jobDetails.showImage' | translate: { number: index + 1 }"
+          >
+            <img
+              class="job-gallery__thumbnail-image"
+              [src]="image.url"
+              alt=""
+              loading="lazy"
+              (error)="onImageError($event)"
+            />
+          </button>
+        }
+      </div>
+    }
+  </section>
+}
+
+<dialog
+  #imageDialog
+  class="job-gallery__dialog"
+  (keydown.arrowleft)="$event.preventDefault(); changeImage(-1)"
+  (keydown.arrowright)="$event.preventDefault(); changeImage(1)"
+  aria-labelledby="job-image-title"
+>
+  <header class="job-gallery__dialog-header">
+    <div class="job-gallery__dialog-heading">
+      <h2 id="job-image-title" class="job-gallery__dialog-title">
+        {{ title() }}
+      </h2>
+      <p
+        class="job-gallery__count job-gallery__count--fullscreen"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        {{
+          'jobDetails.imageCount'
+            | translate
+              : {
+                  current: selectedImage() + 1,
+                  total: visibleImages().length,
+                }
+        }}
+      </p>
+    </div>
+    <button
+      type="button"
+      class="job-gallery__close"
+      autofocus
+      (click)="imageDialog.close()"
+      [attr.aria-label]="'common.close' | translate"
+    >
+      <svg class="job-gallery__icon job-gallery__icon--close" lucideX aria-hidden="true" />
+    </button>
+  </header>
+  <div class="job-gallery__dialog-body">
+    @if (visibleImages().length) {
+      <img
+        class="job-gallery__full-image"
+        [src]="imageUrl()"
+        [alt]="title()"
+        (error)="onImageError($event)"
+      />
+    }
+    @if (visibleImages().length > 1) {
+      <button
+        type="button"
+        class="job-gallery__nav job-gallery__nav--previous"
+        (click)="changeImage(-1)"
+        [attr.aria-label]="'jobDetails.previousImage' | translate"
+      >
+        <svg class="job-gallery__icon job-gallery__nav-icon" lucideChevronLeft aria-hidden="true" />
+      </button>
+      <button
+        type="button"
+        class="job-gallery__nav job-gallery__nav--next"
+        (click)="changeImage(1)"
+        [attr.aria-label]="'jobDetails.nextImage' | translate"
+      >
+        <svg
+          class="job-gallery__icon job-gallery__nav-icon"
+          lucideChevronRight
+          aria-hidden="true"
+        />
+      </button>
+    }
+  </div>
+</dialog>
