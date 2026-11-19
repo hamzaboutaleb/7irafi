@@ -1,4 +1,4 @@
-package com.herafi.chat_service.config;
+package com.herafi.shared.observability;
 
 import java.io.IOException;
 
@@ -7,9 +7,7 @@ import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.stereotype.Component;
 
-@Component
 public class RequestIdInterceptor implements ClientHttpRequestInterceptor {
 
     private static final String REQUEST_ID_HEADER = "X-Request-Id";
