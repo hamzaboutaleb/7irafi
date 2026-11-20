@@ -112,7 +112,7 @@ export class Register {
       .register(this.form.getRawValue())
       .pipe(
         // account created: save the token and open the next page.
-        switchMap((response) => this.authService.finishSignIn(response.accessToken, returnUrl)),
+        switchMap((response) => this.authService.finishSignIn(response, returnUrl)),
         // If the user leaves the page before this finishes, ignore the rest.
         takeUntilDestroyed(this.destroyRef),
       )

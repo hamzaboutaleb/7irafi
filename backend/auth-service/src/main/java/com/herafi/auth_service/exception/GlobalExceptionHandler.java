@@ -31,6 +31,15 @@ public class GlobalExceptionHandler {
                 .body(ApiErrorResponse.of("INVALID_CREDENTIALS", exception.getMessage()));
     }
 
+    // the frontend logs the user out when it sees this code
+    @ExceptionHandler(InvalidRefreshTokenException.class)
+    public ResponseEntity<ApiErrorResponse> handleInvalidRefreshToken(
+            InvalidRefreshTokenException exception) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(ApiErrorResponse.of("INVALID_REFRESH_TOKEN", exception.getMessage()));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorResponse> handleValidation(
             MethodArgumentNotValidException exception) {
