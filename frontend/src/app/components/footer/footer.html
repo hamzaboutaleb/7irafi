@@ -1,58 +1,58 @@
-<footer class="bg-gray-900 text-white">
-  <div class="mx-auto max-w-7xl px-4 py-12 sm:px-8">
-    <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-      <div class="lg:col-span-2">
+<footer class="footer">
+  <div class="footer__container">
+    <div class="footer__columns">
+      <div class="footer__brand">
         <a
           routerLink="/"
-          class="inline-block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+          class="footer__brand-link"
         >
-          <img src="logo.svg" alt="{{ 'nav.home' | translate }}" class="h-10" />
+          <img src="logo.svg" alt="{{ 'nav.home' | translate }}" class="footer__logo" />
         </a>
-        <p class="mt-4 max-w-sm text-sm leading-6 text-gray-400">
+        <p class="footer__description">
           {{ 'footer.about' | translate }}
         </p>
       </div>
 
       <div>
-        <h2 class="text-sm font-semibold text-white">{{ 'footer.explore' | translate }}</h2>
-        <nav class="mt-4 flex flex-col gap-3" [attr.aria-label]="'footer.navigation' | translate">
+        <h2 class="footer__heading">{{ 'footer.explore' | translate }}</h2>
+        <nav class="footer__links" [attr.aria-label]="'footer.navigation' | translate">
           <a
             routerLink="/how-it-works"
-            class="ui-footer-link"
+            class="footer__link footer-link"
             >{{ 'nav.howItWorks' | translate }}</a
           >
           <a
             routerLink="/professionals"
-            class="ui-footer-link"
+            class="footer__link footer-link"
             >{{ 'nav.professionals' | translate }}</a
           >
           <a
             routerLink="/status"
-            class="ui-footer-link"
+            class="footer__link footer-link"
             >{{ 'footer.status' | translate }}</a
           >
         </nav>
       </div>
 
       <div>
-        <h2 class="text-sm font-semibold text-white">{{ 'footer.legal' | translate }}</h2>
-        <nav class="mt-4 flex flex-col gap-3" [attr.aria-label]="'footer.legalNavigation' | translate">
+        <h2 class="footer__heading">{{ 'footer.legal' | translate }}</h2>
+        <nav class="footer__links" [attr.aria-label]="'footer.legalNavigation' | translate">
           <a
             routerLink="/privacy-policy"
-            class="ui-footer-link"
+            class="footer__link footer-link"
             >{{ 'footer.privacy' | translate }}</a
           >
           <a
             routerLink="/terms-of-service"
-            class="ui-footer-link"
+            class="footer__link footer-link"
             >{{ 'footer.terms' | translate }}</a
           >
         </nav>
       </div>
     </div>
 
-    <div class="mt-10 border-t border-gray-800 pt-6">
-      <p class="text-sm text-gray-500">{{ 'footer.copyright' | translate }}</p>
+    <div class="footer__bottom">
+      <p class="footer__copyright">{{ 'footer.copyright' | translate }}</p>
     </div>
   </div>
 </footer>

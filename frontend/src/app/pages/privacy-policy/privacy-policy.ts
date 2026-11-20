@@ -8,5 +8,6 @@ import { TranslatePipe } from '../../pipes/translate-pipe.js';
   selector: 'app-privacy-policy',
   imports: [Navbar, Footer, TranslatePipe],
   templateUrl: './privacy-policy.html',
+  styleUrl: './privacy-policy.css',
 })
 export class PrivacyPolicy {}

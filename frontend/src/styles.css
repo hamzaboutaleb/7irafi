@@ -26,41 +26,41 @@
   --color-secondary-900: #993d3d;
 }
 
-/* Shared UI patterns. Page utilities override these component defaults. */
+/* Shared UI blocks. Component styles supply page-specific overrides. */
 @layer components {
-  .ui-nav-link {
+  .navbar-link {
     @apply inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border border-transparent px-3 py-2 text-sm leading-5 font-medium whitespace-nowrap text-gray-600 transition-colors duration-[160ms] hover:bg-gray-50 hover:text-primary-800 aria-expanded:bg-primary-50 aria-expanded:text-primary-800 aria-[current=page]:bg-primary-50 aria-[current=page]:text-primary-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700 motion-reduce:transition-none;
   }
 
-  .ui-nav-option {
-    @apply flex min-h-10 items-center gap-2 rounded px-3 py-2 text-sm leading-5 text-gray-600 transition-colors duration-[160ms] hover:bg-gray-100 hover:text-gray-700 [&.jobs-current]:bg-primary-50 [&.jobs-current]:font-medium [&.jobs-current]:text-primary-800 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary-700 motion-reduce:transition-none;
+  .navbar-option {
+    @apply flex min-h-10 items-center gap-2 rounded px-3 py-2 text-sm leading-5 text-gray-600 transition-colors duration-[160ms] hover:bg-gray-100 hover:text-gray-700 [&.navbar\_\_jobs-option--current]:bg-primary-50 [&.navbar\_\_jobs-option--current]:font-medium [&.navbar\_\_jobs-option--current]:text-primary-800 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary-700 motion-reduce:transition-none;
   }
 
-  .ui-mobile-nav-link {
-    @apply flex min-h-11 items-center justify-between gap-4 rounded-[.65rem] px-[.9rem] py-[.7rem] text-[.9rem] font-medium text-gray-600 hover:bg-[#f8fafb] [&.mobile-active]:bg-primary-50 [&.mobile-active]:font-semibold [&.mobile-active]:text-primary-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600;
+  .navbar-mobile-link {
+    @apply flex min-h-11 items-center justify-between gap-4 rounded-[.65rem] px-[.9rem] py-[.7rem] text-[.9rem] font-medium text-gray-600 hover:bg-[#f8fafb] [&.navbar\_\_mobile-link--current]:bg-primary-50 [&.navbar\_\_mobile-link--current]:font-semibold [&.navbar\_\_mobile-link--current]:text-primary-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600;
   }
 
-  .ui-auth-page {
+  .auth-layout {
     @apply grid min-h-dvh items-center bg-[#f8f9fa] px-4 py-8 text-gray-900 min-[480px]:px-5 min-[480px]:py-10;
   }
 
-  .ui-auth-panel {
+  .auth-layout__panel {
     @apply rounded-xl border border-slate-200 bg-white p-6 min-[480px]:p-8;
   }
 
-  .ui-auth-brand {
+  .auth-layout__brand {
     @apply mx-auto mb-7 flex min-h-11 w-fit items-center justify-center rounded focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-primary-600;
   }
 
-  .ui-auth-input {
+  .auth-layout__input {
     @apply min-h-12 w-full rounded-lg border border-gray-300 bg-white p-3 text-base leading-[22px] text-gray-900 focus:border-primary-600 focus:outline-none focus:ring-1 focus:ring-primary-600 aria-invalid:border-red-700 read-only:bg-gray-50 read-only:text-slate-500;
   }
 
-  .ui-password-toggle {
+  .auth-layout__password-toggle {
     @apply absolute end-0.5 top-0.5 grid size-11 cursor-pointer place-items-center rounded-md text-slate-500 enabled:hover:bg-gray-100 enabled:hover:text-gray-700 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-primary-600 disabled:cursor-not-allowed disabled:opacity-60;
   }
 
-  .ui-auth-submit {
+  .auth-layout__submit {
     @apply mt-1 min-h-12 w-full cursor-pointer rounded-lg bg-primary-700 px-5 py-3 text-sm leading-6 font-medium text-white enabled:hover:bg-primary-800 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-primary-600 disabled:cursor-not-allowed disabled:opacity-60;
   }
 
@@ -72,7 +72,7 @@
     @apply min-h-11 w-full min-w-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm leading-5 text-gray-700 placeholder:text-gray-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700;
   }
 
-  .ui-footer-link {
+  .footer-link {
     @apply w-fit rounded text-sm text-gray-400 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300;
   }
 
@@ -80,11 +80,12 @@
     @apply inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-lg text-sm;
   }
 
-  .ui-button-primary {
+  .ui-button--primary,
+  .primary-action {
     @apply bg-primary-600 text-white hover:bg-primary-700;
   }
 
-  .ui-button-secondary {
+  .ui-button--secondary {
     @apply border border-gray-300 bg-white text-gray-700 hover:bg-gray-50;
   }
 
@@ -93,7 +94,7 @@
   }
 
   /* Shared content states, form controls, and dialog actions. */
-  .ui-dashboard-link {
+  .dashboard-link {
     @apply inline-flex items-center justify-center [gap:.4rem] min-h-11 text-primary-800 [font-size:.8125rem] font-medium cursor-pointer [&:focus-visible]:[outline:2px_solid_var(--color-primary-600)] [&:focus-visible]:[outline-offset:4px] [&:focus-visible]:[border-radius:.25rem];
   }
 
@@ -174,27 +175,27 @@
     @apply grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-3;
   }
 
-  .ui-document-page {
+  .document-page {
     @apply min-h-screen bg-gray-50 px-4 py-10 sm:px-6 sm:py-16;
   }
 
-  .ui-document-card {
+  .document-page__card {
     @apply mx-auto max-w-3xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm;
   }
 
-  .ui-document-header {
+  .document-page__header {
     @apply border-b border-primary-100 bg-primary-50 px-6 py-10 sm:px-10;
   }
 
-  .ui-document-title {
+  .document-page__title {
     @apply mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl;
   }
 
-  .ui-document-body {
+  .document-page__body {
     @apply space-y-10 px-6 py-10 text-gray-700 sm:px-10;
   }
 
-  .ui-document-list {
+  .document-page__list {
     @apply mt-3 list-disc space-y-2 pl-5 leading-7 marker:text-primary-600;
   }
 

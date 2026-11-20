@@ -1,4 +1,4 @@
-package com.herafi.user_service.config;
+package com.herafi.shared.observability;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -8,16 +8,15 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponseWrapper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-@Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class RequestIdFilter extends OncePerRequestFilter {
 
@@ -43,7 +42,7 @@ public class RequestIdFilter extends OncePerRequestFilter {
         long start = System.currentTimeMillis();
         boolean failed = false;
         try {
-            filterChain.doFilter(request, response);
+            filterChain.doFilter(request, new SingleRequestIdResponse(response));
         } catch (Throwable exception) {
             failed = true;
             throw exception;
@@ -75,5 +74,31 @@ public class RequestIdFilter extends OncePerRequestFilter {
         return failed && !response.isCommitted()
                 ? HttpServletResponse.SC_INTERNAL_SERVER_ERROR
                 : response.getStatus();
+    }
+
+    /**
+     * Keeps the id set above as the only X-Request-Id. Downstream services echo
+     * the id they receive, and the proxy adds their response headers next to
+     * ours, so a forwarded response would otherwise carry it twice.
+     */
+    private static final class SingleRequestIdResponse extends HttpServletResponseWrapper {
+
+        SingleRequestIdResponse(HttpServletResponse response) {
+            super(response);
+        }
+
+        @Override
+        public void setHeader(String name, String value) {
+            if (!HEADER.equalsIgnoreCase(name)) {
+                super.setHeader(name, value);
+            }
+        }
+
+        @Override
+        public void addHeader(String name, String value) {
+            if (!HEADER.equalsIgnoreCase(name)) {
+                super.addHeader(name, value);
+            }
+        }
     }
 }

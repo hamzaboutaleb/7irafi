@@ -10,6 +10,8 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
+import com.herafi.shared.observability.RequestIdInterceptor;
+
 @Configuration
 public class ApplicationClientConfig {
     // Eureka also injects a RestClient.Builder. It needs a direct HTTP client

@@ -11,7 +11,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.herafi.application_service.config.RequestIdInterceptor;
+import com.herafi.shared.observability.RequestIdInterceptor;
 import com.herafi.application_service.exceptions.ApplicationException;
 import com.sun.net.httpserver.HttpServer;
 
