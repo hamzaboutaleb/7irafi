@@ -17,9 +17,7 @@
 }
 
 :where(.dashboard__container > :not(:last-child)) {
-  --tw-space-y-reverse: 0;
-  margin-block-start: calc(1.5rem * var(--tw-space-y-reverse));
-  margin-block-end: calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));
+  margin-block: 0 1.5rem;
 }
 
 .dashboard__header {
@@ -105,17 +103,11 @@
 }
 
 :where(.dashboard__total > :not(:last-child)) {
-  --tw-space-y-reverse: 0;
-  margin-block-start: calc(.5rem * var(--tw-space-y-reverse));
-  margin-block-end: calc(.5rem * calc(1 - var(--tw-space-y-reverse)));
+  margin-block: 0 .5rem;
 }
 
 .dashboard__total {
   transition-property: transform, translate, scale, rotate;
-  transition-timing-function: var(--tw-ease, var(--default-transition-timing-function, cubic-bezier(.4, 0, .2, 1)));
-  transition-duration: var(--tw-duration, var(--default-transition-duration, .15s));
-  --tw-duration: .15s;
-  --tw-ease: var(--ease-out, cubic-bezier(0, 0, .2, 1));
   transition-duration: .15s;
   transition-timing-function: var(--ease-out, cubic-bezier(0, 0, .2, 1));
 }
@@ -143,73 +135,6 @@
 
 .dashboard__total-value--applications {
   color: var(--color-secondary-700, #cc5454);
-}
-
-.dashboard__panel-title {
-  color: var(--color-gray-900, oklch(21% .034 264.665));
-  margin-bottom: 1rem;
-  font-weight: 500;
-}
-
-.dashboard__chart {
-  height: 14rem;
-  position: relative;
-}
-
-.dashboard__data {
-  font-size: .75rem;
-  line-height: 1.33333333333;
-  color: var(--color-slate-500, oklch(55.4% .046 257.417));
-  margin-top: .75rem;
-}
-
-.dashboard__disclosure {
-  cursor: pointer;
-  color: var(--color-primary-700, #007f7b);
-}
-
-.dashboard__table-scroll {
-  max-height: 12rem;
-  margin-top: .5rem;
-  overflow: auto;
-}
-
-.dashboard__table {
-  text-align: start;
-  width: 100%;
-}
-
-.dashboard__caption {
-  clip-path: inset(50%);
-  white-space: nowrap;
-  border-width: 0;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  position: absolute;
-  overflow: hidden;
-}
-
-.dashboard__table-heading {
-  text-align: start;
-  padding: .5rem;
-}
-
-.dashboard__table-row {
-  border-top-style: var(--tw-border-style);
-  border-top-width: 1px;
-  border-color: var(--color-gray-100, oklch(96.7% .003 264.542));
-}
-
-.dashboard__row-heading {
-  text-align: start;
-  padding: .5rem;
-  font-weight: 400;
-}
-
-.dashboard__cell {
-  padding: .5rem;
 }
 
 @property --tw-ease {

@@ -1,0 +1,31 @@
+<section class="dashboard__panel ui-panel">
+  <h2 class="dashboard__panel-title">{{ 'analytics.activity' | translate }}</h2>
+  <div class="dashboard__chart">
+    <canvas baseChart type="line" [data]="activityChart()" [options]="chartOptions()"
+      role="img" [attr.aria-label]="'analytics.activity' | translate"></canvas>
+  </div>
+  <details class="dashboard__data">
+    <summary class="dashboard__disclosure">{{ 'analytics.viewData' | translate }}</summary>
+    <div class="dashboard__table-scroll">
+      <table class="dashboard__table">
+        <caption class="dashboard__caption">{{ 'analytics.activity' | translate }}</caption>
+        <thead>
+          <tr>
+            <th scope="col" class="dashboard__table-heading">{{ 'analytics.bucket' | translate }}</th>
+            <th scope="col" class="dashboard__table-heading">{{ 'analytics.jobs' | translate }}</th>
+            <th scope="col" class="dashboard__table-heading">{{ 'analytics.applications' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.date) {
+            <tr class="dashboard__table-row">
+              <th scope="row" class="dashboard__row-heading">{{ row.date }}</th>
+              <td class="dashboard__cell">{{ row.jobs }}</td>
+              <td class="dashboard__cell">{{ row.applications }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </details>
+</section>

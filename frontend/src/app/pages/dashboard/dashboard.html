@@ -11,34 +11,33 @@
 
     <form (ngSubmit)="applyFilters()" class="dashboard__filters">
       <label>{{ 'analytics.from' | translate }}
-        <input type="date" name="start" [(ngModel)]="startDate" required class="dashboard__input ui-filter-input" />
+        <input type="date" name="start" [(ngModel)]="draftFilters.start" required class="dashboard__input ui-filter-input" />
       </label>
       <label>{{ 'analytics.to' | translate }}
-        <input type="date" name="end" [(ngModel)]="endDate" required class="dashboard__input ui-filter-input" />
+        <input type="date" name="end" [(ngModel)]="draftFilters.end" required class="dashboard__input ui-filter-input" />
       </label>
       <label>{{ 'analytics.groupBy' | translate }}
-        <select name="granularity" [(ngModel)]="granularity" class="dashboard__input ui-filter-input">
+        <select name="granularity" [(ngModel)]="draftFilters.granularity" class="dashboard__input ui-filter-input">
           <option value="day">{{ 'analytics.day' | translate }}</option>
           <option value="week">{{ 'analytics.week' | translate }}</option>
           <option value="month">{{ 'analytics.month' | translate }}</option>
         </select>
       </label>
       <button class="dashboard__action ui-button ui-button--primary ui-action-focus" type="submit">{{ 'analytics.apply' | translate }}</button>
-      <button class="dashboard__refresh dashboard-link" type="button" (click)="refreshAnalytics()" [disabled]="isLoading()">{{ 'analytics.refresh' | translate }}</button>
+      <button class="dashboard__refresh dashboard-link" type="button" (click)="refreshAnalytics()" [disabled]="requestStatus() === 'loading'">{{ 'analytics.refresh' | translate }}</button>
     </form>
-    @if (filterError(); as error) {
-      <p role="alert" class="dashboard__error ui-form-error">{{ error | translate }}</p>
+    @if (filterErrorKey(); as errorKey) {
+      <p role="alert" class="dashboard__error ui-form-error">{{ errorKey | translate }}</p>
     }
     <div class="dashboard__metadata">
       <p class="dashboard__period">{{ 'analytics.period' | translate }} <bdi>{{ appliedFilters().start }} — {{ appliedFilters().end }}</bdi> · {{ 'analytics.timezone' | translate }}</p>
-      <p role="status">{{ connectionLabel() | translate }}</p>
+      <p role="status">{{ connectionLabelKey() | translate }}</p>
     </div>
-    @if (isLoading()) {
+    @if (requestStatus() === 'loading') {
       <p role="status" class="dashboard__loading">{{ 'analytics.loading' | translate }}</p>
-    }
-    @if (loadFailed()) {
+    } @else if (requestStatus() === 'error') {
       <div role="alert" class="dashboard__error dashboard__error--load ui-form-error">
-        <p>{{ (analytics() ? 'analytics.staleError' : 'analytics.loadError') | translate }}</p>
+        <p>{{ (analyticsResults() ? 'analytics.staleError' : 'analytics.loadError') | translate }}</p>
         <button class="dashboard__refresh dashboard-link" type="button" (click)="refreshAnalytics()">{{ 'common.retry' | translate }}</button>
       </div>
     }
@@ -46,7 +45,7 @@
       <p class="dashboard__hint">{{ 'analytics.liveHint' | translate }}</p>
     }
 
-    @if (analytics(); as summary) {
+    @if (analyticsResults(); as summary) {
       <div class="dashboard__totals">
         <a routerLink="/jobs/my" class="dashboard__total ui-panel">
           <h2 class="dashboard__loading">{{ 'analytics.jobs' | translate }}</h2>
@@ -58,38 +57,8 @@
         </a>
       </div>
       @if (summary.jobs.total > 0 || summary.applications.total > 0) {
-        @if (activityChart(); as chart) {
-          <section class="dashboard__panel ui-panel">
-            <h2 class="dashboard__panel-title">{{ 'analytics.activity' | translate }}</h2>
-            <div class="dashboard__chart">
-              <canvas baseChart type="line" [data]="chart" [options]="chartOptions()"
-                role="img" [attr.aria-label]="'analytics.activity' | translate"></canvas>
-            </div>
-            <details class="dashboard__data">
-              <summary class="dashboard__disclosure">{{ 'analytics.viewData' | translate }}</summary>
-              <div class="dashboard__table-scroll">
-                <table class="dashboard__table">
-                  <caption class="dashboard__caption">{{ 'analytics.activity' | translate }}</caption>
-                  <thead>
-                    <tr>
-                      <th scope="col" class="dashboard__table-heading">{{ 'analytics.bucket' | translate }}</th>
-                      <th scope="col" class="dashboard__table-heading">{{ 'analytics.jobs' | translate }}</th>
-                      <th scope="col" class="dashboard__table-heading">{{ 'analytics.applications' | translate }}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @for (label of chart.labels; track $index; let index = $index) {
-                      <tr class="dashboard__table-row">
-                        <th scope="row" class="dashboard__row-heading">{{ label }}</th>
-                        <td class="dashboard__cell">{{ chart.datasets[0].data[index] }}</td>
-                        <td class="dashboard__cell">{{ chart.datasets[1].data[index] }}</td>
-                      </tr>
-                    }
-                  </tbody>
-                </table>
-              </div>
-            </details>
-          </section>
+        @if (activityRows(); as rows) {
+          <app-dashboard-activity [rows]="rows" />
         }
       } @else {
         <div class="dashboard__empty ui-empty-state">
