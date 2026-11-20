@@ -31,12 +31,13 @@ public class GlobalExceptionHandler {
                 .body(ApiErrorResponse.of("INVALID_CREDENTIALS", exception.getMessage()));
     }
 
-    @ExceptionHandler(UserServiceUnavailableException.class)
-    public ResponseEntity<ApiErrorResponse> handleUserServiceUnavailable(
-            UserServiceUnavailableException exception) {
+    // the frontend logs the user out when it sees this code
+    @ExceptionHandler(InvalidRefreshTokenException.class)
+    public ResponseEntity<ApiErrorResponse> handleInvalidRefreshToken(
+            InvalidRefreshTokenException exception) {
         return ResponseEntity
-                .status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body(ApiErrorResponse.of("USER_SERVICE_UNAVAILABLE", exception.getMessage()));
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(ApiErrorResponse.of("INVALID_REFRESH_TOKEN", exception.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

@@ -2,10 +2,13 @@ package com.herafi.api_gateway.config;
 
 import static com.herafi.api_gateway.filter.GatewayIdentityFilter.addAuthenticatedIdentity;
 import static com.herafi.api_gateway.filter.GatewayIdentityFilter.removeInternalHeaders;
+import static org.springframework.cloud.gateway.server.mvc.filter.Bucket4jFilterFunctions.rateLimit;
 import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 import static org.springframework.web.servlet.function.RequestPredicates.path;
+
+import java.time.Duration;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -21,6 +24,11 @@ public class GatewayRoutesConfig {
         return route("auth-service")
                 .route(path("/auth/**"), http())
                 .before(removeInternalHeaders())
+                // 5 login/register attempts per minute per client IP, then 429.
+                .filter(rateLimit(config -> config
+                        .setCapacity(5)
+                        .setPeriod(Duration.ofMinutes(1))
+                        .setKeyResolver(request -> request.servletRequest().getRemoteAddr())))
                 .filter(lb("AUTH-SERVICE"))
                 .build();
     }

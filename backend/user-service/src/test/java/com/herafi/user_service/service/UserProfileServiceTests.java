@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.herafi.user_service.dto.CreateUserProfileRequest;
 import com.herafi.user_service.dto.UpdateUserProfileRequest;
 import com.herafi.user_service.entity.UserProfile;
+import com.herafi.user_service.exception.ProfileEmailAlreadyInUseException;
 import com.herafi.user_service.exception.UserProfileAlreadyExistsException;
 import com.herafi.user_service.exception.UserProfileNotFoundException;
 
@@ -57,6 +58,44 @@ class UserProfileServiceTests {
         service.create(request);
 
         assertThrows(UserProfileAlreadyExistsException.class, () -> service.create(request));
+    }
+
+    // the same event twice must not fail and must not create a second profile
+    @Test
+    void createIfAbsentIgnoresDuplicateEvent() {
+        UUID id = UUID.randomUUID();
+        CreateUserProfileRequest request = new CreateUserProfileRequest(
+                id,
+                "user@example.com",
+                "Youssef",
+                "Rachidi"
+        );
+
+        UserProfile first = service.createIfAbsent(request);
+        UserProfile second = service.createIfAbsent(request);
+
+        assertEquals(first.getId(), second.getId());
+        assertEquals("user@example.com", second.getEmail());
+    }
+
+    // an email owned by another account is a real conflict
+    @Test
+    void createIfAbsentRejectsEmailOfAnotherAccount() {
+        service.create(new CreateUserProfileRequest(
+                UUID.randomUUID(),
+                "user@example.com",
+                "Youssef",
+                "Rachidi"
+        ));
+
+        CreateUserProfileRequest other = new CreateUserProfileRequest(
+                UUID.randomUUID(),
+                "user@example.com",
+                "Other",
+                "Person"
+        );
+
+        assertThrows(ProfileEmailAlreadyInUseException.class, () -> service.createIfAbsent(other));
     }
 
     @Test

@@ -1,62 +1,113 @@
-<section class="avatar-upload ui-panel" aria-labelledby="avatar-heading">
+<section class="avatar">
+  <!-- Title (only when the name is not shown) -->
   @if (!showIdentity()) {
-    <h2 id="avatar-heading" class="avatar-upload__title">{{ 'profile.picture' | translate }}</h2>
+    <h2 class="avatar__name">{{ 'profile.picture' | translate }}</h2>
   }
-  <input #fileInput type="file" hidden [accept]="accept" (change)="pick($event)"
-    [disabled]="uploading() || removing()" />
-  <div class="avatar-upload__identity" [class.avatar-upload__identity--standalone]="!showIdentity()">
-    <div class="avatar-upload__avatar">
+
+  <!-- Hidden file picker, opened by the camera button -->
+  <input
+    #fileInput
+    type="file"
+    hidden
+    [accept]="accept"
+    [disabled]="uploading() || removing()"
+    (change)="pick($event)"
+  />
+
+  <!-- Photo + name -->
+  <div class="avatar__row" [class.avatar__row--standalone]="!showIdentity()">
+    <div class="avatar__frame">
       @if (preview() || profile().avatarUrl) {
-        <img [src]="preview() ?? profile().avatarUrl" [alt]="'profile.picture' | translate" class="avatar-upload__image" />
+        <img
+          class="avatar__image"
+          [src]="preview() ?? profile().avatarUrl"
+          [alt]="'profile.picture' | translate"
+        />
       } @else {
-        <span class="avatar-upload__initials" aria-hidden="true">{{ initials }}</span>
+        <span class="avatar__initials">{{ initials }}</span>
       }
-      <button #cameraButton type="button" class="avatar-upload__camera-button" (click)="edit()"
-        [disabled]="uploading() || removing()" [attr.aria-label]="'profile.picture.change' | translate"
-        [attr.title]="'profile.picture.change' | translate" [attr.aria-expanded]="editing()"
-        aria-controls="avatar-editor">
-        <span class="avatar-upload__camera-badge"><svg class="avatar-upload__icon" lucideCamera aria-hidden="true"></svg></span>
+      <button
+        #cameraButton
+        type="button"
+        class="avatar__camera"
+        [title]="'profile.picture.change' | translate"
+        [disabled]="uploading() || removing()"
+        (click)="edit()"
+      >
+        <span class="avatar__badge"><svg class="avatar__badge-icon" lucideCamera></svg></span>
       </button>
     </div>
+
     @if (showIdentity()) {
-      <div class="avatar-upload__identity-copy">
-        <h2 id="avatar-heading" class="avatar-upload__title">{{ profile().firstName }} {{ profile().lastName }}</h2>
-        <p class="avatar-upload__email">{{ profile().email }}</p>
+      <div class="avatar__identity">
+        <h2 class="avatar__name">{{ profile().firstName }} {{ profile().lastName }}</h2>
+        <p class="avatar__email">{{ profile().email }}</p>
       </div>
     }
   </div>
 
+  <!-- Edit area -->
   @if (editing() || !showIdentity()) {
-    <div id="avatar-editor" class="avatar-upload__editor" [attr.aria-label]="'profile.picture' | translate" role="group">
-      <p class="avatar-upload__guidance">{{ 'profile.picture.rules' | translate: { size: maxMegabytes } }}</p>
-      <div class="avatar-upload__actions">
-        <button type="button" class="avatar-upload__photo-button" (click)="edit()" [disabled]="uploading() || removing()">
+    <div class="avatar__editor">
+      <p class="avatar__hint">
+        {{ 'profile.picture.rules' | translate: { size: maxMegabytes } }}
+      </p>
+
+      <div class="avatar__actions">
+        <button
+          type="button"
+          class="avatar__button"
+          [disabled]="uploading() || removing()"
+          (click)="edit()"
+        >
           {{ (preview() ? 'profile.picture.chooseAnother' : 'profile.picture.choose') | translate }}
         </button>
+
         @if (preview()) {
-          <button type="button" class="avatar-upload__photo-button avatar-upload__photo-button--save" (click)="upload()"
-            [disabled]="uploading() || removing()" [attr.aria-busy]="uploading()">
+          <button
+            type="button"
+            class="avatar__button avatar__button--primary"
+            [disabled]="uploading() || removing()"
+            (click)="upload()"
+          >
             {{ (uploading() ? 'profile.picture.uploading' : 'profile.picture.save') | translate }}
           </button>
         } @else if (profile().avatarUrl) {
-          <button type="button" class="avatar-upload__photo-button avatar-upload__photo-button--remove" (click)="remove()" [disabled]="removing()"
-            [attr.aria-busy]="removing()">
+          <button
+            type="button"
+            class="avatar__button avatar__button--danger"
+            [disabled]="removing()"
+            (click)="remove()"
+          >
             {{ (removing() ? 'profile.picture.removing' : 'profile.picture.remove') | translate }}
           </button>
         }
-        <button type="button" class="avatar-upload__photo-button avatar-upload__photo-button--cancel" (click)="cancel()" [disabled]="uploading() || removing()">
+
+        <button
+          type="button"
+          class="avatar__button avatar__button--plain"
+          [disabled]="uploading() || removing()"
+          (click)="cancel()"
+        >
           {{ 'common.cancel' | translate }}
         </button>
       </div>
+
+      <!-- Upload progress -->
       @if (uploading()) {
-        <div class="avatar-upload__progress" role="progressbar" [attr.aria-valuenow]="progress()"
-          aria-valuemin="0" aria-valuemax="100" [attr.aria-label]="'profile.uploadProgress' | translate">
-          <div [style.width.%]="progress()"></div>
+        <div class="avatar__progress">
+          <div class="avatar__progress-fill" [style.width.%]="progress()"></div>
         </div>
-        <p class="avatar-upload__guidance">{{ progress() }}%</p>
+        <p class="avatar__hint">{{ progress() }}%</p>
       }
     </div>
   }
-  @if (error()) { <p role="alert" class="avatar-upload__feedback avatar-upload__feedback--error">{{ error() }}</p> }
-  @if (notice()) { <p role="status" class="avatar-upload__feedback">{{ notice() }}</p> }
+
+  <!-- Messages -->
+  @if (error()) {
+    <p class="avatar__message avatar__message--error">{{ error() }}</p>
+  }
+  @if (notice()) {
+    <p class="avatar__message">{{ notice() }}</p>
+  }
 </section>

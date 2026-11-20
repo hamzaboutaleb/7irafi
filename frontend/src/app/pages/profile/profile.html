@@ -1,186 +1,117 @@
 <app-navbar />
 <main class="profile">
   <div class="profile__container">
-    <header class="profile__heading">
+    <header class="profile__header">
       <h1 class="profile__title">{{ 'profile.title' | translate }}</h1>
-
-      <p class="profile__description">
-        {{ 'profile.subtitle' | translate }}
-      </p>
+      <p class="profile__subtitle">{{ 'profile.subtitle' | translate }}</p>
     </header>
 
     @if (isLoading()) {
-      <section
-        class="profile__panel ui-panel"
-        role="status"
-        aria-live="polite"
-      >
-        <p class="profile__loading">{{ 'common.loading' | translate }}</p>
+      <section class="profile__panel">
+        <p class="profile__text">{{ 'common.loading' | translate }}</p>
       </section>
     } @else {
-      @if (errorMessage()) {
-        <div
-          class="profile__error"
-          role="alert"
-        >
-          {{ errorMessage() }}
-        </div>
+      @if (errorMessage(); as error) {
+        <p class="profile__alert">{{ error | translate }}</p>
       }
 
-      @if (successMessage()) {
-        <div
-          class="profile__success"
-          role="status"
-          aria-live="polite"
-        >
-          {{ successMessage() }}
-        </div>
+      @if (successMessage(); as success) {
+        <p class="profile__alert profile__alert--success">{{ success | translate }}</p>
       }
 
       @if (profile(); as currentProfile) {
-        <app-avatar-upload [profile]="currentProfile" [showIdentity]="true" (profileChange)="profile.set($event)" />
+        <app-avatar-upload
+          [profile]="currentProfile"
+          [showIdentity]="true"
+          (profileChange)="profile.set($event)"
+        />
 
         <div class="profile__layout">
-          <nav class="profile__navigation" [attr.aria-label]="'profile.sections' | translate">
+          <!-- Left menu -->
+          <nav class="profile__nav">
             @for (item of sections; track item.id) {
-              <button class="profile__nav-button" type="button" [class.profile__nav-button--current]="section() === item.id"
-                [attr.aria-pressed]="section() === item.id" [attr.aria-controls]="'profile-' + item.id + '-panel'"
-                (click)="section.set(item.id)">
-                <svg class="profile__icon" [lucideIcon]="item.icon" aria-hidden="true"></svg>
+              <button
+                type="button"
+                class="profile__tab"
+                [class.profile__tab--active]="section() === item.id"
+                (click)="section.set(item.id)"
+              >
+                <svg class="profile__icon" [lucideIcon]="item.icon"></svg>
                 {{ item.label | translate }}
               </button>
             }
           </nav>
-          <div class="profile__content">
-            <section class="profile__panel profile__panel--section ui-panel" id="profile-personal-panel" [hidden]="section() !== 'personal'" aria-labelledby="personal-heading">
-              <div class="profile__section-heading">
-                <div>
-                  <h2 id="personal-heading" class="profile__section-title">{{ 'profile.personalInformation' | translate }}</h2>
 
-                  <p class="profile__section-description">{{ 'profile.manage' | translate }}</p>
+          <div class="profile__content">
+            <!-- Personal tab -->
+            <section class="profile__panel" [hidden]="section() !== 'personal'">
+              <div class="profile__panel-head">
+                <div>
+                  <h2 class="profile__heading">{{ 'profile.personalInformation' | translate }}</h2>
+                  <p class="profile__intro">{{ 'profile.manage' | translate }}</p>
                 </div>
 
                 @if (!isEditingPersonal()) {
-                  <button
-                    type="button"
-                    (click)="startEditingPersonal()"
-                    class="profile__edit-button ui-button"
-                  >
-                    <svg class="profile__icon" lucidePencil aria-hidden="true"></svg>{{ 'profile.edit' | translate }}
+                  <button type="button" class="profile__button" (click)="startEditingPersonal()">
+                    <svg class="profile__icon" lucidePencil></svg>
+                    {{ 'profile.edit' | translate }}
                   </button>
                 }
               </div>
 
               @if (isEditingPersonal()) {
-                <div class="profile__email-field">
-                  <label for="email" class="profile__label">
-                    {{ 'auth.field.emailAddress' | translate }}
-                  </label>
-
-                  <input
-                    id="email"
-                    type="email"
-                    [value]="currentProfile.email"
-                    readonly
-                    aria-describedby="email-help"
-                    class="profile__readonly-input"
-                  />
-
-                  <p id="email-help" class="profile__field-hint">
-                    {{ 'profile.emailNote' | translate }}
-                  </p>
-                </div>
-
                 <form class="profile__form" [formGroup]="form" (ngSubmit)="save()" novalidate>
-                  <div class="profile__name-fields">
+                  <div>
+                    <p class="profile__label">{{ 'auth.field.emailAddress' | translate }}</p>
+                    <p class="profile__readonly">{{ currentProfile.email }}</p>
+                    <p class="profile__hint">{{ 'profile.emailNote' | translate }}</p>
+                  </div>
+
+                  <div class="profile__names">
                     <div>
-                      <label for="firstName" class="profile__label">
-                        {{ 'auth.field.firstName' | translate }}
-                      </label>
-
+                      <label class="profile__label" for="profile-firstName">{{
+                        'auth.field.firstName' | translate
+                      }}</label>
                       <input
-                        id="firstName"
-                        type="text"
-                        formControlName="firstName"
-                        autocomplete="given-name"
-                        minlength="3"
-                        maxlength="50"
-                        [attr.aria-invalid]="firstName.invalid && firstName.touched"
-                        [attr.aria-describedby]="
-                          firstName.invalid && firstName.touched ? 'first-name-error' : null
-                        "
-                        [class.profile__input--invalid]="firstName.invalid && firstName.touched"
                         class="profile__input"
+                        id="profile-firstName"
+                        formControlName="firstName"
+                        maxlength="50"
+                        [readOnly]="isSaving()"
                       />
-
-                      @if (firstName.invalid && firstName.touched) {
-                        <p id="first-name-error" class="profile__field-error" role="alert">
-                          @if (firstName.hasError('required')) {
-                            {{ 'profile.validation.first.required' | translate }}
-                          } @else if (firstName.hasError('minlength')) {
-                            {{ 'profile.validation.first.minlength' | translate }}
-                          } @else if (firstName.hasError('maxlength')) {
-                            {{ 'profile.validation.first.maxlength' | translate }}
-                          }
-                        </p>
+                      @if (fieldError('firstName'); as error) {
+                        <p class="profile__error">{{ error }}</p>
                       }
                     </div>
 
                     <div>
-                      <label for="lastName" class="profile__label">
-                        {{ 'auth.field.lastName' | translate }}
-                      </label>
-
+                      <label class="profile__label" for="profile-lastName">{{
+                        'auth.field.lastName' | translate
+                      }}</label>
                       <input
-                        id="lastName"
-                        type="text"
-                        formControlName="lastName"
-                        autocomplete="family-name"
-                        minlength="3"
-                        maxlength="50"
-                        [attr.aria-invalid]="lastName.invalid && lastName.touched"
-                        [attr.aria-describedby]="
-                          lastName.invalid && lastName.touched ? 'last-name-error' : null
-                        "
-                        [class.profile__input--invalid]="lastName.invalid && lastName.touched"
                         class="profile__input"
+                        id="profile-lastName"
+                        formControlName="lastName"
+                        maxlength="50"
+                        [readOnly]="isSaving()"
                       />
-
-                      @if (lastName.invalid && lastName.touched) {
-                        <p id="last-name-error" class="profile__field-error" role="alert">
-                          @if (lastName.hasError('required')) {
-                            {{ 'profile.validation.last.required' | translate }}
-                          } @else if (lastName.hasError('minlength')) {
-                            {{ 'profile.validation.last.minlength' | translate }}
-                          } @else if (lastName.hasError('maxlength')) {
-                            {{ 'profile.validation.last.maxlength' | translate }}
-                          }
-                        </p>
+                      @if (fieldError('lastName'); as error) {
+                        <p class="profile__error">{{ error }}</p>
                       }
                     </div>
                   </div>
 
-                  <div
-                    class="profile__actions ui-dialog-actions"
-                  >
+                  <div class="profile__actions">
                     <button
                       type="button"
+                      class="profile__button"
+                      [disabled]="isSaving()"
                       (click)="cancelEditingPersonal()"
-                      [disabled]="isSaving()"
-                      class="profile__cancel"
-                    >{{ 'common.cancel' | translate }}</button>
-
-                    <button
-                      type="submit"
-                      [disabled]="isSaving()"
-                      [attr.aria-busy]="isSaving()"
-                      class="profile__save"
                     >
-                      @if (isSaving()) {
-                        {{ 'profile.saving' | translate }}
-                      } @else {
-                        {{ 'profile.saveChanges' | translate }}
-                      }
+                      {{ 'common.cancel' | translate }}
+                    </button>
+                    <button type="submit" class="profile__primary" [disabled]="isSaving()">
+                      {{ (isSaving() ? 'profile.saving' : 'profile.saveChanges') | translate }}
                     </button>
                   </div>
                 </form>
@@ -188,66 +119,55 @@
                 <dl class="profile__details">
                   <div class="profile__detail">
                     <dt class="profile__detail-label">{{ 'auth.field.firstName' | translate }}</dt>
-                    <dd class="profile__value">
-                      {{ currentProfile.firstName }}
-                    </dd>
+                    <dd class="profile__detail-value">{{ currentProfile.firstName }}</dd>
                   </div>
-
                   <div class="profile__detail">
                     <dt class="profile__detail-label">{{ 'auth.field.lastName' | translate }}</dt>
-                    <dd class="profile__value">
-                      {{ currentProfile.lastName }}
-                    </dd>
+                    <dd class="profile__detail-value">{{ currentProfile.lastName }}</dd>
                   </div>
-
                   <div class="profile__detail profile__detail--wide">
-                    <dt class="profile__detail-label">{{ 'auth.field.emailAddress' | translate }}</dt>
-                    <dd class="profile__email-value">
-                      {{ currentProfile.email }}
-                    </dd>
+                    <dt class="profile__detail-label">
+                      {{ 'auth.field.emailAddress' | translate }}
+                    </dt>
+                    <dd class="profile__detail-value">{{ currentProfile.email }}</dd>
                   </div>
-
                   <div class="profile__detail">
                     <dt class="profile__detail-label">{{ 'profile.memberSince' | translate }}</dt>
-                    <dd class="profile__value">
+                    <dd class="profile__detail-value">
                       {{ currentProfile.createdAt | date: 'mediumDate' }}
                     </dd>
                   </div>
-
                   <div class="profile__detail">
                     <dt class="profile__detail-label">{{ 'profile.lastUpdated' | translate }}</dt>
-                    <dd class="profile__value">
+                    <dd class="profile__detail-value">
                       {{ currentProfile.updatedAt | date: 'MMM d, y, h:mm a' }}
                     </dd>
                   </div>
                 </dl>
               }
             </section>
-            <section class="profile__panel profile__panel--section ui-panel" id="profile-professional-panel" [hidden]="section() !== 'professional'" aria-labelledby="professional-heading">
-              <div class="profile__section-heading">
-                <div>
-                  <div class="profile__professional-heading">
-                  <h2 id="professional-heading" class="profile__section-title">{{ 'profile.professional' | translate }}</h2>
 
+            <!-- Professional tab -->
+            <section class="profile__panel" [hidden]="section() !== 'professional'">
+              <div class="profile__panel-head">
+                <div>
+                  <div class="profile__heading-row">
+                    <h2 class="profile__heading">{{ 'profile.professional' | translate }}</h2>
                     @if (professionalProfile(); as pro) {
                       <span
-                        class="profile__professional-status" [attr.data-status]="pro.onboardingStatus"
+                        class="profile__status"
+                        [class.profile__status--active]="pro.onboardingStatus === 'ACTIVE'"
+                        [class.profile__status--suspended]="pro.onboardingStatus === 'SUSPENDED'"
                       >
-                        {{ professionalStatus(pro.onboardingStatus) | translate }}
+                        {{ statusKeys[pro.onboardingStatus] | translate }}
                       </span>
                     }
                   </div>
-
-                  <p class="profile__section-description">
-                    {{ 'profile.professionalIntro' | translate }}
-                  </p>
+                  <p class="profile__intro">{{ 'profile.professionalIntro' | translate }}</p>
                 </div>
 
                 @if (professionalSection() === 'loaded') {
-                  <a
-                    routerLink="/professional-profile"
-                    class="profile__edit-button ui-button"
-                  >
+                  <a routerLink="/professional-profile" class="profile__button">
                     {{ 'profile.editProfessional' | translate }}
                   </a>
                 }
@@ -255,20 +175,12 @@
 
               @switch (professionalSection()) {
                 @case ('loading') {
-                  <p role="status" aria-live="polite" class="profile__loading-professional">
-                    {{ 'profile.loadingProfessional' | translate }}
-                  </p>
+                  <p class="profile__text">{{ 'profile.loadingProfessional' | translate }}</p>
                 }
                 @case ('none') {
                   <div class="profile__empty">
-                    <p class="profile__loading">
-                      {{ 'profile.notProfessional' | translate }}
-                  </p>
-
-                    <a
-                      routerLink="/professional-profile"
-                      class="profile__professional-action"
-                    >
+                    <p>{{ 'profile.notProfessional' | translate }}</p>
+                    <a routerLink="/professional-profile" class="profile__primary">
                       {{ 'profile.becomeProfessional' | translate }}
                     </a>
                   </div>
@@ -278,36 +190,32 @@
                     <dl class="profile__details">
                       <div class="profile__detail profile__detail--wide">
                         <dt class="profile__detail-label">{{ 'profile.biography' | translate }}</dt>
-                        <dd class="profile__biography">
+                        <dd class="profile__detail-value profile__detail-value--long">
                           {{ pro.biography }}
                         </dd>
                       </div>
-
                       <div class="profile__detail">
-                        <dt class="profile__detail-label">{{ 'profile.servicesProvided' | translate }}</dt>
-                        <dd class="profile__tags">
-                          <ul class="profile__tag-list">
+                        <dt class="profile__detail-label">
+                          {{ 'profile.servicesProvided' | translate }}
+                        </dt>
+                        <dd>
+                          <ul class="profile__chips">
                             @for (category of pro.categories; track category.code) {
-                              <li
-                                class="profile__service-tag"
-                              >
+                              <li class="profile__chip profile__chip--service">
                                 {{ category.displayName }}
                               </li>
                             }
                           </ul>
                         </dd>
                       </div>
-
                       <div class="profile__detail">
-                        <dt class="profile__detail-label">{{ 'profile.serviceAreas' | translate }}</dt>
-                        <dd class="profile__tags">
-                          <ul class="profile__tag-list">
+                        <dt class="profile__detail-label">
+                          {{ 'profile.serviceAreas' | translate }}
+                        </dt>
+                        <dd>
+                          <ul class="profile__chips">
                             @for (city of pro.cities; track city.code) {
-                              <li
-                                class="profile__city-tag"
-                              >
-                                {{ city.displayName }}
-                              </li>
+                              <li class="profile__chip">{{ city.displayName }}</li>
                             }
                           </ul>
                         </dd>
@@ -316,31 +224,68 @@
                   }
                 }
                 @case ('error') {
-                  <p role="alert" class="profile__professional-error">
+                  <p class="profile__text profile__text--error">
                     {{ 'profile.professionalError' | translate }}
                   </p>
                 }
               }
-            </section>        <section class="profile__panel profile__panel--section ui-panel" id="profile-reviews-panel" [hidden]="section() !== 'reviews'" aria-labelledby="profile-ratings-heading">
-              <h2 id="profile-ratings-heading" class="profile__section-title">{{ 'reviews.title' | translate }}</h2>
-              <p class="profile__reviews-intro">{{ 'reviews.intro' | translate }}</p>
-              @if (ratingsLoading() && reviewListState() !== 'error') {
-                <div role="status" class="profile__reviews-loading"><span class="profile__accessible-label">{{ 'reviews.loading' | translate }}</span></div>
-              } @else if (ratingsError() && reviewListState() !== 'error') {
-                <div role="alert" class="profile__reviews-error">
-                  <span>{{ 'reviews.summaryError' | translate }}</span>
-                  <button type="button" (click)="loadRatingSummary()" class="profile__retry">{{ 'common.retry' | translate }}</button>
-                </div>
-              } @else if (ratingSummary()) {
-                <app-rating-display [summary]="ratingSummary()" />
-              }
-              <div class="profile__review-tabs" role="group" [attr.aria-label]="'reviews.type' | translate">
-                <button type="button" (click)="ratingType.set('received')" [attr.aria-pressed]="ratingType() === 'received'" class="profile__review-tab">{{ 'reviews.aboutMe' | translate }}</button>
-                <button type="button" (click)="ratingType.set('written')" [attr.aria-pressed]="ratingType() === 'written'" class="profile__review-tab">{{ 'reviews.byMe' | translate }}</button>
-              </div>
-              <app-rating-list [userId]="currentProfile.id" [reviewType]="ratingType()" (loadStateChange)="reviewListState.set($event)" (retryRequested)="loadRatingSummary()" (viewJobRequested)="reviewJobId.set($event)" />
             </section>
-            <div class="profile__notifications" id="profile-notifications-panel" [hidden]="section() !== 'notifications'">
+
+            <!-- Reviews tab (the dashboard link jumps here with #profile-ratings-heading) -->
+            <section class="profile__panel" [hidden]="section() !== 'reviews'">
+              <h2 class="profile__heading" id="profile-ratings-heading">
+                {{ 'reviews.title' | translate }}
+              </h2>
+              <p class="profile__intro profile__intro--reviews">
+                {{ 'reviews.intro' | translate }}
+              </p>
+
+              <!-- The list below shows its own error, so we hide the summary one then. -->
+              @if (reviewListState() !== 'error') {
+                @if (ratingsLoading()) {
+                  <div class="profile__skeleton"></div>
+                } @else if (ratingsError()) {
+                  <div class="profile__retry-box">
+                    <span>{{ 'reviews.summaryError' | translate }}</span>
+                    <button type="button" class="profile__retry" (click)="loadRatingSummary()">
+                      {{ 'common.retry' | translate }}
+                    </button>
+                  </div>
+                } @else if (ratingSummary()) {
+                  <app-rating-display [summary]="ratingSummary()" />
+                }
+              }
+
+              <div class="profile__review-tabs">
+                <button
+                  type="button"
+                  class="profile__review-tab"
+                  [class.profile__review-tab--active]="ratingType() === 'received'"
+                  (click)="ratingType.set('received')"
+                >
+                  {{ 'reviews.aboutMe' | translate }}
+                </button>
+                <button
+                  type="button"
+                  class="profile__review-tab"
+                  [class.profile__review-tab--active]="ratingType() === 'written'"
+                  (click)="ratingType.set('written')"
+                >
+                  {{ 'reviews.byMe' | translate }}
+                </button>
+              </div>
+
+              <app-rating-list
+                [userId]="currentProfile.id"
+                [reviewType]="ratingType()"
+                (loadStateChange)="reviewListState.set($event)"
+                (retryRequested)="loadRatingSummary()"
+                (viewJobRequested)="reviewJobId.set($event)"
+              />
+            </section>
+
+            <!-- Notifications tab -->
+            <div [hidden]="section() !== 'notifications'">
               <app-notification-panel />
             </div>
           </div>
@@ -352,5 +297,9 @@
 <app-footer />
 
 @if (reviewJobId(); as jobId) {
-  <app-job-details-modal [jobId]="jobId" [startWithReview]="true" (closed)="reviewJobId.set(null)" />
+  <app-job-details-modal
+    [jobId]="jobId"
+    [startWithReview]="true"
+    (closed)="reviewJobId.set(null)"
+  />
 }

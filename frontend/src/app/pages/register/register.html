@@ -1,25 +1,108 @@
-<main class="register auth-layout">
-  <div class="register__content">
-    <a routerLink="/" class="register__brand auth-layout__brand" [attr.aria-label]="'auth.login.home' | translate"><img class="register__logo" src="logo.svg" alt="7irafy" width="140" height="44" /></a>
-    <section class="register__panel auth-layout__panel" aria-labelledby="register-title">
-      <header><h1 class="register__title" id="register-title">{{ 'auth.register.heading' | translate }}</h1><p class="register__description">{{ 'auth.register.subtitle' | translate }}</p></header>
-      <form class="register__form" [formGroup]="form" (ngSubmit)="register()" [attr.aria-busy]="submitting()" novalidate>
-        @if (errorMessage(); as error) { <p class="register__error" role="alert">{{ error | translate }}</p> }
-        <div class="register__name-fields">
-          <div class="register__field"><label class="register__label" for="register-firstName">{{ 'auth.field.firstName' | translate }}</label><input class="register__input auth-layout__input" id="register-firstName" name="firstName" type="text" autocomplete="given-name" autocapitalize="words" formControlName="firstName" required minlength="3" maxlength="50" [readOnly]="submitting()" [attr.aria-invalid]="!!fieldError('firstName')" [attr.aria-describedby]="fieldError('firstName') ? 'register-firstName-error' : null" (input)="errorMessage.set(null)" />@if (fieldError('firstName'); as error) { <p id="register-firstName-error" class="register__field-error ui-field-error">{{ error }}</p> }</div>
-          <div class="register__field"><label class="register__label" for="register-lastName">{{ 'auth.field.lastName' | translate }}</label><input class="register__input auth-layout__input" id="register-lastName" name="lastName" type="text" autocomplete="family-name" autocapitalize="words" formControlName="lastName" required minlength="3" maxlength="50" [readOnly]="submitting()" [attr.aria-invalid]="!!fieldError('lastName')" [attr.aria-describedby]="fieldError('lastName') ? 'register-lastName-error' : null" (input)="errorMessage.set(null)" />@if (fieldError('lastName'); as error) { <p id="register-lastName-error" class="register__field-error ui-field-error">{{ error }}</p> }</div>
+<main class="auth-page">
+  <div class="auth-page__content">
+    <a routerLink="/" class="auth-page__brand">
+      <img class="auth-page__logo" src="logo.svg" alt="7irafy" width="140" height="44" />
+    </a>
+    <section class="auth-page__panel">
+      <header>
+        <h1 class="auth-page__title">{{ 'auth.register.heading' | translate }}</h1>
+        <p class="auth-page__subtitle">{{ 'auth.register.subtitle' | translate }}</p>
+      </header>
+      <form class="auth-page__form" [formGroup]="form" (ngSubmit)="register()" novalidate>
+        @if (errorMessage(); as error) {
+          <p class="auth-page__alert">{{ error | translate }}</p>
+        }
+        <div class="auth-page__names">
+          <div>
+            <label class="auth-page__label" for="register-firstName">{{
+              'auth.field.firstName' | translate
+            }}</label>
+            <input
+              class="auth-page__input"
+              id="register-firstName"
+              formControlName="firstName"
+              maxlength="50"
+              [readOnly]="submitting()"
+              (input)="errorMessage.set(null)"
+            />
+            @if (fieldError('firstName'); as error) {
+              <p class="auth-page__error">{{ error }}</p>
+            }
+          </div>
+          <div>
+            <label class="auth-page__label" for="register-lastName">{{
+              'auth.field.lastName' | translate
+            }}</label>
+            <input
+              class="auth-page__input"
+              id="register-lastName"
+              formControlName="lastName"
+              maxlength="50"
+              [readOnly]="submitting()"
+              (input)="errorMessage.set(null)"
+            />
+            @if (fieldError('lastName'); as error) {
+              <p class="auth-page__error">{{ error }}</p>
+            }
+          </div>
         </div>
-        <div class="register__field"><label class="register__label" for="register-email">{{ 'auth.field.emailAddress' | translate }}</label><input class="register__input auth-layout__input" id="register-email" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" formControlName="email" required maxlength="255" [readOnly]="submitting()" [attr.aria-invalid]="!!fieldError('email')" [attr.aria-describedby]="fieldError('email') ? 'register-email-error' : null" (input)="errorMessage.set(null)" />@if (fieldError('email'); as error) { <p id="register-email-error" class="register__field-error ui-field-error">{{ error }}</p> }</div>
-        <div class="register__field">
-          <label class="register__label" for="register-password">{{ 'auth.field.password' | translate }}</label>
-          <div class="register__password-field"><input class="register__input register__input--password auth-layout__input" #passwordInput id="register-password" name="password" [type]="passwordVisible() ? 'text' : 'password'" autocomplete="new-password" formControlName="password" required minlength="8" maxlength="128" [readOnly]="submitting()" [attr.aria-invalid]="!!fieldError('password')" [attr.aria-describedby]="'register-password-help' + (fieldError('password') ? ' register-password-error' : '')" (input)="errorMessage.set(null)" /><button type="button" class="register__password-toggle auth-layout__password-toggle" [disabled]="submitting()" [attr.aria-label]="(passwordVisible() ? 'auth.login.hidePassword' : 'auth.login.showPassword') | translate" (pointerdown)="$event.preventDefault()" (click)="togglePassword(passwordInput, $event)"><svg class="register__icon" [lucideIcon]="passwordVisible() ? icons.hide : icons.show" aria-hidden="true" /></button></div>
-          <p id="register-password-help" class="register__field-hint">{{ 'auth.register.passwordHint' | translate }}</p>
-          @if (fieldError('password'); as error) { <p id="register-password-error" class="register__field-error ui-field-error">{{ error }}</p> }
+        <div>
+          <label class="auth-page__label" for="register-email">{{
+            'auth.field.emailAddress' | translate
+          }}</label>
+          <input
+            class="auth-page__input"
+            id="register-email"
+            formControlName="email"
+            maxlength="255"
+            [readOnly]="submitting()"
+            (input)="errorMessage.set(null)"
+          />
+          @if (fieldError('email'); as error) {
+            <p class="auth-page__error">{{ error }}</p>
+          }
         </div>
-        <button type="submit" class="register__submit auth-layout__submit" [disabled]="submitting()">{{ (submitting() ? 'auth.register.submitting' : 'auth.register.submit') | translate }}</button>
-        <span class="register__accessible-status" role="status">{{ submitting() ? ('auth.register.submitting' | translate) : '' }}</span>
+        <div>
+          <label class="auth-page__label" for="register-password">{{
+            'auth.field.password' | translate
+          }}</label>
+          <div class="auth-page__password">
+            <input
+              class="auth-page__input auth-page__input--password"
+              id="register-password"
+              [type]="passwordVisible() ? 'text' : 'password'"
+              formControlName="password"
+              maxlength="128"
+              [readOnly]="submitting()"
+              (input)="errorMessage.set(null)"
+            />
+            <button
+              type="button"
+              class="auth-page__toggle"
+              [disabled]="submitting()"
+              (click)="passwordVisible.set(!passwordVisible())"
+            >
+              <svg
+                class="auth-page__toggle-icon"
+                [lucideIcon]="passwordVisible() ? icons.hide : icons.show"
+              />
+            </button>
+          </div>
+          <p class="auth-page__hint">{{ 'auth.register.passwordHint' | translate }}</p>
+          @if (fieldError('password'); as error) {
+            <p class="auth-page__error">{{ error }}</p>
+          }
+        </div>
+        <button type="submit" class="auth-page__submit" [disabled]="submitting()">
+          {{ (submitting() ? 'auth.register.submitting' : 'auth.register.submit') | translate }}
+        </button>
       </form>
-      <p class="register__account-prompt">{{ 'auth.register.hasAccount' | translate }} <a routerLink="/login" queryParamsHandling="preserve" class="register__account-link">{{ 'auth.login.submit' | translate }}</a></p>
+      <p class="auth-page__switch">
+        {{ 'auth.register.hasAccount' | translate }}
+        <a routerLink="/login" queryParamsHandling="preserve" class="auth-page__switch-link">{{
+          'auth.login.submit' | translate
+        }}</a>
+      </p>
     </section>
   </div>
 </main>

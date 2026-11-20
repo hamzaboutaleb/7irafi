@@ -25,7 +25,6 @@ public class UserProfileService {
     public UserProfileService(UserProfileRepository repository) {
         this.repository = repository;
     }
-
     @Transactional
     public UserProfile create(CreateUserProfileRequest request) {
         if (repository.existsById(request.id())) {
@@ -44,6 +43,14 @@ public class UserProfileService {
         profile.setLastName(request.lastName().trim());
 
         return repository.save(profile);
+    }
+
+    // Kafka can send the same event twice: if the profile is already there, just return it.
+    // throws ProfileEmailAlreadyInUseException.
+    @Transactional
+    public UserProfile createIfAbsent(CreateUserProfileRequest request) {
+        return repository.findById(request.id())
+                .orElseGet(() -> create(request));
     }
 
     @Transactional(readOnly = true)

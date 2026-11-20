@@ -1,217 +1,301 @@
-.profile {
-  background-color: var(--color-gray-50, oklch(98.5% .002 247.839));
-  padding-inline: 1rem;
-  min-height: 100vh;
-  padding-top: 1.5rem;
-  padding-bottom: 2.5rem;
-}
+/* The /profile page. */
+@reference '../../../styles.css';
 
-@media (min-width: 48rem) {
-  .profile {
-    padding-inline: 1.5rem;
-    padding-top: 2.5rem;
-    padding-bottom: 4rem;
-  }
+/*
+ * Line height, font weight, borders and outlines are written as plain CSS,
+ * like in auth-page.css, to keep this file under the style size limit.
+ */
+
+/* Page */
+.profile {
+  @apply min-h-screen bg-gray-50 px-6 pt-10 pb-16;
 }
 
 .profile__container {
-  max-width: 1120px;
-  margin-inline: auto;
+  @apply mx-auto max-w-[1120px];
 }
 
-.profile__heading {
-  margin-bottom: 1.5rem;
+.profile__header {
+  @apply mb-6;
 }
 
 .profile__title {
-  font-size: 1.875rem;
-  line-height: 1.2;
-  color: var(--color-gray-900, oklch(21% .034 264.665));
+  @apply text-3xl text-gray-900;
   font-weight: 600;
 }
 
-.profile__description {
-  color: var(--color-gray-600, oklch(44.6% .03 256.802));
-  margin-top: .5rem;
+.profile__subtitle {
+  @apply mt-2 text-gray-600;
 }
 
-.profile__loading {
-  font-size: .875rem;
-  line-height: 1.42857142857;
-  color: var(--color-gray-600, oklch(44.6% .03 256.802));
-}
-
-.profile__error {
-  border-style: var(--tw-border-style);
+/* Messages above the tabs: "Could not save" / "Profile updated" */
+.profile__alert {
+  @apply mb-4 rounded-xl border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700;
   border-width: 1px;
-  border-color: var(--color-red-200, oklch(88.5% .062 18.334));
-  background-color: var(--color-red-50, oklch(97.1% .013 17.38));
-  font-size: .875rem;
-  line-height: 1.42857142857;
-  color: var(--color-red-700, oklch(50.5% .213 27.518));
-  border-radius: .75rem;
-  margin-bottom: 1rem;
-  padding-block: .75rem;
-  padding-inline: 1rem;
+  border-style: solid;
 }
 
-.profile__success {
-  border-style: var(--tw-border-style);
-  border-width: 1px;
-  border-color: var(--color-green-200, oklch(92.5% .084 155.995));
-  background-color: var(--color-green-50, oklch(98.2% .018 155.826));
-  font-size: .875rem;
-  line-height: 1.42857142857;
-  color: var(--color-green-700, oklch(52.7% .154 150.069));
-  border-radius: .75rem;
-  margin-bottom: 1rem;
-  padding-block: .75rem;
-  padding-inline: 1rem;
+.profile__alert--success {
+  @apply border-green-200 bg-green-50 text-green-700;
 }
 
+/* Left menu + content */
 .profile__layout {
-  grid-template-columns: minmax(0, 1fr);
-  align-items: flex-start;
-  gap: 1rem;
-  display: grid;
+  @apply grid grid-cols-[224px_minmax(0,1fr)] items-start gap-6;
 }
 
-@media (min-width: 48rem) {
-  .profile__layout {
-    grid-template-columns: 224px minmax(0, 1fr);
-    gap: 1.5rem;
-  }
+.profile__nav {
+  @apply grid gap-1;
 }
 
-.profile__navigation {
-  flex-wrap: wrap;
-  gap: .25rem;
-  display: flex;
-}
-
-@media (min-width: 48rem) {
-  .profile__navigation {
-    display: grid;
-  }
-}
-
-.profile__nav-button {
-  cursor: pointer;
-  text-align: start;
-  min-height: 2.75rem;
-  font-size: .875rem;
-  line-height: 1.42857142857;
-  color: var(--color-gray-600, oklch(44.6% .03 256.802));
-  transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to;
-  transition-timing-function: var(--tw-ease, var(--default-transition-timing-function, cubic-bezier(.4, 0, .2, 1)));
-  transition-duration: var(--tw-duration, var(--default-transition-duration, .15s));
-  --tw-duration: .16s;
-  border-radius: .5rem;
-  align-items: center;
-  gap: .5rem;
-  padding-block: .5rem;
-  padding-inline: .75rem;
-  font-weight: 500;
+.profile__tab {
+  @apply flex min-h-11 cursor-pointer items-center gap-2 rounded-lg p-3 text-start text-sm text-gray-600;
   line-height: 1.25rem;
-  transition-duration: .16s;
-  display: flex;
+  font-weight: 500;
 }
 
-@media (hover: hover) {
-  .profile__nav-button:hover {
-    background-color: var(--color-gray-100, oklch(96.7% .003 264.542));
-    color: var(--color-gray-900, oklch(21% .034 264.665));
-  }
+.profile__tab:hover {
+  @apply bg-gray-100 text-gray-900;
 }
 
-.profile__nav-button:focus-visible {
-  outline-style: var(--tw-outline-style);
-  outline-offset: 2px;
-  outline-width: 2px;
-  outline-color: var(--color-primary-700, #007f7b);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .profile__nav-button {
-    transition-property: none;
-  }
-}
-
-@media (min-width: 48rem) {
-  .profile__nav-button {
-    padding: .75rem;
-  }
-}
-
-.profile__nav-button.profile__nav-button--current {
-  background-color: var(--color-primary-50, #e6f7f7);
-  color: var(--color-primary-800, #006663);
+.profile__tab--active,
+.profile__tab--active:hover {
+  @apply bg-primary-50 text-primary-800;
 }
 
 .profile__icon {
-  stroke-width: 1.5px;
-  flex-shrink: 0;
-  width: 18px;
-  height: 18px;
+  @apply size-[18px] shrink-0 stroke-[1.5];
 }
 
 .profile__content {
-  min-width: 0;
+  @apply min-w-0;
 }
 
-.profile__panel--section[hidden] {
-  display: none !important;
-}
-
-.profile__section-heading {
-  flex-direction: column;
-  gap: 1rem;
-  display: flex;
-}
-
-@media (min-width: 40rem) {
-  .profile__section-heading {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: flex-start;
-  }
-}
-
-.profile__section-title {
-  font-size: 1.25rem;
-  line-height: 1.4;
-  color: var(--color-gray-900, oklch(21% .034 264.665));
-  font-weight: 600;
-  line-height: 1.75rem;
-}
-
-.profile__section-description {
-  font-size: .875rem;
-  line-height: 1.42857142857;
-  color: var(--color-gray-500, oklch(55.1% .027 264.364));
-  margin-top: .25rem;
-}
-
-.profile__edit-button {
-  border-style: var(--tw-border-style);
+/* One white box per tab */
+.profile__panel {
+  @apply rounded-xl border-gray-200 bg-white p-6;
   border-width: 1px;
-  border-color: var(--color-gray-300, oklch(87.2% .01 258.338));
-  color: var(--color-gray-700, oklch(37.3% .034 259.733));
-  padding-block: .5rem;
-  padding-inline: 1rem;
+  border-style: solid;
+}
+
+/* Tab title on the left, button on the right. */
+.profile__panel-head {
+  @apply flex items-start justify-between gap-4;
+}
+
+.profile__heading-row {
+  @apply flex flex-wrap items-center gap-3;
+}
+
+.profile__heading {
+  @apply text-xl text-gray-900;
+  line-height: 1.75rem;
+  font-weight: 600;
+}
+
+.profile__intro {
+  @apply mt-1 text-sm text-gray-500;
+}
+
+.profile__intro--reviews {
+  @apply mb-5;
+}
+
+.profile__text {
+  @apply mt-6 text-sm text-gray-600;
+}
+
+.profile__text--error {
+  @apply text-red-700;
+}
+
+/* Buttons */
+.profile__button {
+  @apply inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-lg border-gray-300 bg-white px-4 py-2 text-sm text-gray-700;
+  border-width: 1px;
+  border-style: solid;
   font-weight: 500;
-  line-height: 1.25rem;
 }
 
-@media (hover: hover) {
-  .profile__edit-button:hover {
-    background-color: var(--color-gray-50, oklch(98.5% .002 247.839));
-  }
+.profile__button:hover {
+  @apply bg-gray-50;
 }
 
-.profile__edit-button:focus-visible {
-  outline-style: var(--tw-outline-style);
-  outline-offset: 2px;
+.profile__primary {
+  @apply inline-flex min-h-11 cursor-pointer items-center justify-center rounded-lg bg-primary-700 px-6 py-3 text-sm text-white;
+  font-weight: 500;
+}
+
+.profile__primary:hover {
+  @apply bg-primary-800;
+}
+
+.profile__button:disabled,
+.profile__primary:disabled {
+  @apply cursor-not-allowed opacity-60;
+}
+
+/* Edit form */
+.profile__form {
+  @apply mt-6 grid gap-6;
+}
+
+.profile__names {
+  @apply grid grid-cols-2 gap-6;
+}
+
+.profile__label {
+  @apply mb-1.5 block text-sm text-gray-700;
+  font-weight: 500;
+}
+
+.profile__input {
+  @apply w-full rounded-xl border-gray-300 px-4 py-3 text-sm;
+  border-width: 1px;
+  border-style: solid;
+}
+
+.profile__input:focus {
+  @apply border-primary-500;
+  outline-style: none;
+  box-shadow: 0 0 0 2px --theme(--color-primary-200);
+}
+
+.profile__input:read-only {
+  @apply bg-gray-50 text-gray-500;
+}
+
+/* The email: shown but not editable. */
+.profile__readonly {
+  @apply w-full rounded-xl bg-gray-100 px-4 py-3 text-sm text-gray-700;
+}
+
+.profile__hint {
+  @apply mt-1.5 text-xs text-gray-500;
+}
+
+.profile__error {
+  @apply mt-1.5 text-sm text-red-600;
+}
+
+/* Cancel + Save, on the right. */
+.profile__actions {
+  @apply flex justify-end gap-3 border-gray-200 pt-6;
+  border-top-width: 1px;
+  border-top-style: solid;
+}
+
+/* Read-only list of label / value pairs */
+.profile__details {
+  @apply mt-6 grid grid-cols-2 gap-x-6;
+}
+
+.profile__detail {
+  @apply min-w-0 border-gray-100 py-4;
+  border-top-width: 1px;
+  border-top-style: solid;
+}
+
+/* Takes the whole row (email, biography). */
+.profile__detail--wide {
+  @apply col-span-full;
+}
+
+.profile__detail-label {
+  @apply text-sm text-gray-500;
+  font-weight: 500;
+}
+
+.profile__detail-value {
+  @apply mt-1 text-sm break-all text-gray-900;
+  font-weight: 500;
+}
+
+/* Biography: keeps the user's line breaks. */
+.profile__detail-value--long {
+  @apply text-base break-normal whitespace-pre-line;
+  font-weight: 400;
+}
+
+/* Pro status pill: Incomplete / Active / Suspended */
+.profile__status {
+  @apply inline-flex min-h-6 items-center rounded bg-gray-100 px-2 py-1 text-xs text-gray-600;
+}
+
+.profile__status--active {
+  @apply bg-primary-50 text-primary-800;
+}
+
+.profile__status--suspended {
+  @apply bg-red-50 text-red-800;
+}
+
+/* Services and cities */
+.profile__chips {
+  @apply mt-2 flex flex-wrap gap-2;
+}
+
+.profile__chip {
+  @apply rounded-full border-gray-200 bg-white px-3 py-1 text-sm text-gray-700;
+  border-width: 1px;
+  border-style: solid;
+  font-weight: 500;
+}
+
+.profile__chip--service {
+  @apply border-primary-100 bg-primary-50 text-primary-700;
+}
+
+/* "You are not a professional yet" box */
+.profile__empty {
+  @apply mt-6 grid justify-items-center gap-4 rounded-xl border-gray-300 bg-gray-50 p-6 text-center text-sm text-gray-600;
+  border-width: 1px;
+  border-style: dashed;
+}
+
+/* Reviews tab */
+.profile__skeleton {
+  @apply mb-5 h-32 animate-pulse rounded-xl bg-gray-50;
+}
+
+.profile__retry-box {
+  @apply mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-600;
+}
+
+.profile__retry {
+  @apply min-h-11 cursor-pointer text-primary-800 underline;
+  font-weight: 600;
+}
+
+.profile__review-tabs {
+  @apply flex flex-wrap gap-1 border-gray-200;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+}
+
+.profile__review-tab {
+  @apply min-h-11 cursor-pointer border-transparent p-3 text-sm text-gray-500;
+  border-bottom-width: 2px;
+  border-bottom-style: solid;
+  font-weight: 600;
+}
+
+.profile__review-tab:hover {
+  @apply text-primary-800;
+}
+
+.profile__review-tab--active {
+  @apply border-primary-700 text-primary-800;
+}
+
+/* Keyboard focus ring shared by every button and link on the page. */
+.profile__tab:focus-visible,
+.profile__button:focus-visible,
+.profile__primary:focus-visible,
+.profile__retry:focus-visible,
+.profile__review-tab:focus-visible {
+  @apply outline-primary-700;
   outline-width: 2px;
-  outline-color: var(--color-primary-700, #007f7b);
+  outline-style: solid;
+  outline-offset: 2px;
 }

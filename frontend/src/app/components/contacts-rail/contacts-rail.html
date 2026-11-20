@@ -3,15 +3,14 @@
        needs its own treatment; see todo.md. -->
   <aside
     class="contacts-rail"
-    [class.contacts-rail--collapsed]="!expanded()"
     [class.contacts-rail--expanded]="expanded()"
     aria-label="{{ 'network.title' | translate }}"
   >
     <button
       type="button"
+      class="contacts-rail__toggle"
       (click)="toggleExpanded()"
       [attr.aria-expanded]="expanded()"
-      class="contacts-rail__toggle"
     >
       <svg class="contacts-rail__toggle-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
         <path
@@ -27,7 +26,7 @@
         <span class="contacts-rail__title">{{ 'network.title' | translate }}</span>
       }
 
-      <span class="contacts-rail__accessible-label">
+      <span class="sr-only">
         {{ expanded() ? 'Collapse your network' : 'Expand your network' }}
       </span>
     </button>
@@ -37,36 +36,30 @@
         <li>
           <button
             type="button"
-            (click)="openConversation(contact.userId)"
             class="contacts-rail__contact"
+            (click)="openConversation(contact.userId)"
             [attr.title]="expanded() ? null : contact.firstName"
           >
             <span class="contacts-rail__avatar">
               @if (contact.avatarUrl) {
-                <img [src]="contact.avatarUrl" alt="" class="contacts-rail__image" />
+                <img [src]="contact.avatarUrl" alt="" class="contacts-rail__photo" />
               } @else {
-                <span
-                  class="contacts-rail__initials"
-                  aria-hidden="true"
-                >
+                <span class="contacts-rail__initial" aria-hidden="true">
                   {{ contact.firstName.charAt(0) }}
                 </span>
               }
 
               <span
-                class="contacts-rail__presence"
-                [class.contacts-rail__presence--online]="contact.online"
-                [class.contacts-rail__presence--offline]="!contact.online"
+                class="contacts-rail__status"
+                [class.contacts-rail__status--online]="contact.online"
                 aria-hidden="true"
               ></span>
             </span>
 
             @if (expanded()) {
-              <span class="contacts-rail__identity">
-                <span class="contacts-rail__name">
-                  {{ contact.firstName }}
-                </span>
-                <span class="contacts-rail__category">
+              <span class="contacts-rail__details">
+                <span class="contacts-rail__name">{{ contact.firstName }}</span>
+                <span class="contacts-rail__service">
                   @if (contact.categories.length > 0) {
                     {{ contact.categories[0].displayName }}
                   } @else {
@@ -76,7 +69,7 @@
               </span>
             }
 
-            <span class="contacts-rail__accessible-label">
+            <span class="sr-only">
               {{ contact.firstName }}, {{ contact.online ? 'online' : 'offline' }}
             </span>
           </button>

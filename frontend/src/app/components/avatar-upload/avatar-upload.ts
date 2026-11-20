@@ -8,60 +8,63 @@ import { UserService } from '../../services/user.js';
 import { ApiError } from '../../types/api.js';
 import { UserProfile } from '../../types/user.js';
 
+// The picture types we accept, and the 2 MB size limit.
 const ACCEPTED_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 const MAX_BYTES = 2 * 1024 * 1024;
 
-/**
- * Picking, previewing, uploading and removing the account's picture.
- *
- * The checks here are for the person's benefit — instant feedback instead of a
- * round trip. The server repeats every one of them, because anything sent from
- * a browser can be forged.
- */
+// Pick, preview, upload and remove the profile picture.
+// The checks here only give quick feedback: the server checks everything again.
 @Component({
   selector: 'app-avatar-upload',
   imports: [TranslatePipe, LucideCamera],
   templateUrl: './avatar-upload.html',
-  styleUrls: [
-    './avatar-upload.css',
-    './avatar-upload-editor.css',
-  ],
+  styleUrl: './avatar-upload.css',
 })
 export class AvatarUpload {
+  // services
   private readonly userService = inject(UserService);
   private readonly i18n = inject(I18nService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly injector = inject(Injector);
 
+  // inputs from the parent page
   readonly profile = input.required<UserProfile>();
   readonly showIdentity = input(false);
+  // tells the parent page the picture changed
   readonly profileChange = output<UserProfile>();
-  readonly editing = signal(false);
+
+  // elements in the HTML
   private readonly fileInput = viewChild.required<ElementRef<HTMLInputElement>>('fileInput');
   private readonly cameraButton = viewChild.required<ElementRef<HTMLButtonElement>>('cameraButton');
 
+  // text for the HTML
   readonly accept = ACCEPTED_TYPES.join(',');
   readonly maxMegabytes = MAX_BYTES / (1024 * 1024);
 
-  /** Local object URL of the picked file, shown before it is uploaded. */
-  readonly preview = signal<string | null>(null);
+  // page state
+  readonly editing = signal(false);
+  readonly preview = signal<string | null>(null); // the picked picture, shown before upload
   readonly uploading = signal(false);
   readonly progress = signal(0);
   readonly removing = signal(false);
   readonly error = signal<string | null>(null);
   readonly notice = signal<string | null>(null);
 
+  // the file waiting to be uploaded
   private file: File | null = null;
 
+  // free the preview when the page closes
   constructor() {
     this.destroyRef.onDestroy(() => this.clearPick());
   }
 
+  // letters shown when there is no picture
   get initials(): string {
     const profile = this.profile();
     return `${profile.firstName.charAt(0)}${profile.lastName.charAt(0)}`.toUpperCase();
   }
 
+  // camera button: open the file picker
   edit(): void {
     if (this.uploading() || this.removing()) return;
     this.editing.set(true);
@@ -73,6 +76,7 @@ export class AvatarUpload {
     input.click();
   }
 
+  // a file was chosen: check it and show it
   pick(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0] ?? null;
@@ -99,6 +103,7 @@ export class AvatarUpload {
     this.preview.set(URL.createObjectURL(file));
   }
 
+  // Save button
   upload(): void {
     if (!this.file || this.uploading() || this.removing()) return;
 
@@ -128,6 +133,7 @@ export class AvatarUpload {
     });
   }
 
+  // Remove button
   remove(): void {
     if (this.removing() || this.uploading()) return;
 
@@ -150,17 +156,20 @@ export class AvatarUpload {
     });
   }
 
+  // Cancel button
   cancel(): void {
     if (this.uploading() || this.removing()) return;
     this.reset();
     this.finishEditing();
   }
 
+  // close edit mode and focus the camera button again
   private finishEditing(): void {
     this.editing.set(false);
     afterNextRender(() => this.cameraButton().nativeElement.focus(), { injector: this.injector });
   }
 
+  // forget the picked file and its preview
   private clearPick(): void {
     const preview = this.preview();
     if (preview) URL.revokeObjectURL(preview);
@@ -170,6 +179,7 @@ export class AvatarUpload {
     this.progress.set(0);
   }
 
+  // clear messages and the picked file
   private reset(): void {
     this.error.set(null);
     this.notice.set(null);

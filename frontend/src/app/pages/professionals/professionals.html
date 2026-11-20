@@ -1,83 +1,324 @@
 <app-navbar />
-<main class="professionals">
-  <section class="professionals__content" aria-labelledby="directory-title">
-    <header class="professionals__heading"><h1 class="professionals__title" id="directory-title">{{ 'directory.findProfessional' | translate }}</h1><p class="professionals__description">{{ 'directory.subtitle' | translate }}</p></header>
-    <section class="professionals__filters" [attr.aria-label]="'directory.filters' | translate">
-      <div class="professionals__filter-field"><label class="professionals__filter-label" for="category-filter">{{ 'directory.service' | translate }}</label><app-select class="professionals__select" controlId="category-filter" [label]="'directory.service' | translate" [options]="categoryOptions()" [value]="selectedCategory()" [disabled]="categoriesFailed()" (valueChange)="categoryFilter($event)" /></div>
-      <div class="professionals__filter-field"><label class="professionals__filter-label" for="city-filter">{{ 'directory.city' | translate }}</label><app-select class="professionals__select" controlId="city-filter" [label]="'directory.city' | translate" [options]="cityOptions()" [value]="selectedCity()" [disabled]="citiesFailed()" (valueChange)="cityFilter($event)" /></div>
-      @if (hasFilters()) { <button type="button" class="professionals__clear-filters" (click)="clearAll()">{{ 'directory.clearFilters' | translate }}</button> }
-      @if (categoriesFailed() || citiesFailed()) { <div class="professionals__filter-error" role="status"><p>{{ 'directory.filtersUnavailable' | translate }}</p><button type="button" class="professionals__text-button" (click)="loadFilters()">{{ 'common.retry' | translate }}</button></div> }
+<main class="directory">
+  <div class="directory__content">
+    <header class="directory__header">
+      <h1 class="directory__title">{{ 'directory.findProfessional' | translate }}</h1>
+      <p class="directory__subtitle">{{ 'directory.subtitle' | translate }}</p>
+    </header>
+
+    <!-- Filters -->
+    <section class="directory__filters">
+      <div class="directory__filter">
+        <label class="directory__filter-label" for="category-filter">{{
+          'directory.service' | translate
+        }}</label>
+        <app-select
+          class="directory__select"
+          controlId="category-filter"
+          [label]="'directory.service' | translate"
+          [options]="categoryOptions()"
+          [value]="selectedCategory()"
+          [disabled]="categoriesFailed()"
+          (valueChange)="categoryFilter($event)"
+        />
+      </div>
+      <div class="directory__filter">
+        <label class="directory__filter-label" for="city-filter">{{
+          'directory.city' | translate
+        }}</label>
+        <app-select
+          class="directory__select"
+          controlId="city-filter"
+          [label]="'directory.city' | translate"
+          [options]="cityOptions()"
+          [value]="selectedCity()"
+          [disabled]="citiesFailed()"
+          (valueChange)="cityFilter($event)"
+        />
+      </div>
+      @if (hasFilters()) {
+        <button type="button" class="directory__link" (click)="clearAll()">
+          {{ 'directory.clearFilters' | translate }}
+        </button>
+      }
+      @if (categoriesFailed() || citiesFailed()) {
+        <div class="directory__filter-error">
+          <p>{{ 'directory.filtersUnavailable' | translate }}</p>
+          <button type="button" class="directory__link" (click)="loadFilters()">
+            {{ 'common.retry' | translate }}
+          </button>
+        </div>
+      }
     </section>
-    @if (isLoading()) { <p role="status" class="professionals__loading">{{ 'directory.loading' | translate }}</p> }
-    @else if (failed()) { <div role="alert" class="professionals__error"><p>{{ 'directory.loadError' | translate }}</p><button type="button" class="professionals__secondary-button ui-button ui-button--secondary" (click)="load()">{{ 'common.retry' | translate }}</button></div> }
-    @else if (page(); as results) {
-      @if (!results.totalElements) {
-        <div class="professionals__empty ui-empty-state"><svg class="professionals__icon" [lucideIcon]="icons.people" aria-hidden="true" /><h2>{{ (hasFilters() ? 'directory.noMatches' : 'directory.empty') | translate }}</h2><p>{{ (hasFilters() ? 'directory.noMatchesBody' : 'directory.emptyBody') | translate }}</p>
-          @if (hasFilters()) { <button type="button" class="professionals__secondary-button ui-button ui-button--secondary" (click)="clearAll()">{{ 'directory.clearFilters' | translate }}</button> }
-          @else { <a routerLink="/professional-profile" class="professionals__primary-button ui-button">{{ 'howItWorksPage.becomePro' | translate }}</a> }
+
+    <!-- Results -->
+    @if (isLoading()) {
+      <p class="directory__state">{{ 'directory.loading' | translate }}</p>
+    } @else if (failed()) {
+      <div class="directory__state directory__state--error">
+        <p>{{ 'directory.loadError' | translate }}</p>
+        <button type="button" class="directory__button" (click)="load()">
+          {{ 'common.retry' | translate }}
+        </button>
+      </div>
+    } @else if (page(); as results) {
+      @if (results.totalElements === 0) {
+        <!-- Nobody at all, or nobody matching the filters -->
+        <div class="directory__empty">
+          <svg class="directory__empty-icon" [lucideIcon]="icons.people" />
+          <h2 class="directory__empty-title">
+            {{ (hasFilters() ? 'directory.noMatches' : 'directory.empty') | translate }}
+          </h2>
+          <p class="directory__empty-text">
+            {{ (hasFilters() ? 'directory.noMatchesBody' : 'directory.emptyBody') | translate }}
+          </p>
+          @if (hasFilters()) {
+            <button type="button" class="directory__button" (click)="clearAll()">
+              {{ 'directory.clearFilters' | translate }}
+            </button>
+          } @else {
+            <a
+              routerLink="/professional-profile"
+              class="directory__button directory__button--primary"
+            >
+              {{ 'howItWorksPage.becomePro' | translate }}
+            </a>
+          }
         </div>
       } @else {
-        <p class="professionals__result-count" role="status">{{ number(results.totalElements) }} {{ (results.totalElements === 1 ? 'directory.countOne' : 'directory.countMany') | translate }} @if (hasFilters()) { {{ 'directory.matchFilters' | translate }} }</p>
-        @if (!results.content.length) {
-          <div class="professionals__empty ui-empty-state"><h2>{{ 'directory.emptyPage' | translate }}</h2><p>{{ 'directory.emptyPageBody' | translate }}</p><button type="button" class="professionals__secondary-button ui-button ui-button--secondary" (click)="prevPage()">{{ 'directory.previousPage' | translate }}</button></div>
+        <p class="directory__count">
+          {{ number(results.totalElements) }}
+          {{
+            (results.totalElements === 1 ? 'directory.countOne' : 'directory.countMany') | translate
+          }}
+          @if (hasFilters()) {
+            {{ 'directory.matchFilters' | translate }}
+          }
+        </p>
+
+        @if (results.content.length === 0) {
+          <!-- This page number is past the end -->
+          <div class="directory__empty">
+            <h2 class="directory__empty-title">{{ 'directory.emptyPage' | translate }}</h2>
+            <p class="directory__empty-text">{{ 'directory.emptyPageBody' | translate }}</p>
+            <button type="button" class="directory__button" (click)="prevPage()">
+              {{ 'directory.previousPage' | translate }}
+            </button>
+          </div>
         } @else {
-          <ul class="professionals__grid">
+          <ul class="directory__grid">
             @for (person of results.content; track person.userId) {
-              <li class="professionals__card" [attr.aria-labelledby]="'professional-' + person.userId">
-                <div class="professionals__identity">
-                  @if (avatar(person) && !failedImages().has(person.userId)) { <img class="professionals__avatar" [src]="avatar(person)" alt="" (error)="imageFailed(person.userId)" /> }
-                  @else { <span class="professionals__avatar professionals__avatar--fallback ui-avatar-fallback" aria-hidden="true">{{ initials(person) }}</span> }
-                  <div class="professionals__identity-copy"><h2 class="professionals__name" [id]="'professional-' + person.userId"><button type="button" class="professionals__name-button" (click)="openProfile(person)" aria-haspopup="dialog">{{ name(person) }}</button></h2><p class="professionals__presence" [class.professionals__presence--online]="person.online"><span class="professionals__presence-dot" aria-hidden="true"></span>{{ (person.online ? 'directory.online' : 'directory.offline') | translate }}</p></div>
-                  <button type="button" class="professionals__save-button" [class.professionals__save-button--saved]="savedIds().has(person.userId)" [attr.aria-pressed]="savedIds().has(person.userId)" [disabled]="saving().has(person.userId)" [attr.aria-label]="(savedIds().has(person.userId) ? 'directory.unsaveName' : 'directory.saveName') | translate:{name: name(person)}" (click)="toggleSave(person.userId)"><svg class="professionals__icon" [lucideIcon]="icons.save" aria-hidden="true" /></button>
+              <li class="directory__card">
+                <div class="directory__identity">
+                  @if (avatar(person); as photo) {
+                    <img
+                      class="directory__avatar"
+                      [src]="photo"
+                      alt=""
+                      (error)="imageFailed(person.userId)"
+                    />
+                  } @else {
+                    <span class="directory__avatar directory__avatar--initials">{{
+                      initials(person)
+                    }}</span>
+                  }
+                  <div class="directory__identity-text">
+                    <h2 class="directory__name">
+                      <button
+                        type="button"
+                        class="directory__name-button"
+                        (click)="openProfile(person)"
+                      >
+                        {{ name(person) }}
+                      </button>
+                    </h2>
+                    <p
+                      class="directory__presence"
+                      [class.directory__presence--online]="person.online"
+                    >
+                      <span class="directory__dot"></span>
+                      {{ (person.online ? 'directory.online' : 'directory.offline') | translate }}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    class="directory__bookmark"
+                    [class.directory__bookmark--saved]="savedIds().has(person.userId)"
+                    [disabled]="saving().has(person.userId)"
+                    (click)="toggleSave(person.userId)"
+                  >
+                    <svg class="directory__icon" [lucideIcon]="icons.save" />
+                  </button>
                 </div>
-                <dl class="professionals__facts">
-                  <div><dt><svg class="professionals__icon" [lucideIcon]="icons.service" aria-hidden="true" /><span class="professionals__accessible-label">{{ 'directory.services' | translate }}</span></dt><dd>@for (category of person.categories; track category.code; let last = $last) { {{ label(category.displayName) }}{{ last ? '' : ' · ' }} } @empty { {{ 'directory.noServices' | translate }} }</dd></div>
-                  <div><dt><svg class="professionals__icon" [lucideIcon]="icons.city" aria-hidden="true" /><span class="professionals__accessible-label">{{ 'profile.serviceAreas' | translate }}</span></dt><dd>@for (city of person.cities; track city.code; let last = $last) { {{ label(city.displayName) }}{{ last ? '' : ' · ' }} } @empty { {{ 'directory.noCities' | translate }} }</dd></div>
+
+                <dl class="directory__facts">
+                  <div class="directory__fact">
+                    <dt><svg class="directory__fact-icon" [lucideIcon]="icons.service" /></dt>
+                    <dd class="directory__fact-value">
+                      {{ joinLabels(person.categories) ?? ('directory.noServices' | translate) }}
+                    </dd>
+                  </div>
+                  <div class="directory__fact">
+                    <dt><svg class="directory__fact-icon" [lucideIcon]="icons.city" /></dt>
+                    <dd class="directory__fact-value">
+                      {{ joinLabels(person.cities) ?? ('directory.noCities' | translate) }}
+                    </dd>
+                  </div>
                 </dl>
-                <div class="professionals__card-actions"><button type="button" class="professionals__secondary-button ui-button ui-button--secondary" (click)="openProfile(person)" aria-haspopup="dialog">{{ 'directory.viewProfile' | translate }}</button>@if (savedIds().has(person.userId)) { <span class="professionals__saved-label">{{ 'directory.saved' | translate }}</span> }</div>
-                @if (saveError() === person.userId) { <p role="alert" class="professionals__save-error">{{ 'directory.saveError' | translate }}</p> }
+
+                <div class="directory__card-actions">
+                  <button type="button" class="directory__button" (click)="openProfile(person)">
+                    {{ 'directory.viewProfile' | translate }}
+                  </button>
+                  @if (savedIds().has(person.userId)) {
+                    <span class="directory__saved">{{ 'directory.saved' | translate }}</span>
+                  }
+                </div>
+                @if (saveError() === person.userId) {
+                  <p class="directory__save-error">{{ 'directory.saveError' | translate }}</p>
+                }
               </li>
             }
           </ul>
         }
+
         @if (results.totalPages > 1) {
-          <nav class="professionals__pagination" [attr.aria-label]="'common.pagination' | translate"><button type="button" class="professionals__secondary-button ui-button ui-button--secondary" (click)="prevPage()" [disabled]="!canGoBack()"><svg class="professionals__directional-icon" [lucideIcon]="icons.previous" aria-hidden="true" />{{ 'common.previous' | translate }}</button><span>{{ pageLabel() }}</span><button type="button" class="professionals__secondary-button ui-button ui-button--secondary" (click)="nextPage()" [disabled]="!canGoForward()">{{ 'common.next' | translate }}<svg class="professionals__directional-icon" [lucideIcon]="icons.next" aria-hidden="true" /></button></nav>
+          <nav class="directory__pagination">
+            <button
+              type="button"
+              class="directory__button"
+              [disabled]="!canGoBack()"
+              (click)="prevPage()"
+            >
+              <svg class="directory__icon directory__icon--arrow" [lucideIcon]="icons.previous" />
+              {{ 'common.previous' | translate }}
+            </button>
+            <span class="directory__page-label">{{ pageLabel() }}</span>
+            <button
+              type="button"
+              class="directory__button"
+              [disabled]="!canGoForward()"
+              (click)="nextPage()"
+            >
+              {{ 'common.next' | translate }}
+              <svg class="directory__icon directory__icon--arrow" [lucideIcon]="icons.next" />
+            </button>
+          </nav>
         }
       }
     }
-  </section>
+  </div>
 </main>
 <app-footer />
-<dialog #profileDialog class="professionals__dialog" aria-labelledby="professional-profile-title" (close)="dismissProfile()">
-  <header class="professionals__dialog-heading"><h2 class="professionals__dialog-title" id="professional-profile-title">{{ 'directory.professionalDetails' | translate }}</h2><button type="button" class="professionals__icon-button" autofocus (click)="profileDialog.close()" [attr.aria-label]="'common.close' | translate"><svg class="professionals__icon" [lucideIcon]="icons.close" aria-hidden="true" /></button></header>
-  @if (selected(); as person) {
-    <div class="professionals__dialog-body">
-      <div class="professionals__identity">
-        @if (avatar(person) && !failedImages().has(person.userId)) { <img class="professionals__avatar" [src]="avatar(person)" alt="" (error)="imageFailed(person.userId)" /> } @else { <span class="professionals__avatar professionals__avatar--fallback ui-avatar-fallback" aria-hidden="true">{{ initials(person) }}</span> }
-        <div class="professionals__identity-copy"><h3 class="professionals__name">{{ name(person) }}</h3><p class="professionals__presence" [class.professionals__presence--online]="(profile() ?? person).online"><span class="professionals__presence-dot" aria-hidden="true"></span>{{ ((profile() ?? person).online ? 'directory.online' : 'directory.offline') | translate }}</p></div>
-      </div>
-      @if (profileLoading()) { <p role="status" class="professionals__dialog-state">{{ 'common.loading' | translate }}</p> }
-      @else if (profileFailed()) { <div role="alert" class="professionals__dialog-state"><p>{{ 'directory.profileError' | translate }}</p><button type="button" class="professionals__secondary-button ui-button ui-button--secondary" (click)="loadProfile()">{{ 'common.retry' | translate }}</button></div> }
-      @else if (profile(); as details) {
-        <dl class="professionals__dialog-facts"><div><dt>{{ 'directory.services' | translate }}</dt><dd>@for (category of details.categories; track category.code; let last = $last) { {{ label(category.displayName) }}{{ last ? '' : ' · ' }} } @empty { {{ 'directory.noServices' | translate }} }</dd></div><div><dt>{{ 'profile.serviceAreas' | translate }}</dt><dd>@for (city of details.cities; track city.code; let last = $last) { {{ label(city.displayName) }}{{ last ? '' : ' · ' }} } @empty { {{ 'directory.noCities' | translate }} }</dd></div></dl>
-        <section class="professionals__biography"><h3>{{ 'directory.about' | translate }}</h3><p dir="auto">{{ details.biography || ('directory.noBiography' | translate) }}</p></section>
-      }
-      <section class="professionals__reviews" aria-labelledby="professional-reviews-heading" [attr.aria-busy]="ratingsLoading()">
-        <h3 id="professional-reviews-heading">{{ 'directory.reviews' | translate }}</h3>
-        @if (ratingsLoading()) { <p role="status" class="professionals__reviews-status">{{ 'reviews.loading' | translate }}</p> }
-        @else {
-          @if (ratingSummary(); as summary) {
-            @if (summary.totalRatings > 0) {
-              <div class="professionals__review-summary"><strong>{{ score(summary.averageScore) }} <span>/ 5</span></strong><app-rating-stars [score]="summary.averageScore" /><span>{{ number(summary.totalRatings) }} {{ (summary.totalRatings === 1 ? 'directory.oneReview' : 'directory.manyReviews') | translate }}</span></div>
-            } @else { <p class="professionals__reviews-status">{{ 'reviews.noReviews' | translate }}</p> }
-          } @else {
-            <div class="professionals__reviews-status" role="alert"><p>{{ 'directory.ratingError' | translate }}</p><button type="button" class="professionals__text-button" (click)="loadRatings()">{{ 'common.retry' | translate }}</button></div>
-          }
 
+<!-- Profile popup -->
+<dialog #profileDialog class="directory__dialog" (close)="dismissProfile()">
+  <header class="directory__dialog-header">
+    <h2 class="directory__dialog-title">{{ 'directory.professionalDetails' | translate }}</h2>
+    <button type="button" class="directory__close" autofocus (click)="profileDialog.close()">
+      <svg class="directory__icon" [lucideIcon]="icons.close" />
+    </button>
+  </header>
+
+  @if (selected(); as person) {
+    <div class="directory__dialog-body">
+      <div class="directory__identity">
+        @if (avatar(person); as photo) {
+          <img
+            class="directory__avatar"
+            [src]="photo"
+            alt=""
+            (error)="imageFailed(person.userId)"
+          />
+        } @else {
+          <span class="directory__avatar directory__avatar--initials">{{ initials(person) }}</span>
+        }
+        <div class="directory__identity-text">
+          <h3 class="directory__name">{{ name(person) }}</h3>
+          <p
+            class="directory__presence"
+            [class.directory__presence--online]="(profile() ?? person).online"
+          >
+            <span class="directory__dot"></span>
+            {{
+              ((profile() ?? person).online ? 'directory.online' : 'directory.offline') | translate
+            }}
+          </p>
+        </div>
+      </div>
+
+      @if (profileLoading()) {
+        <p class="directory__dialog-state">{{ 'common.loading' | translate }}</p>
+      } @else if (profileFailed()) {
+        <div class="directory__dialog-state">
+          <p>{{ 'directory.profileError' | translate }}</p>
+          <button type="button" class="directory__button" (click)="loadProfile()">
+            {{ 'common.retry' | translate }}
+          </button>
+        </div>
+      } @else if (profile(); as details) {
+        <dl class="directory__details">
+          <div>
+            <dt class="directory__details-label">{{ 'directory.services' | translate }}</dt>
+            <dd>{{ joinLabels(details.categories) ?? ('directory.noServices' | translate) }}</dd>
+          </div>
+          <div>
+            <dt class="directory__details-label">{{ 'profile.serviceAreas' | translate }}</dt>
+            <dd>{{ joinLabels(details.cities) ?? ('directory.noCities' | translate) }}</dd>
+          </div>
+        </dl>
+        <section class="directory__section">
+          <h3 class="directory__section-title">{{ 'directory.about' | translate }}</h3>
+          <p class="directory__bio" dir="auto">
+            {{ details.biography || ('directory.noBiography' | translate) }}
+          </p>
+        </section>
+      }
+
+      <section class="directory__section directory__section--reviews">
+        <h3 class="directory__section-title">{{ 'directory.reviews' | translate }}</h3>
+        @if (ratingsLoading()) {
+          <p class="directory__reviews-text">{{ 'reviews.loading' | translate }}</p>
+        } @else if (ratingSummary(); as summary) {
+          @if (summary.totalRatings > 0) {
+            <div class="directory__rating">
+              <strong class="directory__score">
+                {{ score(summary.averageScore) }} <span class="directory__muted">/ 5</span>
+              </strong>
+              <app-rating-stars [score]="summary.averageScore" />
+              <span class="directory__muted">
+                {{ number(summary.totalRatings) }}
+                {{
+                  (summary.totalRatings === 1 ? 'directory.oneReview' : 'directory.manyReviews')
+                    | translate
+                }}
+              </span>
+            </div>
+          } @else {
+            <p class="directory__reviews-text">{{ 'reviews.noReviews' | translate }}</p>
+          }
+        } @else {
+          <div class="directory__reviews-text">
+            <p>{{ 'directory.ratingError' | translate }}</p>
+            <button type="button" class="directory__link" (click)="loadRatings()">
+              {{ 'common.retry' | translate }}
+            </button>
+          </div>
         }
       </section>
-      <button type="button" class="professionals__profile-save ui-button ui-button--secondary" [disabled]="saving().has(person.userId)" [attr.aria-pressed]="savedIds().has(person.userId)" (click)="toggleSave(person.userId)"><svg class="professionals__icon" [lucideIcon]="icons.save" aria-hidden="true" />{{ (savedIds().has(person.userId) ? 'directory.unsave' : 'directory.save') | translate }}</button>
-      @if (saveError() === person.userId) { <p role="alert" class="professionals__save-error">{{ 'directory.saveError' | translate }}</p> }
+
+      <button
+        type="button"
+        class="directory__button directory__button--save"
+        [disabled]="saving().has(person.userId)"
+        (click)="toggleSave(person.userId)"
+      >
+        <svg class="directory__icon" [lucideIcon]="icons.save" />
+        {{ (savedIds().has(person.userId) ? 'directory.unsave' : 'directory.save') | translate }}
+      </button>
+      @if (saveError() === person.userId) {
+        <p class="directory__save-error">{{ 'directory.saveError' | translate }}</p>
+      }
     </div>
   }
 </dialog>

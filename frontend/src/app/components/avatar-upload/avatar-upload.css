@@ -1,125 +1,137 @@
+/* The profile picture card: photo, camera button, and the edit buttons. */
+@reference '../../../styles.css';
+
+/* The component tag itself */
 :host {
-  margin-bottom: 1.5rem;
-  display: block;
+  @apply mb-6 block;
 }
 
-.avatar-upload__title {
-  font-size: 1.25rem;
-  line-height: 1.4;
+/* Card */
+.avatar {
+  @apply rounded-xl border border-gray-200 bg-white p-6;
+}
+
+/* Photo + name row */
+.avatar__row {
+  @apply flex min-w-0 items-center gap-4;
+}
+
+/* When there is no name next to the photo, leave space under the title. */
+.avatar__row--standalone {
+  @apply mt-4;
+}
+
+/* Photo */
+.avatar__frame {
+  @apply relative size-16 shrink-0;
+}
+
+.avatar__image {
+  @apply size-full rounded-full border border-gray-200 object-cover;
+}
+
+.avatar__initials {
+  @apply flex size-full items-center justify-center rounded-full bg-primary-50 text-xl font-medium text-primary-800;
+}
+
+/* Camera button on the corner of the photo */
+.avatar__camera {
+  @apply absolute -end-2.5 -bottom-2.5 grid size-11 cursor-pointer place-items-center rounded-full;
+}
+
+.avatar__badge {
+  @apply grid size-7 place-items-center rounded-full border border-gray-300 bg-white text-gray-600 shadow-xs transition-colors duration-[160ms] motion-reduce:transition-none;
+}
+
+.avatar__camera:hover .avatar__badge {
+  @apply bg-primary-50 text-primary-800;
+}
+
+.avatar__badge-icon {
+  @apply size-4 stroke-[1.5];
+}
+
+/* Name and email */
+.avatar__identity {
+  @apply min-w-0 flex-1;
+}
+
+.avatar__name {
+  @apply text-xl leading-7 font-semibold text-gray-900;
   overflow-wrap: anywhere;
-  color: var(--color-gray-900, oklch(21% .034 264.665));
-  font-weight: 600;
-  line-height: 1.75rem;
 }
 
-.avatar-upload__identity {
-  align-items: center;
-  gap: 1rem;
-  min-width: 0;
-  display: flex;
-}
-
-.avatar-upload__identity.avatar-upload__identity--standalone {
-  margin-top: 1rem;
-}
-
-.avatar-upload__avatar {
-  flex-shrink: 0;
-  width: 4rem;
-  height: 4rem;
-  position: relative;
-}
-
-.avatar-upload__image {
-  border-style: var(--tw-border-style);
-  border-width: 1px;
-  border-color: var(--color-gray-200, oklch(92.8% .006 264.531));
-  object-fit: cover;
-  border-radius: 3.40282e38px;
-  width: 100%;
-  height: 100%;
-}
-
-.avatar-upload__initials {
-  background-color: var(--color-primary-50, #e6f7f7);
-  width: 100%;
-  height: 100%;
-  font-size: 1.25rem;
-  line-height: 1.4;
-  color: var(--color-primary-800, #006663);
-  border-radius: 3.40282e38px;
-  justify-content: center;
-  align-items: center;
-  font-weight: 500;
-  display: flex;
-}
-
-.avatar-upload__camera-button {
-  cursor: pointer;
-  inset-inline-end: -.625rem;
-  border-radius: 3.40282e38px;
-  place-items: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  display: grid;
-  position: absolute;
-  bottom: -.625rem;
-}
-
-.avatar-upload__camera-button:focus-visible {
-  outline-style: var(--tw-outline-style);
-  outline-offset: 0px;
-  outline-width: 2px;
-  outline-color: var(--color-primary-700, #007f7b);
-}
-
-.avatar-upload__camera-button:disabled {
-  cursor: not-allowed;
-  opacity: .5;
-}
-
-.avatar-upload__camera-badge {
-  border-style: var(--tw-border-style);
-  border-width: 1px;
-  border-color: var(--color-gray-300, oklch(87.2% .01 258.338));
-  background-color: var(--color-white, #fff);
-  width: 1.75rem;
-  height: 1.75rem;
-  color: var(--color-gray-600, oklch(44.6% .03 256.802));
-  --tw-shadow: 0 1px 2px 0 var(--tw-shadow-color, #0000000d);
-  box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
-  transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to;
-  transition-timing-function: var(--tw-ease, var(--default-transition-timing-function, cubic-bezier(.4, 0, .2, 1)));
-  transition-duration: var(--tw-duration, var(--default-transition-duration, .15s));
-  --tw-duration: .16s;
-  border-radius: 3.40282e38px;
-  place-items: center;
-  transition-duration: .16s;
-  display: grid;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .avatar-upload__camera-badge {
-    transition-property: none;
-  }
-}
-
-.avatar-upload__icon {
-  stroke-width: 1.5px;
-  width: 1rem;
-  height: 1rem;
-}
-
-.avatar-upload__identity-copy {
-  flex: 1;
-  min-width: 0;
-}
-
-.avatar-upload__email {
-  font-size: .875rem;
-  line-height: 1.42857142857;
+.avatar__email {
+  @apply mt-1 text-sm leading-5 text-gray-600;
   overflow-wrap: anywhere;
-  color: var(--color-gray-600, oklch(44.6% .03 256.802));
-  margin-top: .25rem;
-  line-height: 1.25rem;
+}
+
+/* Edit area */
+.avatar__editor {
+  @apply mt-6 border-t border-gray-100 pt-4;
+}
+
+.avatar__hint {
+  @apply text-xs leading-5 text-gray-500;
+}
+
+.avatar__actions {
+  @apply mt-3 flex flex-wrap gap-2;
+}
+
+/* Buttons */
+.avatar__button {
+  @apply min-h-11 cursor-pointer rounded-lg border border-gray-300 px-4 py-2 text-sm leading-5 font-medium text-gray-700 transition-colors duration-[160ms] motion-reduce:transition-none;
+}
+
+.avatar__button:hover {
+  @apply bg-gray-50;
+}
+
+.avatar__button--primary {
+  @apply border-transparent bg-primary-700 text-white;
+}
+
+.avatar__button--primary:hover {
+  @apply bg-primary-800;
+}
+
+.avatar__button--danger {
+  @apply text-red-700;
+}
+
+.avatar__button--plain {
+  @apply border-transparent;
+}
+
+.avatar__button:disabled,
+.avatar__camera:disabled {
+  @apply cursor-not-allowed opacity-50;
+}
+
+/* Keyboard focus ring */
+.avatar__button:focus-visible {
+  @apply outline-2 outline-offset-2 outline-primary-700;
+}
+
+.avatar__camera:focus-visible {
+  @apply outline-2 outline-offset-0 outline-primary-700;
+}
+
+/* Upload progress bar */
+.avatar__progress {
+  @apply mt-4 h-1 overflow-hidden rounded bg-gray-100;
+}
+
+.avatar__progress-fill {
+  @apply h-full bg-primary-700;
+}
+
+/* "Picture updated" / error text */
+.avatar__message {
+  @apply mt-4 text-sm leading-5 text-primary-800;
+}
+
+.avatar__message--error {
+  @apply text-red-700;
 }
