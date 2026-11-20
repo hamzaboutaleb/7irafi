@@ -789,6 +789,7 @@ export const en = {
   "analytics.period": "Showing",
   "analytics.timezone": "Casablanca time",
   "analytics.refresh": "Refresh",
+  "analytics.downloadCsv": "Download CSV",
   "analytics.jobs": "Jobs posted",
   "analytics.applications": "Applications submitted",
   "analytics.activity": "Activity over time",

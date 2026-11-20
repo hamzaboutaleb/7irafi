@@ -785,6 +785,7 @@ export const ar: Record<keyof typeof en, string> = {
   "analytics.period": "الفترة",
   "analytics.timezone": "توقيت الدار البيضاء",
   "analytics.refresh": "تحديث",
+  "analytics.downloadCsv": "تنزيل CSV",
   "analytics.jobs": "الأعمال المنشورة",
   "analytics.applications": "الطلبات المقدمة",
   "analytics.activity": "النشاط عبر الزمن",

@@ -31,6 +31,7 @@
     }
     <div class="dashboard__metadata">
       <p class="dashboard__period">{{ 'analytics.period' | translate }} <bdi>{{ appliedFilters().start }} — {{ appliedFilters().end }}</bdi> · {{ 'analytics.timezone' | translate }}</p>
+      <button class="dashboard__refresh dashboard-link" type="button" (click)="downloadCsv()" [disabled]="!analyticsResults()">{{ 'analytics.downloadCsv' | translate }}</button>
       <p role="status">{{ connectionLabelKey() | translate }}</p>
     </div>
     @if (requestStatus() === 'loading') {
