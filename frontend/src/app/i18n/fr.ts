@@ -797,6 +797,7 @@ export const fr: Record<keyof typeof en, string> = {
   "analytics.period": "Période",
   "analytics.timezone": "Heure de Casablanca",
   "analytics.refresh": "Actualiser",
+  "analytics.downloadCsv": "Télécharger le CSV",
   "analytics.jobs": "Missions publiées",
   "analytics.applications": "Candidatures envoyées",
   "analytics.activity": "Votre activité au fil du temps",

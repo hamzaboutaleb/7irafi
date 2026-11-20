@@ -1,4 +1,4 @@
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DatePipe, DecimalPipe, DOCUMENT } from '@angular/common';
 import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -13,6 +13,7 @@ import { AnalyticsCount, AnalyticsResponse } from '../../types/analytics.js';
 import { TranslationKey } from '../../i18n/language.js';
 import { DashboardActivity } from './components/dashboard-activity/dashboard-activity.js';
 import { LiveAnalyticsConnection } from './live-analytics-connection.js';
+import { buildAnalyticsCsv } from './utils/analytics-csv.js';
 import {
   buildAnalyticsQuery,
   buildBucketDates,
@@ -41,6 +42,7 @@ export class Dashboard {
   private readonly analyticsApi = inject(AnalyticsApi);
   private readonly auth = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly document = inject(DOCUMENT);
 
   private readonly liveConnection = inject(LiveAnalyticsConnection);
   private analyticsSubscription?: Subscription;
@@ -107,6 +109,23 @@ export class Dashboard {
     this.appliedFilters.set(filtersToApply);
     this.clearAnalyticsResults();
     this.refreshAnalytics();
+  }
+
+  protected downloadCsv(): void {
+    const rows = this.activityRows();
+    if (!rows) return;
+
+    const { start, end, granularity } = this.appliedFilters();
+    const csv = buildAnalyticsCsv(rows);
+    const file = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const fileUrl = URL.createObjectURL(file);
+
+    const link = this.document.createElement('a');
+    link.href = fileUrl;
+    link.download = `analytics-${start}-to-${end}-${granularity}.csv`;
+    link.click();
+
+    setTimeout(() => URL.revokeObjectURL(fileUrl), 1000);
   }
 
   protected refreshAnalytics(): void {
