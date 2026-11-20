@@ -1,0 +1,5 @@
+# Production credentials and generated TLS assets are never build inputs.
+infra/docker/prod/.env
+infra/docker/prod/.env.*
+infra/docker/prod/tls/
+infra/docker/prod/.https-prepare.lock/

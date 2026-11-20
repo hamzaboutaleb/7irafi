@@ -19,6 +19,8 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+/infra/docker/prod/tls/
+/infra/docker/prod/.https-prepare.lock/
 **/.metals
 # Local-only working files (see CLAUDE.md: only code is pushed)
 /handoff.md
