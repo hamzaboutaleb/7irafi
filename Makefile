@@ -7,7 +7,7 @@ SPOTLESS_SERVICES := auth-service user-service chat-service notification-service
 
 help:
 	@printf '%s\n' 'dev-init              Copy the environment template if absent' 'dev-check             Validate Compose configuration' 'dev-up                Start the app without optional observability' 'dev-observability     Start monitoring and logging' 'dev-down              Stop the development stack' 'dev-ps                Show service status' 'dev-logs              Follow app logs' 'db-init               Create missing service databases in an existing volume' 'db-backup             Take a database backup now' 'db-backups            List saved backups' 'format-check          Check configured Java formatters and shell syntax' 'test-backend          Run backend tests (except analytics)' 'test-analytics        Run analytics tests against a disposable Postgres' 'test                  Run all test targets' 'build                 Build application images' 'prod-https            Prepare the host IP and self-signed HTTPS certificate' 'prod-preflight        Check production environment, HTTPS assets, and Compose model' 'prod-build            Build production images' 'prod-up               Start production with automatic self-signed HTTPS' 'prod-ps               Show production service status' 'prod-logs             Follow production app logs' 'prod-db-init          Create missing databases on an existing production volume' 'prod-backup           Take a production database backup now' 'prod-down             Stop production containers (keep volumes)'
-	@printf '%s\n' 'fclean                Remove development containers, networks, images, and volumes (deletes data)' 'prod-fclean           Remove production containers, networks, images, and volumes (deletes data)'
+	@printf '%s\n' 'fclean                Remove development stack and images; prune unused volumes across all projects (deletes data)' 'prod-fclean           Remove production containers, networks, images, and volumes (deletes data)'
 
 dev-init:
 	@test -e infra/docker/.env || cp infra/docker/.env.example infra/docker/.env
@@ -27,6 +27,7 @@ dev-down:
 
 fclean:
 	$(COMPOSE) --profile "*" down --volumes --rmi all --remove-orphans
+	docker volume prune -a
 
 dev-ps:
 	$(COMPOSE) ps
