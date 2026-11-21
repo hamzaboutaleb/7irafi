@@ -81,8 +81,9 @@ services:
       dockerfile: infra/docker/prod/frontend.Dockerfile
     ports: !override
       - "8088:80"
-      - "8443:443"
+      - "443:443"
       - "9443:9443"
+      - "9001:9001"
     environment:
       # A changed fingerprint makes Compose recreate Nginx with the new certificate.
       TLS_CERT_SHA256: ${TLS_CERT_SHA256:?Run make prod-https first}
@@ -126,3 +127,4 @@ services:
     container_name: !reset null
   kibana-setup:
     container_name: !reset null
+    profiles: !override ["observability-setup"]

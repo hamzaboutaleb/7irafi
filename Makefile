@@ -1,5 +1,5 @@
 COMPOSE := docker compose -f infra/docker/docker-compose.yml
-PROD_COMPOSE := env -u FRONTEND_ORIGIN -u S3_PUBLIC_ENDPOINT -u TLS_CERT_SHA256 docker compose -p 7irafi-prod --env-file infra/docker/prod/.env --env-file infra/docker/prod/.env.https -f infra/docker/docker-compose.yml -f infra/docker/prod/compose.yml
+PROD_COMPOSE := env -u FRONTEND_ORIGIN -u S3_PUBLIC_ENDPOINT -u TLS_CERT_SHA256 COMPOSE_PROFILES= docker compose -p 7irafi-prod --env-file infra/docker/prod/.env --env-file infra/docker/prod/.env.https -f infra/docker/docker-compose.yml -f infra/docker/prod/compose.yml
 BACKEND_SERVICES := auth-service user-service job-service application-service chat-service notification-service api-gateway discovery-service rating-service
 SPOTLESS_SERVICES := auth-service user-service chat-service notification-service api-gateway discovery-service rating-service
 
@@ -80,6 +80,7 @@ prod-db-init: prod-preflight
 prod-up: prod-https
 	$(MAKE) prod-db-init
 	$(PROD_COMPOSE) --profile observability up --build --wait -d
+	$(PROD_COMPOSE) --profile observability run --rm --no-deps kibana-setup
 	$(PROD_COMPOSE) exec -T frontend nginx -t
 
 prod-ps:

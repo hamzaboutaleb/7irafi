@@ -42,7 +42,7 @@ Create the production environment file:
 cp infra/docker/prod/.env.example infra/docker/prod/.env
 ```
 
-The example defaults run a fresh local HTTPS demo at `https://127.0.0.1:8443`.
+The example defaults run a fresh local HTTPS demo at `https://127.0.0.1`.
 To open it from another device, set `TLS_HOST_IP` to the host's reachable IPv4
 address before starting. Use unique credentials and a JWT secret of at least
 32 characters for a real deployment. Keep the existing credentials and Kafka
@@ -74,9 +74,9 @@ Replace `<HOST_IP>` below with the value of `TLS_HOST_IP`:
 
 | What | URL | Access |
 | --- | --- | --- |
-| Application | `https://<HOST_IP>:8443` | an account you register |
-| API base URL | `https://<HOST_IP>:8443/api/` | used by the application |
-| Status page | `https://<HOST_IP>:8443/status` | public |
+| Application | `https://<HOST_IP>` | an account you register |
+| API base URL | `https://<HOST_IP>/api/` | used by the application |
+| Status page | `https://<HOST_IP>/status` | public |
 | Media (MinIO API) | `https://<HOST_IP>:9443` | signed file URLs supplied by the application |
 | HTTP redirect | `http://<HOST_IP>:8088` | redirects application requests to HTTPS |
 
