@@ -30,31 +30,73 @@ capability (with an onboarding status), not a separate kind of account.
 
 ## Instructions
 
+Run the following commands from the repository root. Install Docker with Compose
+2.24.4 or later, Make, and OpenSSL 1.1.1 or later. Application dependencies are built
+inside Docker.
+
 ### Configuration
 
-Secrets are never committed. Create your local `.env` from the template; the stack will
-not start without it:
+Create the production environment file:
 
 ```bash
-cp infra/docker/.env.example infra/docker/.env
-# then edit infra/docker/.env and set a value for each variable
+cp infra/docker/prod/.env.example infra/docker/prod/.env
 ```
 
-### Run
+Edit `infra/docker/prod/.env` and replace every `replace-me` value. Set `JWT_SECRET`
+to at least 32 characters and `TLS_HOST_IP` to the machine's IPv4 address reachable
+by your demo devices. For example:
 
-One command builds and starts everything:
+```dotenv
+TLS_HOST_IP=192.168.1.42
+OPENSSL_BIN=openssl
+KAFKA_PORT=9094
+```
+
+On macOS, set `OPENSSL_BIN` to your Homebrew OpenSSL executable if the system
+version does not support the required certificate options.
+
+### Run with HTTPS
 
 ```bash
-docker compose -f infra/docker/docker-compose.yml up --build
+make prod-up
 ```
 
-Logging and monitoring are in the `observability` Compose profile. Start them as well with:
+This prepares a 365-day self-signed certificate, generates `.env.https`, initializes
+the service databases, and builds and starts the production containers. Existing
+certificates are reused while valid for the configured IP address. The generated
+`.env.https` supplies the application and media origins; do not edit it manually.
+
+Trust `infra/docker/prod/tls/server.crt` on each demo device so the browser can access
+both the application and media over HTTPS. The certificate is self-signed, so browsers
+do not trust it automatically.
+
+Replace `<HOST_IP>` below with the value of `TLS_HOST_IP`:
+
+| What | URL | Access |
+| --- | --- | --- |
+| Application | `https://<HOST_IP>:8443` | an account you register |
+| API base URL | `https://<HOST_IP>:8443/api/` | used by the application |
+| Status page | `https://<HOST_IP>:8443/status` | public |
+| Media (MinIO API) | `https://<HOST_IP>:9443` | signed file URLs supplied by the application |
+| HTTP redirect | `http://<HOST_IP>:8088` | redirects application requests to HTTPS |
+
+Nginx exposes the application, API, WebSockets, and media. The production overlay
+keeps the direct backend, database, Kafka, Eureka, and MinIO console ports unpublished.
+
+Use `make prod-ps` to check containers, `make prod-logs` to follow application logs,
+and `make prod-down` to stop the stack while keeping its data volumes.
+
+### Local development
+
+Create the development environment file and fill in its values before starting:
 
 ```bash
-docker compose -f infra/docker/docker-compose.yml --profile observability up --build
+make dev-init
+# Edit infra/docker/.env and replace the placeholder values.
+make dev-up
 ```
 
-TODO(team): replace with the HTTPS URLs once TLS is in place.
+The development frontend uses HTTP and the Angular development server:
 
 | What | URL | Login |
 | --- | --- | --- |
@@ -63,19 +105,41 @@ TODO(team): replace with the HTTPS URLs once TLS is in place.
 | Eureka dashboard | `http://localhost:8761` | — |
 | Status page | `http://localhost:4200/status` | public |
 | MinIO console | `http://localhost:9001` | `MINIO_ROOT_USER` / `MINIO_ROOT_PASSWORD` from `.env` |
+
+### Logging and monitoring
+
+The `observability` profile provides logging and monitoring. For development:
+
+```bash
+make dev-observability
+```
+
+For production, configure the additional observability settings listed in
+[`infra/docker/.env.example`](infra/docker/.env.example) in your production `.env`,
+including the Grafana, Elasticsearch, Kibana, and Logstash credentials. Then run:
+
+```bash
+COMPOSE_PROFILES=observability make prod-up
+```
+
+Use credentials from the `.env` file for the environment you started:
+
+| What | URL | Login |
+| --- | --- | --- |
 | Grafana | `http://localhost:3000` | `GRAFANA_ADMIN_USER` / `GRAFANA_ADMIN_PASSWORD` from `.env` |
 | Prometheus | `http://localhost:9090` | — |
 | Alertmanager | `http://localhost:9093` | — |
 | Kibana | `http://localhost:5601` | `elastic` / `ELASTIC_PASSWORD` from `.env` |
 
-Grafana, Prometheus, Alertmanager and Kibana listen on `127.0.0.1` only.
+These monitoring and logging interfaces use HTTP and listen on `127.0.0.1` only;
+open them on the machine running Docker.
 
 ## Team Information
 
 | Login | Name | Role(s) | Responsibilities |
 | --- | --- | --- | --- |
 | yrachidi | Youssef Rachidi | Product Owner, Developer | Authentication (auth-service), user profiles and connections (user-service), API gateway, service discovery (Eureka); login, register, profile and professionals pages; i18n |
-| aelfadl | Ayman Elfadl | TODO(team): role, Developer | Jobs (job-service), applications (application-service), Kafka messaging, MinIO file storage; jobs, my-jobs, create-job and applicants pages |
+| aelfadl | Ayman Elfadl | Developer | Jobs (job-service), applications (application-service), Kafka messaging, MinIO file storage; jobs, my-jobs, create-job and applicants pages |
 | hboutale | Hamza Boutaleb | Tech Lead, Developer | Ratings (rating-service), notifications (notification-service), conversations (chat-service); landing page, navbar, footer and shared UI; frontend BEM styling |
 | isallali | Ismail Taha | Project Manager, Developer | DevOps: ELK logging, Prometheus/Grafana/Alertmanager monitoring, shared-kernel module, Makefile, production setup |
 | ykhoussi | yasser khoussi | Developer | Analytics (analytics-service): dashboard projections, queries and live updates; account analytics dashboard |
@@ -87,10 +151,10 @@ Grafana, Prometheus, Alertmanager and Kibana listen on `127.0.0.1` only.
   Shared pieces (gateway routes, Kafka topics, Docker Compose) were changed through pull
   requests that the owner of the affected service could review. The team met once a week
   to share progress, plan the next tasks and make decisions together.
-- **Git workflow:** one branch per task (`feat/…`, `fix/…`, `refactor/…`), merged into
-  `main` through pull requests. 39 pull requests were merged, from all five members, and
-  26 of them received a review before merging. Commit messages follow the
-  Conventional Commits style (`feat(auth-service): …`).
+- **Git workflow:** each task is developed on a separate branch (`feat/…`, `fix/…`,
+  `refactor/…`, or `docs/…`). Changes are merged into `main` through GitHub pull
+  requests. Commit messages follow Conventional Commits, such as
+  `fix: correct API routing`.
 - **Tools:** GitHub pull requests and code review; GitHub Issues for bugs (for example
   #40, a failing application-service test).
 - **Communication:** Discord and WhatsApp, plus in-person syncs at 1337.
@@ -463,7 +527,11 @@ and Kafka where it does not (registration, notifications, analytics, job lifecyc
   - **Learning:** explaining new concepts (Spring Security, JWT, Kafka, the outbox
     pattern, Angular signals) and the reasons behind design choices, so the code could
     be written and explained without help.
-- **aelfadl:** TODO(team): which tasks and which parts of the project used AI.
+- **aelfadl (Ayman ELFADL):**
+  - **Learning:** Used AI to learn frontend and backend concepts, including Angular,
+    TypeScript, Java, and Spring Boot.
+  - **Styling:** Used AI for help with CSS, Tailwind CSS, and component layouts on
+    frontend pages.
 - **hboutale (Hamza Boutaleb):**
   - **Learning:** Used AI to learn Angular, TypeScript, Spring Boot, and Tailwind CSS.
   - **Styling:** Used AI for repetitive frontend work, including moving Tailwind utility classes from Angular templates into BEM-organized component styles while continuing to use Tailwind CSS.
