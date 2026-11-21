@@ -14,8 +14,7 @@ set -eu
 umask 077
 
 DATABASES="auth_db user_db job_db application_db chat_db notification_db analytics_db rating_db"
-BACKUP_DIR="${BACKUP_DIR:-/backups}"
-RETENTION_DAYS="${BACKUP_RETENTION_DAYS:-7}"
+RETENTION_DAYS="$BACKUP_RETENTION_DAYS"
 
 mkdir -p "$BACKUP_DIR"
 

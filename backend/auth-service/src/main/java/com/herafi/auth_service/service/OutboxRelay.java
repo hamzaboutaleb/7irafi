@@ -33,7 +33,7 @@ public class OutboxRelay {
     private final KafkaTemplate<String, String> kafka;
 
     // runs again 2 seconds after the previous run has finished
-    @Scheduled(fixedDelayString = "${outbox.relay.delay-ms:2000}")
+    @Scheduled(fixedDelayString = "${outbox.relay.delay-ms}")
     @Transactional
     public void sendPending() {
         List<OutboxEvent> pending = repository

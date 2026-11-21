@@ -68,8 +68,8 @@ public class SecurityConfig {
 
         @Bean
         UserDetailsService metricsUserDetailsService(
-                        @Value("${metrics.username:prometheus}") String username,
-                        @Value("${metrics.password:7irafi-development-metrics}") String password) {
+                        @Value("${metrics.username}") String username,
+                        @Value("${metrics.password}") String password) {
                 return new InMemoryUserDetailsManager(
                                 User.withUsername(username)
                                                 .password(passwordEncoder().encode(password))

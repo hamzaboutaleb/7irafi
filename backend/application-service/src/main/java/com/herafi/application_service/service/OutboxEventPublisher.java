@@ -13,7 +13,7 @@ public class OutboxEventPublisher {
 
     private final OutboxEventDispatcher dispatcher;
 
-    @Scheduled(fixedDelayString = "${applications.outbox.poll-interval-ms:1000}")
+    @Scheduled(fixedDelayString = "${applications.outbox.poll-interval-ms}")
     public void publishPending() {
         for (int published = 0; published < 100; published++) {
             if (!dispatcher.publishNext()) {

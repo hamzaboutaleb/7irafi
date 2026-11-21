@@ -8,15 +8,13 @@ services:
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_LISTENERS: INTERNAL://:9092,CONTROLLER://:9093,EXTERNAL://:9094
-      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:${KAFKA_PORT}
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_LISTENERS: INTERNAL://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
       KAFKA_LOG_DIRS: /var/lib/kafka/data
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
-    ports:
-      - "127.0.0.1:${KAFKA_PORT}:9094"
     volumes:
       - ./kafka/start.sh:/opt/kafka/start.sh:ro
       - ./kafka/init-topics.sh:/opt/kafka/init-topics.sh:ro
@@ -82,6 +80,9 @@ services:
       context: ../../backend
       dockerfile: auth-service/Dockerfile
     environment:
+      LOG_FORMAT: logstash
+      JWT_ACCESS_TOKEN_TTL: 30m
+      JWT_REFRESH_TOKEN_TTL: 7d
       SERVER_PORT: 8081
       APP_ENVIRONMENT: ${APP_ENVIRONMENT}
       DB_URL: jdbc:postgresql://postgres:5432/auth_db
@@ -114,6 +115,11 @@ services:
       context: ../../backend
       dockerfile: user-service/Dockerfile
     environment:
+      LOG_FORMAT: logstash
+      ONLINE_THRESHOLD: 2m
+      S3_ENDPOINT: http://minio:9000
+      S3_PUBLIC_ENDPOINT: http://localhost:9000
+      S3_REGION: us-east-1
       DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka/
       SERVER_PORT: 8082
       APP_ENVIRONMENT: ${APP_ENVIRONMENT}
@@ -151,6 +157,9 @@ services:
       context: ../../backend
       dockerfile: notification-service/Dockerfile
     environment:
+      LOG_FORMAT: logstash
+      JWT_ISSUER: 7irafi-auth-service
+      ALLOWED_ORIGIN: http://localhost:4200
       DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka/
       SERVER_PORT: 8086
       APP_ENVIRONMENT: ${APP_ENVIRONMENT}
@@ -185,6 +194,9 @@ services:
       context: ../../backend
       dockerfile: chat-service/Dockerfile
     environment:
+      LOG_FORMAT: logstash
+      JWT_ISSUER: 7irafi-auth-service
+      ALLOWED_ORIGIN: http://localhost:4200
       DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka/
       SERVER_PORT: 8085
       APP_ENVIRONMENT: ${APP_ENVIRONMENT}
@@ -221,6 +233,11 @@ services:
       context: ../../backend
       dockerfile: job-service/Dockerfile
     environment:
+      LOG_FORMAT: logstash
+      FRONTEND_ORIGIN: http://localhost:4200
+      S3_ENDPOINT: http://minio:9000
+      S3_PUBLIC_ENDPOINT: http://localhost:9000
+      S3_REGION: us-east-1
       SERVER_PORT: 8083
       APP_ENVIRONMENT: ${APP_ENVIRONMENT}
       DB_URL: jdbc:postgresql://postgres:5432/job_db
@@ -271,6 +288,7 @@ services:
       context: ../../backend
       dockerfile: application-service/Dockerfile
     environment:
+      LOG_FORMAT: logstash
       SERVER_PORT: 8084
       APP_ENVIRONMENT: ${APP_ENVIRONMENT}
       DB_URL: jdbc:postgresql://postgres:5432/application_db
@@ -302,6 +320,7 @@ services:
       context: ../../backend/analytics-service
       dockerfile: Dockerfile
     environment:
+      LOG_FORMAT: logstash
       SERVER_PORT: 8087
       APP_ENVIRONMENT: ${APP_ENVIRONMENT}
       DB_URL: jdbc:postgresql://postgres:5432/analytics_db
@@ -333,6 +352,11 @@ services:
       context: ../../backend/rating-service
       dockerfile: Dockerfile
     environment:
+      APP_ENVIRONMENT: ${APP_ENVIRONMENT}
+      LOG_FORMAT: logstash
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SERVICE_HTTP_CONNECT_TIMEOUT: 1s
+      SERVICE_HTTP_READ_TIMEOUT: 2s
       SERVER_PORT: 8087
       DB_URL: jdbc:postgresql://postgres:5432/rating_db
       DB_USERNAME: ${DB_USERNAME}
@@ -391,6 +415,7 @@ services:
       context: ../../backend
       dockerfile: api-gateway/Dockerfile
     environment:
+      LOG_FORMAT: logstash
       SERVER_PORT: 8080
       APP_ENVIRONMENT: ${APP_ENVIRONMENT}
       DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka/
@@ -445,6 +470,7 @@ services:
       context: ../../backend/discovery-service
       dockerfile: Dockerfile
     environment:
+      LOG_FORMAT: logstash
       SERVER_PORT: 8761
       APP_ENVIRONMENT: ${APP_ENVIRONMENT}
     healthcheck:
