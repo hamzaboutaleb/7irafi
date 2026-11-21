@@ -1,8 +1,9 @@
+server.port: 8087
 spring:
   datasource:
-    url: ${ANALYTICS_TEST_DB_URL:jdbc:postgresql://localhost:55439/analytics_test}
-    username: ${ANALYTICS_TEST_DB_USERNAME:herafi}
-    password: ${ANALYTICS_TEST_DB_PASSWORD:herafi}
+    url: ${ANALYTICS_TEST_DB_URL}
+    username: ${ANALYTICS_TEST_DB_USERNAME}
+    password: ${ANALYTICS_TEST_DB_PASSWORD}
   kafka.bootstrap-servers: localhost:9094
 eureka.client.enabled: false
 eureka.client.serviceUrl.defaultZone: http://localhost:8761/eureka/
@@ -13,3 +14,6 @@ analytics.allowed-origin: http://localhost:4200
 logging.level.root: WARN
 logging.level.org.apache.kafka: ERROR
 logging.level.kafka: ERROR
+management.metrics.tags.environment: dev
+logging.structured.format.console: logstash
+logging.structured.json.add.environment: dev

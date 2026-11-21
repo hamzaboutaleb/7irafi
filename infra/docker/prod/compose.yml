@@ -5,8 +5,6 @@ services:
     container_name: !reset null
     ports: !reset []
     restart: unless-stopped
-  kafka:
-    ports: !reset []
   minio:
     container_name: !reset null
     ports: !reset []

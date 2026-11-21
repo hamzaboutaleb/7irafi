@@ -51,6 +51,10 @@ cluster ID when reusing volumes.
 On macOS, set `OPENSSL_BIN` to your Homebrew OpenSSL executable if the system
 version does not support the required certificate options.
 
+Backend configuration files have no fallback values. Compose supplies each service's
+settings explicitly; services run outside Docker need the environment variables
+listed in their `environment` block.
+
 ### Run with HTTPS
 
 ```bash
@@ -212,8 +216,9 @@ operated database server.
 
 ### Kafka topics
 
-Local development includes a single-node KRaft Kafka broker with separate internal
-and host listeners, persistent storage, and automatic creation of four topics:
+Local development includes a single-node KRaft Kafka broker reachable inside the
+Docker network at `kafka:9092`, with persistent storage and automatic initialization
+of four topics. Kafka has no published host port.
 
 | Topic | Produced by | Consumed by |
 | --- | --- | --- |
@@ -224,8 +229,7 @@ and host listeners, persistent storage, and automatic creation of four topics:
 
 Job-service, application-service and auth-service publish through database outboxes with
 retries; job and application also keep ordering per entity. Application-service checks for
-duplicate events and job versions. See the [local Kafka setup](infra/docker/kafka/README.md)
-for startup and inspection commands.
+duplicate events and job versions.
 
 ## Database Schema
 
