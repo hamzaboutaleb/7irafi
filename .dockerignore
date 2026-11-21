@@ -2,4 +2,3 @@
 infra/docker/prod/.env
 infra/docker/prod/.env.*
 infra/docker/prod/tls/
-infra/docker/prod/.https-prepare.lock/
