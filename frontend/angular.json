@@ -5,7 +5,8 @@
     "packageManager": "npm",
     "cache": {
       "path": "node_modules/.cache/angular"
-    }
+    },
+    "analytics": false
   },
   "newProjectRoot": "projects",
   "projects": {

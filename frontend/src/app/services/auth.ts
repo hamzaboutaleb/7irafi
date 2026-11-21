@@ -89,20 +89,6 @@ export class AuthService {
     return this.refreshInFlight;
   }
 
-  // OLD (Promise):
-  // // After login or register: save the token, then open the page the user wanted.
-  // // Returns false if that page could not be opened, so the page can show an error.
-  // async finishSignIn(token: string, returnUrl: string | null): Promise<boolean> {
-  //   this.saveToken(token);
-  //   try {
-  //     // authDestination only keeps returnUrl if it is inside our site, otherwise it uses "/".
-  //     return await this.router.navigateByUrl(authDestination(returnUrl));
-  //   } catch {
-  //     return false;
-  //   }
-  // }
-
-  // NEW (Observable):
   // After login or register: save the token, then open the page the user wanted.
   // Emits false if that page could not be opened, so the page can show an error.
   finishSignIn(response: AuthResponse, returnUrl: string | null): Observable<boolean> {

@@ -72,25 +72,6 @@ export class Login {
 
     const { email, password } = this.form.getRawValue();
  
-    // OLD (async inside next):
-    // this.authService
-    //   .login(email, password)
-    //   // If the user leaves the page before the server answers, ignore the answer.
-    //   .pipe(takeUntilDestroyed(this.destroyRef))
-    //   .subscribe({
-    //     next: async (response) => {
-    //       const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
-    //       if (await this.authService.finishSignIn(response.accessToken, returnUrl)) return;
-    //       this.errorMessage.set('auth.login.failed');
-    //       this.submitting.set(false);
-    //     },
-    //     error: (error: HttpErrorResponse) => {
-    //       this.submitting.set(false);
-    //       this.errorMessage.set(this.errorKey(error));
-    //     },
-    //   });
-
-    // NEW (switchMap):
     const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
 
     this.authService

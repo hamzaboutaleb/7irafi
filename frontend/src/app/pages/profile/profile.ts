@@ -99,7 +99,7 @@ export class Profile implements OnInit {
   readonly ratingSummary = signal<UserRatingSummary | null>(null);
   readonly ratingsLoading = signal(false);
   readonly ratingsError = signal(false);
-  // NEW: every "get my average again" (first load, Retry) goes through here
+  // every "get my average again" (first load, Retry) goes through here
   private readonly ratingReload$ = new Subject<void>();
   readonly reviewListState = signal<'loading' | 'loaded' | 'error'>('loading');
   readonly reviewJobId = signal<string | null>(null);
@@ -138,15 +138,7 @@ export class Profile implements OnInit {
     });
   }
 
-  // OLD (guard in loadRatingSummary = hand-written exhaustMap):
-  // // someone posted a review: get the new average
-  // private reloadRatingOnNewReview(): void {
-  //   this.ratingService.reviewsChanged
-  //     .pipe(takeUntilDestroyed(this.destroyRef))
-  //     .subscribe(() => this.loadRatingSummary());
-  // }
-
-  // NEW (switchMap): load my average on first load, Retry, or when someone posts a review.
+  // load my average on first load, Retry, or when someone posts a review.
   // A new trigger cancels the request still running, so the newest answer always wins.
   private reloadRatingOnNewReview(): void {
     merge(this.ratingReload$, this.ratingService.reviewsChanged)
@@ -214,29 +206,7 @@ export class Profile implements OnInit {
     this.form.patchValue({ firstName: profile.firstName, lastName: profile.lastName });
   }
 
-  // OLD:
-  // // load my average rating
-  // loadRatingSummary(): void {
-  //   const userId = this.profile()?.id;
-  //   if (!userId || this.ratingsLoading()) return;
-  //   this.ratingsLoading.set(true);
-  //   this.ratingsError.set(false);
-  //   this.ratingService
-  //     .getUserRatingSummary(userId)
-  //     .pipe(takeUntilDestroyed(this.destroyRef))
-  //     .subscribe({
-  //       next: (summary) => {
-  //         this.ratingSummary.set(summary);
-  //         this.ratingsLoading.set(false);
-  //       },
-  //       error: () => {
-  //         this.ratingsError.set(true);
-  //         this.ratingsLoading.set(false);
-  //       },
-  //     });
-  // }
-
-  // NEW: load my average rating (also the Retry buttons); the stream above does the work
+  // load my average rating (also the Retry buttons); the stream above does the work
   loadRatingSummary(): void {
     this.ratingReload$.next();
   }
