@@ -7,9 +7,9 @@ import org.springframework.context.annotation.Configuration;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 
-import io.github.bucket4j.caffeine.CaffeineProxyManager;
+import io.github.bucket4j.caffeine.Bucket4jCaffeine;
+import io.github.bucket4j.distributed.ExpirationAfterWriteStrategy;
 import io.github.bucket4j.distributed.proxy.AsyncProxyManager;
-import io.github.bucket4j.distributed.remote.RemoteBucketState;
 
 /**
  * Where the rate-limit buckets live: one per client IP, in memory.
@@ -21,10 +21,12 @@ import io.github.bucket4j.distributed.remote.RemoteBucketState;
 public class RateLimitConfig {
 
     @Bean
-    @SuppressWarnings({ "rawtypes", "unchecked" })
     AsyncProxyManager<String> rateLimitBuckets() {
-        // maximumSize caps memory; buckets unused for a minute are dropped.
-        Caffeine<String, RemoteBucketState> cache = (Caffeine) Caffeine.newBuilder().maximumSize(10_000);
-        return new CaffeineProxyManager<>(cache, Duration.ofMinutes(1)).asAsync();
+        // maximumSize caps memory; a bucket is dropped one minute after it is full again.
+        return Bucket4jCaffeine.<String>builderFor(Caffeine.newBuilder().maximumSize(10_000))
+                .expirationAfterWrite(
+                        ExpirationAfterWriteStrategy.basedOnTimeForRefillingBucketUpToMax(Duration.ofMinutes(1)))
+                .build()
+                .asAsync();
     }
 }
