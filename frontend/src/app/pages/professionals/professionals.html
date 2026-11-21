@@ -140,15 +140,17 @@
                       {{ (person.online ? 'directory.online' : 'directory.offline') | translate }}
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    class="directory__bookmark"
-                    [class.directory__bookmark--saved]="savedIds().has(person.userId)"
-                    [disabled]="saving().has(person.userId)"
-                    (click)="toggleSave(person.userId)"
-                  >
-                    <svg class="directory__icon" [lucideIcon]="icons.save" />
-                  </button>
+                  @if (person.userId !== myId) {
+                    <button
+                      type="button"
+                      class="directory__bookmark"
+                      [class.directory__bookmark--saved]="savedIds().has(person.userId)"
+                      [disabled]="saving().has(person.userId)"
+                      (click)="toggleSave(person.userId)"
+                    >
+                      <svg class="directory__icon" [lucideIcon]="icons.save" />
+                    </button>
+                  }
                 </div>
 
                 <dl class="directory__facts">
@@ -307,17 +309,19 @@
         }
       </section>
 
-      <button
-        type="button"
-        class="directory__button directory__button--save"
-        [disabled]="saving().has(person.userId)"
-        (click)="toggleSave(person.userId)"
-      >
-        <svg class="directory__icon" [lucideIcon]="icons.save" />
-        {{ (savedIds().has(person.userId) ? 'directory.unsave' : 'directory.save') | translate }}
-      </button>
-      @if (saveError() === person.userId) {
-        <p class="directory__save-error">{{ 'directory.saveError' | translate }}</p>
+      @if (person.userId !== myId) {
+        <button
+          type="button"
+          class="directory__button directory__button--save"
+          [disabled]="saving().has(person.userId)"
+          (click)="toggleSave(person.userId)"
+        >
+          <svg class="directory__icon" [lucideIcon]="icons.save" />
+          {{ (savedIds().has(person.userId) ? 'directory.unsave' : 'directory.save') | translate }}
+        </button>
+        @if (saveError() === person.userId) {
+          <p class="directory__save-error">{{ 'directory.saveError' | translate }}</p>
+        }
       }
     </div>
   }

@@ -37,6 +37,7 @@ import { Navbar } from '../../components/navbar/navbar.js';
 import { RatingStars } from '../../components/rating-stars/rating-stars.js';
 import { Select } from '../../components/select/select.js';
 import { TranslatePipe } from '../../pipes/translate-pipe.js';
+import { AuthService } from '../../services/auth.js';
 import { I18nService } from '../../services/i18n.js';
 import { NetworkService } from '../../services/network.js';
 import { RatingService, UserRatingSummary } from '../../services/rating.js';
@@ -69,6 +70,10 @@ export class Professionals implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly document = inject(DOCUMENT);
   private readonly ratings = inject(RatingService);
+  private readonly auth = inject(AuthService);
+
+  // my own id: my card shows no Save button, because saving yourself is refused
+  readonly myId = this.auth.currentUserId();
 
   // every "show the list again" (filters, Next, Previous, Retry) goes through here
   private readonly reload$ = new Subject<void>();
