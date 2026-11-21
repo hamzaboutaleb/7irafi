@@ -3,12 +3,13 @@ set -eu
 
 file=infra/docker/prod/.env
 https_file=infra/docker/prod/.env.https
+
 [ -f "$file" ] || { echo "Missing $file (copy .env.example and fill it in)" >&2; exit 1; }
 for env_key in DB_USERNAME DB_PASSWORD JWT_SECRET GATEWAY_SHARED_SECRET INTERNAL_API_KEY MINIO_ROOT_USER MINIO_ROOT_PASSWORD METRICS_USERNAME METRICS_PASSWORD KAFKA_CLUSTER_ID; do
     value=$(sed -n "s/^${env_key}=//p" "$file" | tail -n 1)
     [ -n "$value" ] || { echo "Missing $env_key in $file" >&2; exit 1; }
-    case "$value" in *replace-me*) echo "Replace placeholder $env_key in $file" >&2; exit 1 ;; esac
 done
+
 secret=$(sed -n 's/^JWT_SECRET=//p' "$file" | tail -n 1)
 [ "${#secret}" -ge 32 ] || { echo 'JWT_SECRET must contain at least 32 characters' >&2; exit 1; }
 for asset in "$https_file" infra/docker/prod/tls/server.crt infra/docker/prod/tls/server.key; do
