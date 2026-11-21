@@ -13,7 +13,7 @@ import { NotificationService } from './services/notification.js';
   templateUrl: './app.html',
 })
 export class App implements OnInit {
-  protected readonly title = signal('7irafy is here');
+  protected readonly title = signal('7irafi is here');
   private authService = inject(AuthService);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);

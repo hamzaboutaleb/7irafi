@@ -14,7 +14,7 @@ export class PageTitleStrategy extends TitleStrategy {
     super();
     effect(() => {
       const key = this.pageKey();
-      this.title.setTitle(key ? `${this.i18n.translate(key)} · 7irafy` : '7irafy');
+      this.title.setTitle(key ? `${this.i18n.translate(key)} · 7irafi` : '7irafi');
     });
   }
 
