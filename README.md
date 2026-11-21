@@ -114,13 +114,10 @@ The `observability` profile provides logging and monitoring. For development:
 make dev-observability
 ```
 
-For production, configure the additional observability settings listed in
-[`infra/docker/.env.example`](infra/docker/.env.example) in your production `.env`,
-including the Grafana, Elasticsearch, Kibana, and Logstash credentials. Then run:
-
-```bash
-COMPOSE_PROFILES=observability make prod-up
-```
+For production, `make prod-up` starts logging and monitoring by default.
+Configure Grafana, Elasticsearch, Kibana, and Logstash credentials in the
+[production environment file](infra/docker/prod/.env.example). Use `make prod-down`
+to stop the application and monitoring services while keeping their data volumes.
 
 Use credentials from the `.env` file for the environment you started:
 

@@ -6,7 +6,7 @@ SPOTLESS_SERVICES := auth-service user-service chat-service notification-service
 .PHONY: help dev-init dev-check dev-up dev-down dev-ps dev-logs dev-observability db-init db-backup db-backups format-check test-backend test-analytics test build prod-https prod-preflight prod-build prod-up prod-ps prod-logs prod-backup prod-down prod-db-init fclean prod-fclean
 
 help:
-	@printf '%s\n' 'dev-init              Copy the environment template if absent' 'dev-check             Validate Compose configuration' 'dev-up                Start the app without optional observability' 'dev-observability     Start monitoring and logging' 'dev-down              Stop the development stack' 'dev-ps                Show service status' 'dev-logs              Follow app logs' 'db-init               Create missing service databases in an existing volume' 'db-backup             Take a database backup now' 'db-backups            List saved backups' 'format-check          Check configured Java formatters and shell syntax' 'test-backend          Run backend tests (except analytics)' 'test-analytics        Run analytics tests against a disposable Postgres' 'test                  Run all test targets' 'build                 Build application images' 'prod-https            Prepare the host IP and self-signed HTTPS certificate' 'prod-preflight        Check production environment, HTTPS assets, and Compose model' 'prod-build            Build production images' 'prod-up               Start production with automatic self-signed HTTPS' 'prod-ps               Show production service status' 'prod-logs             Follow production app logs' 'prod-db-init          Create missing databases on an existing production volume' 'prod-backup           Take a production database backup now' 'prod-down             Stop production containers (keep volumes)'
+	@printf '%s\n' 'dev-init              Copy the environment template if absent' 'dev-check             Validate Compose configuration' 'dev-up                Start the app without optional observability' 'dev-observability     Start monitoring and logging' 'dev-down              Stop the development stack' 'dev-ps                Show service status' 'dev-logs              Follow app logs' 'db-init               Create missing service databases in an existing volume' 'db-backup             Take a database backup now' 'db-backups            List saved backups' 'format-check          Check configured Java formatters and shell syntax' 'test-backend          Run backend tests (except analytics)' 'test-analytics        Run analytics tests against a disposable Postgres' 'test                  Run all test targets' 'build                 Build application images' 'prod-https            Prepare the host IP and self-signed HTTPS certificate' 'prod-preflight        Check production environment, HTTPS assets, and Compose model' 'prod-build            Build production images' 'prod-up               Start production with HTTPS and observability' 'prod-ps               Show production service status' 'prod-logs             Follow production app logs' 'prod-db-init          Create missing databases on an existing production volume' 'prod-backup           Take a production database backup now' 'prod-down             Stop production and observability containers (keep volumes)'
 	@printf '%s\n' 'fclean                Remove development stack and images; prune unused volumes across all projects (deletes data)' 'prod-fclean           Remove production containers, networks, images, and volumes (deletes data)'
 
 dev-init:
@@ -79,7 +79,7 @@ prod-db-init: prod-preflight
 
 prod-up: prod-https
 	$(MAKE) prod-db-init
-	$(PROD_COMPOSE) up --build --wait -d
+	$(PROD_COMPOSE) --profile observability up --build --wait -d
 	$(PROD_COMPOSE) exec -T frontend nginx -t
 
 prod-ps:
@@ -92,7 +92,7 @@ prod-backup: prod-preflight
 	$(PROD_COMPOSE) exec -T db-backup /scripts/backup.sh
 
 prod-down:
-	$(PROD_COMPOSE) down
+	$(PROD_COMPOSE) --profile observability down
 
 prod-fclean:
 	$(PROD_COMPOSE) --profile "*" down --volumes --rmi all --remove-orphans
