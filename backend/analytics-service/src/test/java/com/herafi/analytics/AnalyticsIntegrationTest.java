@@ -3,7 +3,7 @@ package com.herafi.analytics;
 import java.time.Duration;
 import java.util.UUID;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.herafi.analytics.dto.AnalyticsEvent;
 import com.herafi.analytics.dto.ApplicationEvent;
 import com.herafi.analytics.dto.JobEvent;
@@ -15,7 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.apache.kafka.clients.producer.RecordMetadata;
@@ -57,8 +57,8 @@ class AnalyticsIntegrationTest {
     @Autowired KafkaTemplate<String, String> kafka;
     @Autowired ObjectMapper mapper;
     @Autowired AnalyticsEventListener eventListener;
-    @SpyBean ProjectionRepository repository;
-    @SpyBean SimpMessagingTemplate messaging;
+    @MockitoSpyBean ProjectionRepository repository;
+    @MockitoSpyBean SimpMessagingTemplate messaging;
 
     @Test
     void preservesKafkaOrderAndIgnoresDuplicateEvents() throws Exception {

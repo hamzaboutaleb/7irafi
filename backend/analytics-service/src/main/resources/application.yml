@@ -21,4 +21,10 @@ security.jwt.secret: ${JWT_SECRET:}
 security.jwt.issuer: ${JWT_ISSUER:}
 analytics.allowed-origin: ${FRONTEND_ORIGIN:}
 eureka.client.serviceUrl.defaultZone: ${DISCOVERY_SERVICE_URL:}
-management.endpoints.web.exposure.include: health
+management.endpoints.web.exposure.include: health,prometheus
+management.metrics.tags.application: ${spring.application.name}
+management.metrics.tags.environment: ${APP_ENVIRONMENT:dev}
+# Structured JSON logs to stdout. Set LOG_FORMAT= (empty) for plain text.
+logging.structured.format.console: ${LOG_FORMAT:logstash}
+logging.structured.json.add.service: ${spring.application.name}
+logging.structured.json.add.environment: ${APP_ENVIRONMENT:dev}

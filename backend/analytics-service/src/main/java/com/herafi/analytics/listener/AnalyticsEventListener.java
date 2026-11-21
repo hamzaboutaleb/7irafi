@@ -1,11 +1,10 @@
 package com.herafi.analytics.listener;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.herafi.analytics.dto.AnalyticsEvent;
 import com.herafi.analytics.service.ProjectionService;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class AnalyticsEventListener {
@@ -21,7 +20,7 @@ public class AnalyticsEventListener {
     }
 
     @KafkaListener(id = "analytics-events", idIsGroup = false, topics = "analytics.events")
-    public void consume(String payload) throws JsonProcessingException {
+    public void consume(String payload) {
         var event = mapper.readValue(payload, AnalyticsEvent.class);
         // The separate transactional service commits before returning to this listener.
         var change = projections.apply(event);
