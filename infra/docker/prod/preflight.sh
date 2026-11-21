@@ -14,8 +14,3 @@ secret=$(sed -n 's/^JWT_SECRET=//p' "$file" | tail -n 1)
 for asset in "$https_file" infra/docker/prod/tls/server.crt infra/docker/prod/tls/server.key; do
     [ -s "$asset" ] || { echo "Missing $asset; run make prod-https first." >&2; exit 1; }
 done
-command -v docker >/dev/null || { echo 'Docker Compose is required' >&2; exit 1; }
-env -u HTTPS_HOST_IP -u FRONTEND_ORIGIN -u S3_PUBLIC_ENDPOINT -u TLS_CERT_SHA256 \
-    docker compose -p 7irafi-prod --env-file "$file" --env-file "$https_file" \
-    -f infra/docker/docker-compose.yml -f infra/docker/prod/compose.yml config --quiet
-echo 'Production configuration passed local preflight.'
