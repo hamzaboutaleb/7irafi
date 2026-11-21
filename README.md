@@ -159,72 +159,7 @@ operated database server.
 Local development includes a single-node KRaft Kafka broker with separate internal
 and host listeners, persistent storage, and automatic creation of four topics:
 
-| Requirement | Evidence in 7irafi |
-| --- | --- |
-| Focused responsibilities | Auth handles credentials/tokens, User handles profiles, Job handles jobs, Gateway handles the edge boundary, and Eureka handles discovery. |
-| Clear interfaces | The gateway exposes `/auth/**`, `/users/**`, and `/jobs/**`; Auth creates profiles through User's internal REST endpoint. |
-| Loose location coupling | Gateway routes use `lb("…-SERVICE")`; Auth calls `http://USER-SERVICE` through a `@LoadBalanced RestClient.Builder`, not a container address. |
-| Independent data ownership | `auth_db`, `user_db`, and `job_db` have separate Flyway migrations. No cross-service table access is used. |
-| Runtime discovery and load balancing | Gateway, Auth, User, and Job register in Eureka. User Service can run as multiple replicas and is selected by Spring Cloud LoadBalancer. |
-
-The implemented registration flow is REST-based. Kafka infrastructure for analytics
-is tracked separately from this claim; message queues are not a prerequisite for
-these two points.
-
-The claim still has to be demonstrated live to an evaluator; documentation alone never
-earns module points. Follow the [microservices evaluation guide](docs/architecture/loosely-coupled-microservices-major.md)
-for the exact evidence and demo sequence. The supporting architecture notes cover
-[service discovery and load balancing](docs/architecture/service-discovery.md), the
-[gateway boundary](docs/architecture/api-gateway.md), [Auth Service](docs/architecture/auth-service.md),
-[User Service](docs/architecture/user-service.md), and [database ownership](docs/architecture/postgresql.md).
-
-## Current boundaries and follow-up work
-
-- The Auth → User registration call is synchronous. It has no explicit timeout,
-  retry policy, or idempotency workflow yet.
-- Job Service is registered and routed through Eureka, but its trusted-caller filter is
-  still outstanding. Its development port must not be treated as a public production
-  interface until that boundary is implemented.
-- Service databases are logically separated locally; production should give each
-  service least-privilege credentials and, when justified, separate database instances.
-- Self-signed HTTPS for the class deployment is configured through
-  [the production overlay](infra/docker/prod/README.md). Secret rotation,
-  observability, and failure-recovery demonstrations remain completion work.
-
-## Kafka foundation
-
-Local development now includes a single-node KRaft Kafka broker with separate internal
-and host listeners, persistent storage, and automatic creation of `analytics.events`,
-`jobs.lifecycle`, and `notification.request`. Both job-service and application-service have their Kafka client
-connections configured. Both services publish analytics events through their own
-database outboxes with retries and ordering per entity. Application-service consumes
-job lifecycle events to derive accepted/rejected analytics outcomes, with duplicate
-event detection and job version checks.
-See the [local Kafka setup](infra/docker/kafka/README.md) for startup and inspection
-commands.
-
-## Service status
-
-A public status page is served at `http://localhost:4200/status`, backed by
-`GET /status` on the API Gateway.
-
-Services are discovered from Eureka rather than hardcoded: a service added later appears
-automatically, and one that has crashed and deregistered disappears. Each discovered
-service is probed on its `/actuator/health` with a 2-second timeout, so a hung service is
-reported as `DOWN` instead of hanging the page. Overall status is `UP` only when every
-service reports `UP`, otherwise `DEGRADED`.
-
-The page and the endpoint are both unauthenticated by design — a status page that cannot
-be reached during an outage is not a status page.
-
-## Backups
-
-`db-backup` runs alongside the stack and dumps every service database (`auth_db`,
-`user_db`, `job_db`, `application_db`, `chat_db`, `notification_db`) on an interval, into
-the `postgres-backups` volume. Databases are dumped separately because each service owns
-its own schema and must be restorable independently.
-
-| Variable | Default | Meaning |
+| Topic | Produced by | Consumed by |
 | --- | --- | --- |
 | `jobs.lifecycle` | job-service | application-service |
 | `analytics.events` | job-service, application-service | analytics-service |
