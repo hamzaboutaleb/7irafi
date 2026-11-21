@@ -70,11 +70,7 @@ export class Professionals implements OnInit {
   private readonly document = inject(DOCUMENT);
   private readonly ratings = inject(RatingService);
 
-  // OLD:
-  // // requests still running, so we can cancel them
-  // private request?: Subscription;
-
-  // NEW: every "show the list again" (filters, Next, Previous, Retry) goes through here
+  // every "show the list again" (filters, Next, Previous, Retry) goes through here
   private readonly reload$ = new Subject<void>();
 
   // popup requests still running, so closing the popup can cancel them
@@ -159,7 +155,7 @@ export class Professionals implements OnInit {
   ngOnInit(): void {
     this.loadFilters();
 
-    // NEW: the list. Each reload$.next() fetches a page; switchMap drops an older one still loading.
+    // the list. Each reload$.next() fetches a page; switchMap drops an older one still loading.
     // Must be set up before queryParamMap below, which emits right away.
     this.reload$
       .pipe(
@@ -281,61 +277,12 @@ export class Professionals implements OnInit {
       });
   }
 
-  // OLD (manual unsubscribe):
-  // // load one page of professionals, then the full names we don't know yet
-  // load(): void {
-  //   this.request?.unsubscribe(); // forget the old page if it's still loading
-  //   this.isLoading.set(true);
-  //   this.failed.set(false);
-  //
-  //   this.request = this.userService
-  //     .getProfessionals(
-  //       this.pageNumber(),
-  //       PAGE_SIZE,
-  //       this.selectedCity() || null,
-  //       this.selectedCategory() || null,
-  //     )
-  //     .pipe(
-  //       switchMap((response) => {
-  //         // one request per unknown person; a failed one just gives null
-  //         const lookups = response.data.content
-  //           .filter((person) => !this.people()[person.userId])
-  //           .map((person) =>
-  //             this.userService.getPublicUserProfile(person.userId).pipe(
-  //               map((result) => result.data),
-  //               catchError(() => of(null)),
-  //             ),
-  //           );
-  //         const people = lookups.length > 0 ? forkJoin(lookups) : of([]);
-  //         return people.pipe(map((found) => ({ result: response.data, found })));
-  //       }),
-  //       takeUntilDestroyed(this.destroyRef),
-  //     )
-  //     .subscribe({
-  //       next: ({ result, found }) => {
-  //         this.people.update((known) => {
-  //           const next = { ...known };
-  //           for (const person of found) {
-  //             if (person) next[person.id] = person;
-  //           }
-  //           return next;
-  //         });
-  //         this.page.set(result);
-  //         this.isLoading.set(false);
-  //       },
-  //       error: () => {
-  //         this.failed.set(true);
-  //         this.isLoading.set(false);
-  //       },
-  //     });
-  // }
-
-  // NEW: show the list again (filters, Next, Previous, Retry); the stream in ngOnInit does the work
+  // show the list again (filters, Next, Previous, Retry); the stream in ngOnInit does the work
   load(): void {
     this.reload$.next();
   }
 
-  // NEW: one page of professionals + the full names we don't know yet; null if it failed
+  // one page of professionals + the full names we don't know yet; null if it failed
   private fetchPage(): Observable<{
     result: Page<ProfessionalCard>;
     found: (PublicUserProfile | null)[];

@@ -87,25 +87,6 @@ export class Register {
     this.errorMessage.set(null);
     this.submitting.set(true);
 
-    // OLD (async inside next):
-    // this.authService
-    //   .register(this.form.getRawValue())
-    //   .pipe(takeUntilDestroyed(this.destroyRef))
-    //   .subscribe({
-    //     next: async (response) => {
-    //       const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
-    //       if (await this.authService.finishSignIn(response.accessToken, returnUrl)) return;
-    //       this.errorMessage.set('auth.register.failed');
-    //       this.submitting.set(false);
-    //     },
-    //     error: (error: HttpErrorResponse) => {
-    //       this.submitting.set(false);
-    //       if (this.showFieldErrors(error)) return;
-    //       this.errorMessage.set(this.errorKey(error));
-    //     },
-    //   });
-
-    // NEW (switchMap):
     const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
 
     this.authService
