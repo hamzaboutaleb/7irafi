@@ -35,6 +35,14 @@ scrape_configs:
     metrics_path: /actuator/prometheus
     static_configs:
       - targets: ['notification-service:8086']
+  - job_name: rating-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['rating-service:8087']
+  - job_name: analytics-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['analytics-service:8087']
   # Only the gateway port is public, so only it needs basic auth; entrypoint.sh writes these files.
   - job_name: api-gateway
     metrics_path: /actuator/prometheus
