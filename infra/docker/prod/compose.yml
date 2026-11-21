@@ -1,4 +1,4 @@
-# Overlay for a single-host deployment behind an HTTPS reverse proxy.
+# Overlay for a single-host class project with self-signed HTTPS in Nginx.
 # Requires Docker Compose 2.24.4+ for !override and !reset.
 services:
   postgres:
@@ -9,8 +9,7 @@ services:
     ports: !reset []
   minio:
     container_name: !reset null
-    ports: !override
-      - "127.0.0.1:${MINIO_PROXY_PORT:-9000}:9000"
+    ports: !reset []
     restart: unless-stopped
   discovery-service:
     container_name: !reset null
@@ -83,8 +82,19 @@ services:
       context: ../..
       dockerfile: infra/docker/prod/frontend.Dockerfile
     ports: !override
-      - "127.0.0.1:${FRONTEND_PROXY_PORT:-8088}:80"
-    volumes: !reset []
+      - "8088:80"
+      - "8443:443"
+      - "9443:9443"
+    environment:
+      # A changed fingerprint makes Compose recreate Nginx with the new certificate.
+      TLS_CERT_SHA256: ${TLS_CERT_SHA256:?Run make prod-https first}
+    volumes: !override
+      - type: bind
+        source: ./prod/tls
+        target: /etc/nginx/tls
+        read_only: true
+        bind:
+          create_host_path: false
     depends_on:
       api-gateway:
         condition: service_healthy
@@ -93,6 +103,8 @@ services:
       notification-service:
         condition: service_healthy
       analytics-service:
+        condition: service_healthy
+      minio:
         condition: service_healthy
     restart: unless-stopped
   db-backup:

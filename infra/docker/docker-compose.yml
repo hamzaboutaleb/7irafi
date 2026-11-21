@@ -361,7 +361,6 @@ services:
       retries: 20
 
   minio:
-    # image: local/minio-community:RELEASE.2025-09-07T16-13-09Z
     build:
       context: ./minio
       args:
@@ -376,7 +375,6 @@ services:
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minio123}
     volumes:
       - minio_data:/data
-    command: server /data --console-address ":9001"
     healthcheck:
       test:
         [

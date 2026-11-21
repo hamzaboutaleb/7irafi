@@ -19,6 +19,7 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+/infra/docker/prod/tls/
 **/.metals
 # Local-only working files (see CLAUDE.md: only code is pushed)
 /handoff.md

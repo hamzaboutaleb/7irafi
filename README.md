@@ -85,8 +85,9 @@ for the exact evidence and demo sequence. The supporting architecture notes cove
   interface until that boundary is implemented.
 - Service databases are logically separated locally; production should give each
   service least-privilege credentials and, when justified, separate database instances.
-- TLS, secret rotation, observability, and failure-recovery demonstrations remain
-  project-wide completion work.
+- Self-signed HTTPS for the class deployment is configured through
+  [the production overlay](infra/docker/prod/README.md). Secret rotation,
+  observability, and failure-recovery demonstrations remain completion work.
 
 ## Kafka foundation
 
