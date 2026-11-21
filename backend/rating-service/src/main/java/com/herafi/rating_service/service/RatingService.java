@@ -20,15 +20,19 @@ import com.herafi.rating_service.dto.CreateRatingRequest;
 import com.herafi.rating_service.dto.PageResponse;
 import com.herafi.rating_service.dto.RatingResponse;
 import com.herafi.rating_service.dto.UserRatingSummary;
+import com.herafi.rating_service.entity.OutboxEvent;
 import com.herafi.rating_service.entity.Rating;
+import com.herafi.rating_service.event.NotificationRequestedEvent;
 import com.herafi.rating_service.exception.DuplicateRatingException;
 import com.herafi.rating_service.exception.JobNotCompletedException;
 import com.herafi.rating_service.exception.JobServiceUnavailableException;
 import com.herafi.rating_service.exception.RatingException;
+import com.herafi.rating_service.repository.OutboxEventRepository;
 import com.herafi.rating_service.repository.RatingRepository.ScoreCount;
 import com.herafi.rating_service.repository.RatingRepository;
 
 import lombok.RequiredArgsConstructor;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Checks the rules for creating ratings and reads ratings from the database.
@@ -54,7 +58,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class RatingService {
 
+    private static final String NOTIFICATION_TOPIC = "notification.request";
+
     private final RatingRepository repository;
+    private final OutboxEventRepository outboxRepository;
+    private final ObjectMapper mapper;
     private final JobClient jobClient;
     private final UserClient userClient;
 
@@ -79,8 +87,24 @@ public class RatingService {
 
         Rating rating = buildRating(raterId, request);
         Rating saved = repository.save(rating);
+        queueRatingNotification(saved);
         Map<UUID, String> names = userClient.getDisplayNames(Set.of(raterId, request.rateeId()));
         return toResponse(saved, names, jobClient.getTitles(Set.of(request.jobId())));
+    }
+
+    private void queueRatingNotification(Rating rating) {
+        var event = new NotificationRequestedEvent(
+                rating.getId(),
+                rating.getRateeId(),
+                "RATING_RECEIVED",
+                "New rating",
+                "You received a %d/5 rating.".formatted(rating.getScore()),
+                "/profile#profile-ratings-heading");
+
+        outboxRepository.save(new OutboxEvent(
+                NOTIFICATION_TOPIC,
+                event.recipientId().toString(),
+                mapper.writeValueAsString(event)));
     }
 
     /**
