@@ -1,5 +1,5 @@
 COMPOSE := docker compose -f infra/docker/docker-compose.yml
-PROD_COMPOSE := env -u HTTPS_HOST_IP -u FRONTEND_ORIGIN -u S3_PUBLIC_ENDPOINT -u TLS_CERT_SHA256 docker compose -p 7irafi-prod --env-file infra/docker/prod/.env --env-file infra/docker/prod/.env.https -f infra/docker/docker-compose.yml -f infra/docker/prod/compose.yml
+PROD_COMPOSE := env -u FRONTEND_ORIGIN -u S3_PUBLIC_ENDPOINT -u TLS_CERT_SHA256 docker compose -p 7irafi-prod --env-file infra/docker/prod/.env --env-file infra/docker/prod/.env.https -f infra/docker/docker-compose.yml -f infra/docker/prod/compose.yml
 BACKEND_SERVICES := auth-service user-service job-service application-service chat-service notification-service api-gateway discovery-service rating-service
 SPOTLESS_SERVICES := auth-service user-service chat-service notification-service api-gateway discovery-service rating-service
 
@@ -62,6 +62,8 @@ prod-https:
 
 prod-preflight:
 	sh infra/docker/prod/preflight.sh
+	$(PROD_COMPOSE) config --quiet
+	@echo 'Production configuration passed local preflight.'
 
 prod-build: prod-preflight
 	$(PROD_COMPOSE) build frontend api-gateway auth-service user-service job-service application-service chat-service notification-service rating-service analytics-service

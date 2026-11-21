@@ -82,8 +82,8 @@ services:
       context: ../..
       dockerfile: infra/docker/prod/frontend.Dockerfile
     ports: !override
-      - "80:80"
-      - "443:443"
+      - "8088:80"
+      - "8443:443"
       - "9443:9443"
     environment:
       # A changed fingerprint makes Compose recreate Nginx with the new certificate.
