@@ -87,7 +87,7 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/auth_db
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
-      SQL_LOG_LEVEL: debug
+      SQL_LOG_LEVEL: info
       DISCOVERY_SERVICE_URL: http://discovery-service:8761/eureka/
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       JWT_SECRET: ${JWT_SECRET}
@@ -121,7 +121,7 @@ services:
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      SQL_LOG_LEVEL: debug
+      SQL_LOG_LEVEL: info
       GATEWAY_SHARED_SECRET: ${GATEWAY_SHARED_SECRET}
       INTERNAL_API_KEY: ${INTERNAL_API_KEY}
       S3_BUCKET: avatars
@@ -158,7 +158,7 @@ services:
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      SQL_LOG_LEVEL: debug
+      SQL_LOG_LEVEL: info
       GATEWAY_SHARED_SECRET: ${GATEWAY_SHARED_SECRET}
       JWT_SECRET: ${JWT_SECRET}
     ports:
@@ -192,7 +192,7 @@ services:
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      SQL_LOG_LEVEL: debug
+      SQL_LOG_LEVEL: info
       GATEWAY_SHARED_SECRET: ${GATEWAY_SHARED_SECRET}
       INTERNAL_API_KEY: ${INTERNAL_API_KEY}
       JWT_SECRET: ${JWT_SECRET}
@@ -554,7 +554,7 @@ services:
       ELASTIC_PASSWORD: ${ELASTIC_PASSWORD}
     volumes:
       - elasticsearch-data:/usr/share/elasticsearch/data
-    mem_limit: 1g
+    mem_limit: 2g
     healthcheck:
       test: ["CMD-SHELL", "curl -s -u elastic:$${ELASTIC_PASSWORD} http://localhost:9200/_cluster/health | grep -qE 'green|yellow'"]
       interval: 5s

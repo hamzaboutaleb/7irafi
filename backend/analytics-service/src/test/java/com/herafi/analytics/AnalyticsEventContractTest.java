@@ -3,8 +3,6 @@ package com.herafi.analytics;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.herafi.analytics.dto.AnalyticsEvent;
 import com.herafi.analytics.dto.ApplicationEvent;
 import com.herafi.analytics.dto.ApplicationStatus;
@@ -12,12 +10,15 @@ import com.herafi.analytics.dto.JobEvent;
 import com.herafi.analytics.dto.JobStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
+import tools.jackson.databind.DatabindException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class AnalyticsEventContractTest {
-    private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
+    private final ObjectMapper mapper = JsonMapper.builder().findAndAddModules().build();
 
     @Test
     void decodesTheProducerJobFixture() throws Exception {
@@ -42,11 +43,11 @@ class AnalyticsEventContractTest {
     void rejectsUnknownTypesAndIncompletePayloadsBeforeProjection() throws Exception {
         String json = fixture("job-created.json");
         assertThatThrownBy(() -> mapper.readValue(json.replace("JOB_CREATED", "OTHER"), AnalyticsEvent.class))
-                .isInstanceOf(JsonMappingException.class);
+                .isInstanceOf(DatabindException.class);
         assertThatThrownBy(() -> mapper.readValue(json.replace("\"PLUMBING\"", "null"), AnalyticsEvent.class))
-                .isInstanceOf(JsonMappingException.class);
+                .isInstanceOf(DatabindException.class);
         assertThatThrownBy(() -> mapper.readValue(json.replace("OPEN", "ASSIGNED"), AnalyticsEvent.class))
-                .isInstanceOf(JsonMappingException.class);
+                .isInstanceOf(DatabindException.class);
     }
 
     private String fixture(String name) throws Exception {
