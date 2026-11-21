@@ -42,15 +42,11 @@ Create the production environment file:
 cp infra/docker/prod/.env.example infra/docker/prod/.env
 ```
 
-Edit `infra/docker/prod/.env` and replace every `replace-me` value. Set `JWT_SECRET`
-to at least 32 characters and `TLS_HOST_IP` to the machine's IPv4 address reachable
-by your demo devices. For example:
-
-```dotenv
-TLS_HOST_IP=192.168.1.42
-OPENSSL_BIN=openssl
-KAFKA_PORT=9094
-```
+The example defaults run a fresh local HTTPS demo at `https://127.0.0.1:8443`.
+To open it from another device, set `TLS_HOST_IP` to the host's reachable IPv4
+address before starting. Use unique credentials and a JWT secret of at least
+32 characters for a real deployment. Keep the existing credentials and Kafka
+cluster ID when reusing volumes.
 
 On macOS, set `OPENSSL_BIN` to your Homebrew OpenSSL executable if the system
 version does not support the required certificate options.
@@ -88,11 +84,10 @@ and `make prod-down` to stop the stack while keeping its data volumes.
 
 ### Local development
 
-Create the development environment file and fill in its values before starting:
+Create the development environment file and start the stack:
 
 ```bash
 make dev-init
-# Edit infra/docker/.env and replace the placeholder values.
 make dev-up
 ```
 

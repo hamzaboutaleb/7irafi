@@ -11,7 +11,7 @@ help:
 
 dev-init:
 	@test -e infra/docker/.env || cp infra/docker/.env.example infra/docker/.env
-	@echo 'Set all placeholder values in infra/docker/.env before starting.'
+	@echo 'Development settings are in infra/docker/.env.'
 
 dev-check:
 	$(COMPOSE) config --quiet
