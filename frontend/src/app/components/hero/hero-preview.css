@@ -1,9 +1,8 @@
 .hero__preview {
   border-style: var(--tw-border-style);
   background-color: var(--color-white, #fff);
-  --tw-shadow: 0 12px 32px var(--tw-shadow-color, #1118270f);
   min-width: 0;
-  box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  box-shadow: 0 4px 12px rgb(15 23 42 / 8%), 0 20px 44px rgb(15 23 42 / 14%);
   border-width: 1px;
   border-color: #dce3e7;
   border-radius: 1rem;

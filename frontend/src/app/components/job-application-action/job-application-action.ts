@@ -47,6 +47,7 @@ export class JobApplicationAction implements OnInit {
 
   readonly busy = signal(false);
   readonly applied = signal(false);
+  readonly applicationStatus = signal<'loading' | 'ready' | 'error'>('loading');
   readonly applyError = signal<string | null>(null);
   readonly isOwner = computed(() => this.currentUserId() === this.job().clientId);
   readonly eligibility = computed(() => {
@@ -57,6 +58,7 @@ export class JobApplicationAction implements OnInit {
   });
   readonly canApply = computed(
     () =>
+      this.applicationStatus() === 'ready' &&
       this.eligibility() === 'eligible' &&
       !this.isOwner() &&
       this.job().status === 'OPEN' &&
@@ -67,6 +69,26 @@ export class JobApplicationAction implements OnInit {
   ngOnInit(): void {
     this.applied.set(this.alreadyApplied());
     this.loadEligibility();
+
+    if (this.alreadyApplied()) {
+      this.applicationStatus.set('ready');
+    } else {
+      this.loadApplicationStatus();
+    }
+  }
+
+  loadApplicationStatus(): void {
+    this.applicationStatus.set('loading');
+    this.applications
+      .getMyApplicationStatus(this.job().id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: ({ applied }) => {
+          this.applied.set(applied);
+          this.applicationStatus.set('ready');
+        },
+        error: () => this.applicationStatus.set('error'),
+      });
   }
 
   loadEligibility(): void {

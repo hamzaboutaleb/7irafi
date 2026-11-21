@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculum by yrachidi, TODO(team): login2, login3, login4, login5.*
+*This project has been created as part of the 42 curriculum by yrachidi, hboutale, TODO(team): login2, login4, login5.*
 
 # 7irafi
 
@@ -76,7 +76,7 @@ Grafana, Prometheus, Alertmanager and Kibana listen on `127.0.0.1` only.
 | --- | --- | --- | --- |
 | yrachidi | Youssef Rachidi | Product Owner, Developer | Authentication (auth-service), user profiles and connections (user-service), API gateway, service discovery (Eureka); login, register, profile and professionals pages; i18n |
 | aelfadl | Ayman Elfadl | TODO(team): role, Developer | Jobs (job-service), applications (application-service), Kafka messaging, MinIO file storage; jobs, my-jobs, create-job and applicants pages |
-| TODO | Hamza Boutaleb | TODO(team): role, Developer | Ratings (rating-service), notifications (notification-service), conversations (chat-service); landing page, navbar, footer and shared UI; frontend BEM styling |
+| hboutale | Hamza Boutaleb | Tech Lead, Developer | Ratings (rating-service), notifications (notification-service), conversations (chat-service); landing page, navbar, footer and shared UI; frontend BEM styling |
 | TODO | Ismail Taha | TODO(team): role, Developer | DevOps: ELK logging, Prometheus/Grafana/Alertmanager monitoring, shared-kernel module, Makefile, production setup |
 | TODO | TODO (Yoares) | TODO(team): role, Developer | Analytics (analytics-service): dashboard projections, queries and live updates; account analytics dashboard |
 ## Project Management
@@ -529,6 +529,8 @@ and Kafka where it does not (registration, notifications, analytics, job lifecyc
     pattern, Angular signals) and the reasons behind design choices, so the code could
     be written and explained without help.
 - **aelfadl:** TODO(team): which tasks and which parts of the project used AI.
-- **Hamza Boutaleb:** TODO(team): which tasks and which parts of the project used AI.
+- **hboutale (Hamza Boutaleb):**
+  - **Learning:** Used AI to learn Angular, TypeScript, Spring Boot, and Tailwind CSS.
+  - **Styling:** Used AI for repetitive frontend work, including moving Tailwind utility classes from Angular templates into BEM-organized component styles while continuing to use Tailwind CSS.
 - **Ismail Taha:** TODO(team): which tasks and which parts of the project used AI.
 - **Yoares:** TODO(team): which tasks and which parts of the project used AI.

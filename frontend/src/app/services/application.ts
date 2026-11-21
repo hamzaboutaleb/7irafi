@@ -14,6 +14,12 @@ export class ApplicationService {
     return this.http.get<ApplicationPage>('applications/my', { params: { page, size: 10 } });
   }
 
+  getMyApplicationStatus(jobId: string) {
+    return this.http.get<{ applied: boolean }>('applications/my/status', {
+      params: { jobId },
+    });
+  }
+
   getApplicants(jobId: string, page = 0) {
     return this.http.get<ApplicationPage>(`applications/job/${jobId}`, {
       params: { page, size: 10 },

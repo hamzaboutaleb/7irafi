@@ -28,21 +28,16 @@
       <h2 class="conversation__name">{{ displayName() }}</h2>
       <p class="conversation__job">{{ title() ?? ('chat.jobUnavailable' | translate) }}</p>
     </div>
-    <span class="conversation__connection" role="status">
-      <span
-        class="conversation__connection-dot"
-        [class.conversation__connection-dot--connected]="connection() === 'connected'"
-        aria-hidden="true"
-      ></span>
-      {{
-        (connection() === 'connected'
-          ? 'chat.live'
-          : connection() === 'connecting'
-            ? 'chat.reconnecting'
-            : 'chat.disconnected'
-        ) | translate
-      }}
-    </span>
+    @if (otherOnline() !== null) {
+      <span class="conversation__presence" role="status">
+        <span
+          class="conversation__presence-dot"
+          [class.conversation__presence-dot--online]="otherOnline()"
+          aria-hidden="true"
+        ></span>
+        {{ (otherOnline() ? 'common.online' : 'common.offline') | translate }}
+      </span>
+    }
   </header>
   <div class="conversation__job-context">
     <span>{{
@@ -91,8 +86,6 @@
   </div>
   @if (notice()) {
     <p role="alert" class="conversation__notice">{{ notice() }}</p>
-  } @else if (connection() !== 'connected') {
-    <p role="status" class="conversation__notice">{{ 'chat.connectionHint' | translate }}</p>
   }
   <div class="conversation__composer-area">
     <form (ngSubmit)="send()" class="conversation__composer">

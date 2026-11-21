@@ -16,6 +16,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
+  EMPTY,
   Observable,
   Subject,
   catchError,
@@ -27,6 +28,7 @@ import {
   of,
   startWith,
   switchMap,
+  timer,
 } from 'rxjs';
 import {
   LucideArrowLeft,
@@ -50,8 +52,10 @@ interface ConversationData {
   history: Page<ChatMessage>;
   title: string | null;
   person: PublicUserProfile | null;
+  otherUserId: string;
 }
 
+const PRESENCE_REFRESH_MS = 45_000;
 const PAGE_SIZE = 20;
 const MAX_LENGTH = 4000;
 
@@ -90,6 +94,7 @@ export class Conversation implements OnInit {
   readonly connection = this.chat.state;
   readonly conversation = signal<ConversationModel | null>(null);
   readonly title = signal<string | null>(null);
+  readonly otherOnline = signal<boolean | null>(null);
   readonly otherName = signal<string | null>(null);
   readonly avatarUrl = signal<string | null>(null);
   readonly messages = signal<ChatMessage[]>([]);
@@ -122,17 +127,27 @@ export class Conversation implements OnInit {
         switchMap(([conversationId]) => {
           this.prepareConversation(conversationId);
 
-          return this.loadConversation(conversationId);
+          return this.loadConversation(conversationId).pipe(
+            switchMap((data) => {
+              if (!data) {
+                return EMPTY;
+              }
+
+              this.showConversation(data);
+              return timer(PRESENCE_REFRESH_MS, PRESENCE_REFRESH_MS).pipe(
+                switchMap(() =>
+                  this.users.getPublicUserProfile(data.otherUserId).pipe(
+                    map((response) => response.data?.online ?? null),
+                    catchError(() => of(null)),
+                  ),
+                ),
+              );
+            }),
+          );
         }),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe((data) => {
-        if (!data) {
-          return;
-        }
-
-        this.showConversation(data);
-      });
+      .subscribe((online) => this.otherOnline.set(online));
   }
 
   private listenForMessages(): void {
@@ -161,6 +176,7 @@ export class Conversation implements OnInit {
 
     this.conversationId = conversationId;
     this.reset();
+    this.otherOnline.set(null);
     this.draft = this.drafts.get(conversationId) ?? '';
   }
 
@@ -191,6 +207,7 @@ export class Conversation implements OnInit {
           history: history$,
           title: title$,
           person: person$,
+          otherUserId: of(otherUserId),
         });
       }),
       // Handle failure here so route changes and Retry keep working.
@@ -216,6 +233,7 @@ export class Conversation implements OnInit {
     this.conversation.set(data.conversation);
     this.title.set(data.title);
     this.otherName.set(otherName);
+    this.otherOnline.set(data.person?.online ?? null);
     this.avatarUrl.set(data.person?.avatarUrl ?? null);
     this.hasOlder.set(data.history.totalPages > 1);
     this.merge(data.history.content);

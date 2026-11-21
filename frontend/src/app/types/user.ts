@@ -2,6 +2,7 @@ import { ServiceCategory, ServiceCity } from './professional-profile.js';
 
 /** Profile fields available to other signed-in users, including job owners. */
 export interface PublicUserProfile {
+  online: boolean;
   id: string;
   firstName: string;
   lastName: string;

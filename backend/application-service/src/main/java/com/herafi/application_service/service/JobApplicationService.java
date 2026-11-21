@@ -39,6 +39,10 @@ public class JobApplicationService {
     private final MeterRegistry meterRegistry;
     private final ApplicationSubmissionService submissionService;
 
+    public boolean hasApplied(UUID jobId, UUID applicantId) {
+        return repository.existsByJobIdAndApplicantId(jobId, applicantId);
+    }
+
     public ApplicationResponse apply(UUID jobId, UUID applicantId) {
         userClient.requireActiveWorker(applicantId);
         var job = jobClient.getSummary(jobId);

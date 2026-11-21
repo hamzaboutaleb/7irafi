@@ -97,20 +97,20 @@
   line-height: 1.25rem;
 }
 
-.conversation__connection {
+.conversation__presence {
   @apply inline-flex items-center text-gray-500;
   gap: 0.375rem;
   font-size: 0.75rem;
   line-height: 1.25rem;
 }
 
-.conversation__connection-dot {
+.conversation__presence-dot {
   @apply shrink-0 rounded-full bg-gray-400;
   width: 0.375rem;
   height: 0.375rem;
 }
 
-.conversation__connection-dot--connected {
+.conversation__presence-dot--online {
   @apply bg-primary-700;
 }
 
@@ -253,7 +253,7 @@
     @apply inline-flex;
   }
 
-  .conversation__connection {
+  .conversation__presence {
     @apply w-full;
     padding-inline-start: 2.75rem;
   }

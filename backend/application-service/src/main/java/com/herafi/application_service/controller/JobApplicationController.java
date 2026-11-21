@@ -37,6 +37,16 @@ public class JobApplicationController {
         return service.getMyApplications(applicantId, page, size);
     }
 
+    @GetMapping("/my/status")
+    public ApplicationStatusResponse getMyApplicationStatus(
+            @RequestParam UUID jobId,
+            @RequestHeader("X-User-Id") UUID applicantId) {
+        return new ApplicationStatusResponse(service.hasApplied(jobId, applicantId));
+    }
+
+    public record ApplicationStatusResponse(boolean applied) {
+    }
+
     @GetMapping("/job/{jobId}")
     public PageResponse<ApplicationResponse> getJobApplications(
             @PathVariable UUID jobId,

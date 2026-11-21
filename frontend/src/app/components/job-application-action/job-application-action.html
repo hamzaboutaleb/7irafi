@@ -13,6 +13,17 @@
     </a>
   } @else if (job().status !== 'OPEN') {
     <p class="job-application-action__note">{{ 'jobDetails.closed' | translate }}</p>
+  } @else if (applicationStatus() === 'loading') {
+    <p class="job-application-action__note" role="status">
+      {{ 'jobDetails.checkingApplication' | translate }}
+    </p>
+  } @else if (applicationStatus() === 'error') {
+    <p class="job-application-action__note" role="alert">
+      {{ 'jobDetails.applicationCheckFailed' | translate }}
+    </p>
+    <button type="button" class="job-application-action__link" (click)="loadApplicationStatus()">
+      {{ 'common.retry' | translate }}
+    </button>
   } @else if (eligibility() === 'loading') {
     <p class="job-application-action__note" role="status">
       {{ 'jobDetails.checkingProfile' | translate }}
